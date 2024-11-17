@@ -18,9 +18,9 @@ module.exports = {
       //.setTitle("Spenden Optionen")
       .addFields([{
                
-                name: "💗 PAYPAL",
+                name: "💗 Ko-Fi",
                 value: `
-                <:icon_reply:993231553083736135>[PayPal.me](https://paypal.me/IveFlammang)
+                <:icon_reply:993231553083736135>[Support StreamNet Club](https://ko-fi.com/streamnetclub)
                 `
 
             }
