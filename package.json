@@ -15,7 +15,7 @@
   },
   "homepage": "https://github.com/cyb3rgh05t/mr.streamnet-lite#readme",
   "dependencies": {
-    "@discordjs/voice": "^0.16.0",
+    "@discordjs/voice": "^0.18.0",
     "ascii-table": "^0.0.9",
     "axios": "^1.1.2",
     "byte-size": "^8.1.0",
