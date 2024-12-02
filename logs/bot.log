@@ -15231,3 +15231,179 @@ Ron Kamonohashi's Forbidden Deductions - S02E09 - The Case of the Psychology Res
 Quality : 1080p from Mr.StreamNet#0000
 2024-12-02 18:35:41 [DEBUG] Updated system info message for guild 'StreamNet.Club' (ID: 417939816450228225).
 2024-12-02 18:37:41 [DEBUG] Updated system info message for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:02:55 [INFO] 
+
+            _      _____           _     _____ _____ _   
+           | |    |____ |         | |   |  _  |  ___| |  
+  ___ _   _| |__      / /_ __ __ _| |__ | |/' |___ \| |_ 
+ / __| | | | '_ \     \ \ '__/ _` | '_ \|  /| |   \ \ __|
+| (__| |_| | |_) |.___/ / | | (_| | | | \ |_/ /\__/ / |_ 
+ \___|\__, |_.__/ \____/|_|  \__, |_| |_|\___/\____/ \__|
+       __/ |                  __/ |                      
+      |___/                  |___/                       
+
+2024-12-02 19:02:55 [INFO] Starting Bot Version 2.0...
+2024-12-02 19:02:55 [INFO] Logging configured successfully.
+2024-12-02 19:02:55 [DEBUG] Using proactor: IocpProactor
+2024-12-02 19:02:56 [INFO] Cleared all global commands.
+2024-12-02 19:02:56 [INFO] Found guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:02:56 [INFO] CaptchaSystem cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.captcha.captcha
+2024-12-02 19:02:56 [INFO] Abo Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.abo
+2024-12-02 19:02:56 [INFO] App Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.app1
+2024-12-02 19:02:56 [INFO] App Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.app2
+2024-12-02 19:02:56 [INFO] App Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.app3
+2024-12-02 19:02:56 [INFO] AppStore Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.appstore
+2024-12-02 19:02:56 [INFO] Verify Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.captcha
+2024-12-02 19:02:56 [INFO] Channels Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.channels
+2024-12-02 19:02:56 [INFO] Dashboard Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.dashboard
+2024-12-02 19:02:56 [INFO] Donate Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.donate
+2024-12-02 19:02:56 [INFO] Invites Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.invites
+2024-12-02 19:02:56 [INFO] Lines Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.lines
+2024-12-02 19:02:56 [INFO] Plex Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.plex
+2024-12-02 19:02:56 [INFO] Rules Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.rules
+2024-12-02 19:02:56 [INFO] Server Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.server
+2024-12-02 19:02:56 [INFO] Support Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.support
+2024-12-02 19:02:56 [INFO] TV Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.tv
+2024-12-02 19:02:56 [INFO] Welcome Logo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.logos.welcome
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.abo
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.appstore
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.channels
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.donate
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.invites
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.lines
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.plex
+2024-12-02 19:02:56 [INFO] RulesAcceptButton cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.rules
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.store
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.tickets
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.tv
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.verify
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.welcome
+2024-12-02 19:02:56 [INFO] SystemInfo cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.server.server
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.slashCommands.members.kick
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.slashCommands.ping.ping
+2024-12-02 19:02:56 [INFO] TicketInteraction cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.slashCommands.tickets.initial_ticket
+2024-12-02 19:02:56 [INFO] TicketHandler cog loaded.
+2024-12-02 19:02:56 [DEBUG] Loaded cog: cogs.slashCommands.tickets.initial_ticket_tv
+2024-12-02 19:02:57 [INFO] TicketOptions cog loaded.
+2024-12-02 19:02:57 [DEBUG] Loaded cog: cogs.slashCommands.tickets.tickets
+2024-12-02 19:02:57 [INFO] TicketSetup cog loaded.
+2024-12-02 19:02:57 [DEBUG] Loaded cog: cogs.slashCommands.tickets.tickets_setup
+2024-12-02 19:02:57 [INFO] Loaded all extensions (cogs).
+2024-12-02 19:02:57 [INFO] Synced 3 commands to guild '417939816450228225'.
+2024-12-02 19:02:57 [INFO] Synced commands: ['kick', 'ping', 'ticketsetup']
+2024-12-02 19:03:00 [DEBUG] Attempting to resend rules message for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:03:00 [DEBUG] Retrieving rules message ID for guild 417939816450228225.
+2024-12-02 19:03:00 [DEBUG] Found message ID 1313111934152736768 for guild 417939816450228225.
+2024-12-02 19:03:00 [DEBUG] Attempting to fetch message ID 1313111934152736768 in channel 💭general.
+2024-12-02 19:03:00 [INFO] SystemInfo cog is ready.
+2024-12-02 19:03:01 [WARNING] Rules message with ID 1313111934152736768 not found in guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:03:01 [INFO] Reinitialized ticket panel for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:03:02 [DEBUG] Updated system info message for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:05:01 [DEBUG] Updated system info message for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:07:01 [DEBUG] Updated system info message for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:20:50 [INFO] 
+
+            _      _____           _     _____ _____ _   
+           | |    |____ |         | |   |  _  |  ___| |  
+  ___ _   _| |__      / /_ __ __ _| |__ | |/' |___ \| |_ 
+ / __| | | | '_ \     \ \ '__/ _` | '_ \|  /| |   \ \ __|
+| (__| |_| | |_) |.___/ / | | (_| | | | \ |_/ /\__/ / |_ 
+ \___|\__, |_.__/ \____/|_|  \__, |_| |_|\___/\____/ \__|
+       __/ |                  __/ |                      
+      |___/                  |___/                       
+
+2024-12-02 19:20:50 [INFO] Starting Bot Version 2.0...
+2024-12-02 19:20:50 [INFO] Logging configured successfully.
+2024-12-02 19:20:50 [DEBUG] Using proactor: IocpProactor
+2024-12-02 19:20:51 [INFO] Cleared all global commands.
+2024-12-02 19:20:51 [INFO] Found guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:20:51 [INFO] CaptchaSystem cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.captcha.captcha
+2024-12-02 19:20:51 [INFO] Abo Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.abo
+2024-12-02 19:20:51 [INFO] App Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.app1
+2024-12-02 19:20:51 [INFO] App Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.app2
+2024-12-02 19:20:51 [INFO] App Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.app3
+2024-12-02 19:20:51 [INFO] AppStore Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.appstore
+2024-12-02 19:20:51 [INFO] Verify Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.captcha
+2024-12-02 19:20:51 [INFO] Channels Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.channels
+2024-12-02 19:20:51 [INFO] Dashboard Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.dashboard
+2024-12-02 19:20:51 [INFO] Donate Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.donate
+2024-12-02 19:20:51 [INFO] Invites Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.invites
+2024-12-02 19:20:51 [INFO] Lines Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.lines
+2024-12-02 19:20:51 [INFO] Plex Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.plex
+2024-12-02 19:20:51 [INFO] Rules Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.rules
+2024-12-02 19:20:51 [INFO] Server Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.server
+2024-12-02 19:20:51 [INFO] Support Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.support
+2024-12-02 19:20:51 [INFO] TV Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.tv
+2024-12-02 19:20:51 [INFO] Welcome Logo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.logos.welcome
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.abo
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.appstore
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.channels
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.donate
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.invites
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.lines
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.plex
+2024-12-02 19:20:51 [INFO] RulesAcceptButton cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.rules
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.store
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.tickets
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.tv
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.verify
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.prefixCommands.moderation.welcome
+2024-12-02 19:20:51 [INFO] SystemInfo cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.server.server
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.slashCommands.members.kick
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.slashCommands.ping.ping
+2024-12-02 19:20:51 [INFO] TicketInteraction cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.slashCommands.tickets.initial_ticket
+2024-12-02 19:20:51 [INFO] TicketHandler cog loaded.
+2024-12-02 19:20:51 [DEBUG] Loaded cog: cogs.slashCommands.tickets.initial_ticket_tv
+2024-12-02 19:20:52 [INFO] TicketOptions cog loaded.
+2024-12-02 19:20:52 [DEBUG] Loaded cog: cogs.slashCommands.tickets.tickets
+2024-12-02 19:20:52 [INFO] TicketSetup cog loaded.
+2024-12-02 19:20:52 [DEBUG] Loaded cog: cogs.slashCommands.tickets.tickets_setup
+2024-12-02 19:20:52 [INFO] Loaded all extensions (cogs).
+2024-12-02 19:20:52 [INFO] Synced 3 commands to guild '417939816450228225'.
+2024-12-02 19:20:52 [INFO] Synced commands: ['kick', 'ping', 'ticketsetup']
+2024-12-02 19:20:55 [INFO] SystemInfo cog is ready.
+2024-12-02 19:20:56 [WARNING] Rules message with ID 1313111934152736768 not found in guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:20:56 [INFO] Reinitialized ticket panel for guild 'StreamNet.Club' (ID: 417939816450228225).
+2024-12-02 19:20:56 [DEBUG] Updated system info message for guild 'StreamNet.Club' (ID: 417939816450228225).

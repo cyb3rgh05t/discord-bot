@@ -4,7 +4,12 @@ import discord
 import logging
 from discord.ext import commands
 from discord.ui import View, Button
-from config.settings import MEMBER_ROLE, WELCOME_CHANNEL_ID
+from config.settings import (
+    MEMBER_ROLE,
+    RULES_CHANNEL_ID,
+    WELCOME_CHANNEL_ID,
+    DATABASE_PATH,
+)
 
 
 class RulesAcceptButton(commands.Cog):
@@ -12,7 +17,7 @@ class RulesAcceptButton(commands.Cog):
         self.bot = bot
 
         # Ensure the `databases` folder exists
-        db_folder = "databases"
+        db_folder = DATABASE_PATH
         os.makedirs(db_folder, exist_ok=True)
 
         # Path to the database file
@@ -58,13 +63,13 @@ class RulesAcceptButton(commands.Cog):
 
             if role in member.roles:
                 await interaction.response.send_message(
-                    f"✅ {member.mention}, du hast die Regeln schon bestätigt!!",
+                    f"✅ {member.mention}, you have already accepted the rules!",
                     ephemeral=True,
                 )
             else:
                 await member.add_roles(role, reason="Accepted the rules")
                 await interaction.response.send_message(
-                    f"✅ {member.mention}, du hast die Regeln bestätigt und die Rolle '{role.name}' wurde dir hinzugefügt!",
+                    f"✅ {member.mention}, you have accepted the rules and the role '{role.name}' has been added to you!",
                     ephemeral=True,
                 )
 
@@ -79,7 +84,6 @@ class RulesAcceptButton(commands.Cog):
 
     def save_message_id(self, guild_id, message_id):
         """Save or update the rules message ID in the database."""
-        logging.debug(f"Saving rules message ID {message_id} for guild {guild_id}.")
         self.cursor.execute(
             """
             INSERT INTO rules_message (guild_id, message_id)
@@ -92,22 +96,14 @@ class RulesAcceptButton(commands.Cog):
 
     def get_message_id(self, guild_id):
         """Retrieve the rules message ID for a guild."""
-        logging.debug(f"Retrieving rules message ID for guild {guild_id}.")
         self.cursor.execute(
             "SELECT message_id FROM rules_message WHERE guild_id = ?", (guild_id,)
         )
         result = self.cursor.fetchone()
-        if result:
-            logging.debug(f"Found message ID {result[0]} for guild {guild_id}.")
-            return result[0]
-        logging.warning(f"No message ID found for guild {guild_id}.")
-        return None
+        return result[0] if result else None
 
     async def resend_rules_message(self, guild):
         """Resend the rules message if the bot restarts."""
-        logging.debug(
-            f"Attempting to resend rules message for guild '{guild.name}' (ID: {guild.id})."
-        )
         message_id = self.get_message_id(guild.id)
         if not message_id:
             logging.warning(
@@ -116,16 +112,13 @@ class RulesAcceptButton(commands.Cog):
             return
 
         try:
-            channel = discord.utils.get(guild.channels, id=WELCOME_CHANNEL_ID)
+            channel = discord.utils.get(guild.channels, id=RULES_CHANNEL_ID)
             if not channel:
                 logging.warning(
-                    f"Welcome channel not found for guild '{guild.name}' (ID: {guild.id})."
+                    f"Rules channel not found for guild '{guild.name}' (ID: {guild.id})."
                 )
                 return
 
-            logging.debug(
-                f"Attempting to fetch message ID {message_id} in channel {channel.name}."
-            )
             message = await channel.fetch_message(message_id)
             logging.info(
                 f"Rules message successfully loaded for guild '{guild.name}' (ID: {guild.id})."
@@ -151,6 +144,14 @@ class RulesAcceptButton(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def rulesbutton(self, ctx):
         """Send the rules message with an accept button."""
+        channel = ctx.guild.get_channel(RULES_CHANNEL_ID)
+        if not channel:
+            await ctx.send(
+                f"❌ The predefined rules channel (ID: {RULES_CHANNEL_ID}) does not exist.",
+                ephemeral=True,
+            )
+            return
+
         view = View()
         view.add_item(self.AcceptButton(self))  # Pass the cog instance
 
@@ -171,7 +172,7 @@ class RulesAcceptButton(commands.Cog):
             "==============================\n"
         )
 
-        message = await ctx.send(content=rules_text, view=view)
+        message = await channel.send(content=rules_text, view=view)
         self.save_message_id(ctx.guild.id, message.id)
 
     @commands.Cog.listener()

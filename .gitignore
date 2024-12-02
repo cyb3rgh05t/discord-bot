@@ -1,14 +1,8 @@
-#node.js
-node_modules
-package-lock.json
-
-#settings
-.env
-config.json
-
-#Visual Studio Code
+.venv
 .vs
 .vscode
 *.pyc
 *.db
 config/settings.py
+*.log
+logs/bot.log

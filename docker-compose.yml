@@ -1,48 +1,35 @@
----
 version: "3"
 services:
-  mongodb:
-    container_name: "mongodb"
-    image: "mongo:latest"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: cyb3rgh05t
-      MONGO_INITDB_ROOT_PASSWORD: 9ffe4e761f
-    networks:
-      - proxy
-    security_opt:
-      - "no-new-privileges:true"
-    labels:
-      - "dockupdater.enable=false"
-    restart: "${RESTARTAPP}"
-    volumes:
-      - mongodb_data:/data/db
-
-  discordbot:
+  telegram_bot:
     hostname: "discord-bot"
     container_name: "discord-bot"
     environment:
-      - "PGID=1000"
-      - "PUID=1000"
-      - "TZ=Europe/Berlin"
-    networks:
-      - proxy
-    security_opt:
-      - "no-new-privileges:true"
-    labels:
-      - "dockupdater.enable=false"
+      - "PGID=${ID}"
+      - "PUID=${ID}"
+      - "TZ=${TZ}"
+      - "UMASK=${UMASK}"
     image: "ghcr.io/cyb3rgh05t/discord-bot:latest"
-    stdin_open: true # docker run -i
-    tty: true # docker run -t
-    restart: "unless-stopped"
+    restart: "${RESTARTAPP}"
+    ports:
+      - "8000:8000/tcp"
+    networks:
+      - ${DOCKERNETWORK}
+    security_opt:
+      - "${SECURITYOPS}:${SECURITYOPSSET}"
     volumes:
-      - "opt/appdata/disocrd-bot/:/app/bot/src/config:rw"
-    depends_on:
-      - mongodb
-    links:
-      - mongodb:db
-
-volumes:
-  mongodb_data:
+      - "${APPFOLDER}/discord-bot/config:/app/config:rw"
+      - "${APPFOLDER}/discord-bot/databases:/app/databases:rw"
+    labels:
+      - "dockupdater.enable=true"
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.botpanel-rtr.entrypoints=https"
+      - "traefik.http.routers.botpanel-rtr.rule=Host(`botpanel.${DOMAIN}`)"
+      - "traefik.http.routers.botpanel-rtr.tls=true"
+      - "traefik.http.routers.botpanel-rtr.tls.certresolver=dns-cloudflare"
+      - "traefik.http.routers.botpanel-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.botpanel-rtr.service=botpanel-svc"
+      - "traefik.http.services.botpanel-svc.loadbalancer.server.port=8000"
 
 networks:
   proxy:
