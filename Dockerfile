@@ -1,5 +1,5 @@
 # Use the official Python image as a base image
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Owner Github
 LABEL maintainer=cyb3rgh05t
