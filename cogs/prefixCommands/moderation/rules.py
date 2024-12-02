@@ -124,8 +124,11 @@ class RulesAcceptButton(commands.Cog):
                 f"Rules message successfully loaded for guild '{guild.name}' (ID: {guild.id})."
             )
 
-            view = View()
-            view.add_item(self.AcceptButton(self))  # Pass the cog instance
+            # Register the view globally
+            view = View(timeout=None)
+            view.add_item(self.AcceptButton(self))
+            self.bot.add_view(view)  # Register globally for persistence
+            logging.info("Rules Button registered")
             await message.edit(view=view)
         except discord.NotFound:
             logging.warning(
@@ -152,8 +155,9 @@ class RulesAcceptButton(commands.Cog):
             )
             return
 
-        view = View()
+        view = View(timeout=None)
         view.add_item(self.AcceptButton(self))  # Pass the cog instance
+        self.bot.add_view(view)  # Register globally for persistence
 
         # Send the rules message
         rules_text = (
