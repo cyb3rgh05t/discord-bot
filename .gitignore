@@ -9,3 +9,6 @@ config.json
 #Visual Studio Code
 .vs
 .vscode
+*.pyc
+*.db
+config/settings.py

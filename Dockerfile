@@ -1,19 +1,19 @@
-FROM node:21
+# Use the official Python image as a base image
+FROM python:3.12-slim
 
+# Owner 
 LABEL maintainer=cyb3rgh05t
-LABEL org.opencontainers.image.source https://github.com/cyb3rgh05t/discord-bot
+LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
 
-# Create the bot's directory
-WORKDIR /app/bot/
+# Set the working directory in the container
+WORKDIR /app
 
-COPY package*.json ./
+# Copy the requirements file and install dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install dependencie
-RUN apt-get update && apt-get install -qq build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev g++ software-properties-common
-RUN npm install -g
-RUN npm install --force --production
-
+# Copy the rest of your application code
 COPY . .
 
-# Start the bot.
-CMD ["node", "."]
+# Command to run both the bot
+CMD ["python", "bot.py"]
