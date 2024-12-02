@@ -1,3 +1,3 @@
 ## Mr.StreamNet
 
-discord bot for my personal use written in discord.js 13
+discord bot for my personal use written in python
