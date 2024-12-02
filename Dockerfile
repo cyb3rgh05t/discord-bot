@@ -1,7 +1,7 @@
 # Use the official Python image as a base image
 FROM python:3.12-slim
 
-# Owner 
+# Owner Github
 LABEL maintainer=cyb3rgh05t
 LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
 
