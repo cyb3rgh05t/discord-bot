@@ -17,8 +17,8 @@ services:
     security_opt:
       - "${SECURITYOPS}:${SECURITYOPSSET}"
     volumes:
-      - "${APPFOLDER}/discord-bot/config:/app/config:rw"
-      - "${APPFOLDER}/discord-bot/databases:/app/databases:rw"
+      - "${APPFOLDER}/discord-bot/config:/config:rw"
+      - "${APPFOLDER}/discord-bot/databases:/databases:rw"
     labels:
       - "dockupdater.enable=true"
       - "com.centurylinklabs.watchtower.enable=true"

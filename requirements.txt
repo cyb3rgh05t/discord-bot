@@ -1,9 +1,0 @@
-discord.py
-discord-py-slash-command
-py-discord-html-transcripts
-aiohttp
-captcha
-pillow
-PyNaCl
-asyncio
-psutil

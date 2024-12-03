@@ -1,19 +1,28 @@
-# Use the official Python image as a base image
-FROM python:3.12-slim
+# Use the alpine lsio image as a base image
+FROM ghcr.io/linuxserver/baseimage-alpine:3.20
 
 # Owner Github
 LABEL maintainer=cyb3rgh05t
 LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
 
-# Set the working directory in the container
-WORKDIR /app
+ENV TZ=Europe/Berlin
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Update the package list and install dependencies
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y \
+        python3 \
+        python3-pip \
+        tini \
+        wget \
+        tzdata \
+    && apt-get clean
 
-# Copy the rest of your application code
-COPY . .
+RUN pip install --no-cache-dir discord.py discord-py-slash-command \
+    py-discord-html-transcripts aiohttp captcha pillow \
+    PyNaCl asyncio psutil
 
-# Command to run both the bot
-CMD ["python", "bot.py"]
+# Copy the s6-overlay run script and other necessary files
+COPY ./root/ /
+
+VOLUME /config
+VOLUME /databases
