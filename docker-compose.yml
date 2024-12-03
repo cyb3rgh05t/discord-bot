@@ -1,6 +1,6 @@
 version: "3"
 services:
-  telegram_bot:
+  discord-bot:
     hostname: "discord-bot"
     container_name: "discord-bot"
     environment:
@@ -10,8 +10,6 @@ services:
       - "UMASK=${UMASK}"
     image: "ghcr.io/cyb3rgh05t/discord-bot:latest"
     restart: "${RESTARTAPP}"
-    ports:
-      - "8000:8000/tcp"
     networks:
       - ${DOCKERNETWORK}
     security_opt:
@@ -22,15 +20,6 @@ services:
     labels:
       - "dockupdater.enable=true"
       - "com.centurylinklabs.watchtower.enable=true"
-      - "traefik.enable=true"
-      - "traefik.http.routers.botpanel-rtr.entrypoints=https"
-      - "traefik.http.routers.botpanel-rtr.rule=Host(`botpanel.${DOMAIN}`)"
-      - "traefik.http.routers.botpanel-rtr.tls=true"
-      - "traefik.http.routers.botpanel-rtr.tls.certresolver=dns-cloudflare"
-      - "traefik.http.routers.botpanel-rtr.middlewares=chain-authelia@file"
-      - "traefik.http.routers.botpanel-rtr.service=botpanel-svc"
-      - "traefik.http.services.botpanel-svc.loadbalancer.server.port=8000"
-
 networks:
   proxy:
     driver: bridge
