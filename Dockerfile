@@ -18,8 +18,9 @@ RUN apk update && apk upgrade \
         tzdata \
     && rm -rf /var/cache/apk/*  # Clean up after installation
 
-# Install Python dependencies
-RUN pip install --no-cache-dir discord.py \
+# Create and activate a virtual environment
+RUN python3 -m venv /venv
+RUN . /venv/bin/activate && pip install --no-cache-dir discord.py \
     discord-py-slash-command \
     py-discord-html-transcripts \
     aiohttp \
@@ -28,6 +29,9 @@ RUN pip install --no-cache-dir discord.py \
     PyNaCl \
     asyncio \
     psutil
+
+# Ensure the virtual environment is used by default
+ENV PATH="/venv/bin:$PATH"
 
 # Copy the s6-overlay run script and other necessary files
 COPY ./root/ / 
