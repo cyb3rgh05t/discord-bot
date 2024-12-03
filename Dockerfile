@@ -5,7 +5,7 @@ FROM python:3.12-slim
 LABEL maintainer=cyb3rgh05t
 LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
 
-# Set working directory in the container
+# Set the working directory in the container
 WORKDIR /app
 
 # Copy the requirements file and install dependencies
