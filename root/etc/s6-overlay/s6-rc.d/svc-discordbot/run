@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
-
+#Make run file executeable
 # Change ownership of /app
 echo "chown /app"
 lsiown -R abc:abc /app
