@@ -1,4 +1,4 @@
-# Use the alpine lsio image as a base image
+# Use the alpine lsio image as a base
 FROM ghcr.io/linuxserver/baseimage-alpine:3.20
 
 # Owner Github
