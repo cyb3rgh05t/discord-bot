@@ -16,7 +16,7 @@ class Support(commands.Cog):
             await ctx.message.delete()
 
             # Replace with the path to your local image file
-            image_path = "./images/support.png"
+            image_path = "./config/images/support.png"
 
             # Create a file attachment
             file = discord.File(image_path, filename="support.png")

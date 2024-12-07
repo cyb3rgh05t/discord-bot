@@ -12,7 +12,7 @@ class TVChannelsMessage(commands.Cog):
         """Send the TV channel message with a file as a spoiler."""
         try:
             # Define the file path
-            file_path = "files/channels.pdf"  # Replace with the actual file path
+            file_path = "config/files/channels.pdf"  # Replace with the actual file path
             file_name = "StreamNet_TV_Channels"  # Name to display for the file
 
             # Attach the file as a spoiler

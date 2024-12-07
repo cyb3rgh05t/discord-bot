@@ -8,3 +8,5 @@ config/settings.py
 logs/bot.log
 /files
 /images
+*.pdf
+*.png

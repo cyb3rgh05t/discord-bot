@@ -1,0 +1,33 @@
+ASCII_LOGO = r"""
+            _      _____           _     _____ _____ _   
+           | |    |____ |         | |   |  _  |  ___| |  
+  ___ _   _| |__      / /_ __ __ _| |__ | |/' |___ \| |_ 
+ / __| | | | '_ \     \ \ '__/ _` | '_ \|  /| |   \ \ __|
+| (__| |_| | |_) |.___/ / | | (_| | | | \ |_/ /\__/ / |_ 
+ \___|\__, |_.__/ \____/|_|  \__, |_| |_|\___/\____/ \__|
+       __/ |                  __/ |                      
+      |___/                  |___/                       
+"""
+
+BOT_TOKEN = "yourBotToken"
+GUILD_ID = "00000000000000000000000"
+COMMAND_PREFIX = "!"
+
+DATABASE_PATH = "databases"
+
+LIVE_TICKET = "test-line"
+
+LOGGING_LEVEL = "DEBUG"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+LOGGING_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
+LOGGING_DATEFMT = "%Y-%m-%d %H:%M:%S"
+LOG_FILE = "logs/bot.log"
+
+UNVERIFIED_ROLE = "unverified"
+VERIFIED_ROLE = "verified"
+MEMBER_ROLE = "member"
+STAFF_ROLE = "staff"
+
+WELCOME_CHANNEL_ID = 0000000000000000
+SYSTEM_CHANNEL_ID = 0000000000000000000
+TICKET_CATEGORY_ID = 0000000000000000000
+RULES_CHANNEL_ID = 0000000000000000

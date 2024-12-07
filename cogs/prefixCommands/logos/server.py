@@ -16,7 +16,7 @@ class Server(commands.Cog):
             await ctx.message.delete()
 
             # Replace with the path to your local image file
-            image_path = "./images/server.png"
+            image_path = "./config/images/server.png"
 
             # Create a file attachment
             file = discord.File(image_path, filename="server.png")
