@@ -25,10 +25,6 @@ RUN apk update && apk upgrade \
         openssl-dev \
     && rm -rf /var/cache/apk/*  # Clean up after installation
 
-# Create and activate a virtual environment
-RUN python3 -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-
 # Install the required Python dependencies directly
 RUN pip install --no-cache-dir discord.py \
     discord-py-slash-command \
