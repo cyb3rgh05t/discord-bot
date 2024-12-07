@@ -49,6 +49,3 @@ COPY ./root/ /
 # Define mount points for config and databases
 VOLUME /config
 VOLUME /databases
-
-# Use tini as the init system
-ENTRYPOINT ["/sbin/tini", "--"]
