@@ -185,11 +185,6 @@ def configure_logging():
     console_handler = UTF8StreamHandler()
     handlers.append(console_handler)
 
-    # File handler with UTF-8 encoding if LOG_FILE is set
-    if LOG_FILE:
-        file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
-        handlers.append(file_handler)
-
     # Configure logging
     logging.basicConfig(
         level=logging_level,
