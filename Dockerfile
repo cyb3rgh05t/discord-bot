@@ -2,30 +2,35 @@
 FROM ghcr.io/linuxserver/baseimage-alpine:3.20
 
 # Owner Github
-LABEL maintainer="cyb3rgh05t"
-LABEL org.opencontainers.image.source="https://github.com/cyb3rgh05t/discord-bot"
+LABEL maintainer=cyb3rgh05t
+LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
 
 # Set timezone environment variable
 ENV TZ=Europe/Berlin
 
-# Update packages and install dependencies
-RUN apk update && apk upgrade && apk add --no-cache \
+# Update the package list and install dependencies using apk (Alpine package manager)
+RUN apk update && apk upgrade \
+    && apk add --no-cache \
         python3 \
         py3-pip \
         tini \
         wget \
         tzdata \
+        gcc \
+        musl-dev \
+        python3-dev \
+        linux-headers \
+        build-base \
         libffi-dev \
         openssl-dev \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/*  # Clean up after installation
 
 # Create and activate a virtual environment
 RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-# Install Python dependencies
-RUN pip install --no-cache-dir \
-    discord.py \
+# Install the required Python dependencies directly
+RUN pip install --no-cache-dir discord.py \
     discord-py-slash-command \
     py-discord-html-transcripts \
     aiohttp \
@@ -34,6 +39,9 @@ RUN pip install --no-cache-dir \
     PyNaCl \
     asyncio \
     psutil
+
+# Clean up build tools to reduce image size
+RUN apk del gcc musl-dev python3-dev linux-headers build-base
 
 # Copy the s6-overlay run script and other necessary files
 COPY ./root/ /
