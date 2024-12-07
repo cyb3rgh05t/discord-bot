@@ -11,7 +11,6 @@ from config.settings import (
     LOGGING_LEVEL,
     LOGGING_FORMAT,
     LOGGING_DATEFMT,
-    LOG_FILE,
     ASCII_LOGO,
 )
 from cogs.server.server import setup as system_info_setup
