@@ -15,4 +15,4 @@ lsiown -R abc:abc /databases
 
 # Start the PowerShell script with tini
 echo "start discord-bot main script"
-s6-setuidgid abc /usr/bin/tini -s -- python /app/bot.py --
+s6-setuidgid abc python /app/bot.py
