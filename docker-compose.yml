@@ -17,6 +17,9 @@ services:
     volumes:
       - "${APPFOLDER}/discord-bot/config:/app/config:rw"
       - "${APPFOLDER}/discord-bot/databases:/app/databases:rw"
+      - "${APPFOLDER}/discord-bot/files:/app/files:rw"
+      - "${APPFOLDER}/discord-bot/images:/app/images:rw"
+      - "${APPFOLDER}/discord-bot/logs:/app/logs:rw"
     labels:
       - "dockupdater.enable=true"
       - "com.centurylinklabs.watchtower.enable=true"
