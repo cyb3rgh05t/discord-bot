@@ -221,14 +221,57 @@ class KofiWebhook(commands.Cog):
 
             # Process POST requests (from Ko-fi)
             try:
-                data = request.json.get("data")
+                logger.info(
+                    f"Received webhook request with Content-Type: {request.content_type}"
+                )
+
+                # Get data from the request based on content type
+                data = None
+
+                # Handle application/json content type
+                if request.is_json:
+                    payload = request.json
+                    data = payload.get("data")
+                    logger.info("Processing JSON payload")
+
+                # Handle form data (application/x-www-form-urlencoded)
+                elif request.form:
+                    data = request.form.get("data")
+                    logger.info("Processing form data payload")
+
+                # Handle raw data as a fallback
+                elif request.data:
+                    try:
+                        # Try to parse raw data as JSON
+                        payload = json.loads(request.data.decode("utf-8"))
+                        data = payload.get("data")
+                        logger.info("Processing raw data as JSON")
+                    except:
+                        # If parsing fails, try to use the raw data as-is
+                        data = request.data.decode("utf-8")
+                        logger.info("Processing raw data as string")
 
                 if not data:
                     logger.error("No data provided in webhook request")
+                    logger.debug(
+                        f"Request details - Form: {request.form}, Data: {request.data}, JSON: {request.is_json}"
+                    )
                     return jsonify({"success": False, "error": "No data provided"}), 400
 
                 # Parse the Ko-fi data (Ko-fi sends data as a string that needs to be parsed)
-                kofi_data = json.loads(data) if isinstance(data, str) else data
+                kofi_data = data
+                if isinstance(data, str):
+                    try:
+                        kofi_data = json.loads(data)
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Error parsing Ko-fi data: {e}")
+                        return (
+                            jsonify(
+                                {"success": False, "error": f"Invalid JSON: {str(e)}"}
+                            ),
+                            400,
+                        )
+
                 logger.info(f"Received Ko-fi data: {kofi_data}")
 
                 # Verify the token if configured

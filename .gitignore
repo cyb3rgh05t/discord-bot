@@ -10,3 +10,4 @@ logs/bot.log
 /images
 *.pdf
 *.png
+/tools
