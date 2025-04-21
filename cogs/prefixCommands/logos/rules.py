@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Rules(commands.Cog):
@@ -32,4 +33,4 @@ class Rules(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Rules(bot))
-    logging.info("Rules Logo cog loaded.")
+    logger.debug("Rules Logo cog loaded.")

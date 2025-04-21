@@ -5,6 +5,7 @@ import sqlite3
 import random
 import logging
 from config.settings import DATABASE_PATH, TICKET_CATEGORY_ID, STAFF_ROLE
+from cogs.helpers.logger import logger
 
 
 class TicketInteraction(commands.Cog):
@@ -91,7 +92,7 @@ class TicketInteraction(commands.Cog):
         # Fetch ticket panel setup
         setup_data = await self.fetch_ticket_setup(guild.id)
         if not setup_data:
-            logging.warning(
+            logger.warning(
                 f"Ticket setup data not found for guild '{guild.name}' (ID: {guild.id})."
             )
             return
@@ -118,7 +119,7 @@ class TicketInteraction(commands.Cog):
         everyone_role = guild.get_role(everyone_role_id)
 
         if not category or not handlers_role or not everyone_role:
-            logging.error(
+            logger.error(
                 f"One or more required entities (category/roles) are missing for ticket creation in guild '{guild.name}'."
             )
             return
@@ -217,4 +218,4 @@ class TicketInteraction(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(TicketInteraction(bot))
-    logging.info("TicketInteraction cog loaded.")
+    logger.debug("TicketInteraction cog loaded.")

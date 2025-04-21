@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Server(commands.Cog):
@@ -32,4 +33,4 @@ class Server(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Server(bot))
-    logging.info("Server Logo cog loaded.")
+    logger.debug("Server Logo cog loaded.")

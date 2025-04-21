@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class InviteCommand(commands.Cog):

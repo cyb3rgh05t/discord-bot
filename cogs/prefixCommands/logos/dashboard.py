@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Dashboard(commands.Cog):
@@ -32,4 +33,4 @@ class Dashboard(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Dashboard(bot))
-    logging.info("Dashboard Logo cog loaded.")
+    logger.debug("Dashboard Logo cog loaded.")

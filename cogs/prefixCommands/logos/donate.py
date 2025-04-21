@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Donate(commands.Cog):
@@ -32,4 +33,4 @@ class Donate(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Donate(bot))
-    logging.info("Donate Logo cog loaded.")
+    logger.debug("Donate Logo cog loaded.")

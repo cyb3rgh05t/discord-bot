@@ -10,6 +10,7 @@ from config.settings import (
     WELCOME_CHANNEL_ID,
     DATABASE_PATH,
 )
+from cogs.helpers.logger import logger
 
 
 class RulesAcceptButton(commands.Cog):
@@ -106,7 +107,7 @@ class RulesAcceptButton(commands.Cog):
         """Resend the rules message if the bot restarts."""
         message_id = self.get_message_id(guild.id)
         if not message_id:
-            logging.warning(
+            logger.warning(
                 f"No rules message ID found for guild '{guild.name}' (ID: {guild.id})."
             )
             return
@@ -114,13 +115,13 @@ class RulesAcceptButton(commands.Cog):
         try:
             channel = discord.utils.get(guild.channels, id=RULES_CHANNEL_ID)
             if not channel:
-                logging.warning(
+                logger.warning(
                     f"Rules channel not found for guild '{guild.name}' (ID: {guild.id})."
                 )
                 return
 
             message = await channel.fetch_message(message_id)
-            logging.info(
+            logger.info(
                 f"Rules message successfully loaded for guild '{guild.name}' (ID: {guild.id})."
             )
 
@@ -128,18 +129,18 @@ class RulesAcceptButton(commands.Cog):
             view = View(timeout=None)
             view.add_item(self.AcceptButton(self))
             self.bot.add_view(view)  # Register globally for persistence
-            logging.info("Rules Button registered")
+            logger.info("Rules Button registered")
             await message.edit(view=view)
         except discord.NotFound:
-            logging.warning(
+            logger.warning(
                 f"Rules message with ID {message_id} not found in guild '{guild.name}' (ID: {guild.id})."
             )
         except discord.Forbidden:
-            logging.error(
+            logger.error(
                 f"Bot lacks permissions to fetch message ID {message_id} in guild '{guild.name}'."
             )
         except Exception as e:
-            logging.error(f"Unexpected error when resending rules message: {e}")
+            logger.error(f"Unexpected error when resending rules message: {e}")
 
     @commands.command(
         name="rulesbutton", help="Send the rules message with an accept button."
@@ -188,4 +189,4 @@ class RulesAcceptButton(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(RulesAcceptButton(bot))
-    logging.info("RulesAcceptButton cog loaded.")
+    logger.debug("RulesAcceptButton cog loaded.")

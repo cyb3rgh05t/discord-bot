@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Verify(commands.Cog):
@@ -32,4 +33,4 @@ class Verify(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Verify(bot))
-    logging.info("Verify Logo cog loaded.")
+    logger.debug("Verify Logo cog loaded.")

@@ -7,6 +7,7 @@ import sqlite3
 from datetime import datetime
 from discord.ext import commands, tasks
 from config.settings import SYSTEM_CHANNEL_ID
+from cogs.helpers.logger import logger
 
 DATABASE_PATH = "databases/system_info.db"  # Path to your SQLite database
 
@@ -89,7 +90,7 @@ class SystemInfo(commands.Cog):
             conn.close()
             return "Online"
         except sqlite3.Error as e:
-            logging.error(f"SQLite connection error: {e}")
+            logger.error(f"SQLite connection error: {e}")
             return "Offline"
 
     def create_embed(self):
@@ -142,11 +143,11 @@ class SystemInfo(commands.Cog):
             try:
                 message = await channel.fetch_message(message_id)
                 await message.edit(embed=embed)
-                logging.debug(
+                logger.debug(
                     f"Updated system info message for guild '{guild_name}' (ID: {guild_id})."
                 )
             except discord.NotFound:
-                logging.warning(
+                logger.warning(
                     f"Message with ID {message_id} not found, sending a new one."
                 )
                 message = await channel.send(embed=embed)
@@ -163,7 +164,7 @@ class SystemInfo(commands.Cog):
         if channel:
             await self.send_or_update_message(channel)
         else:
-            logging.error(f"System channel with ID {SYSTEM_CHANNEL_ID} not found.")
+            logger.error(f"System channel with ID {SYSTEM_CHANNEL_ID} not found.")
 
     async def update_status(self):
         """Rotate and update bot's status messages."""
@@ -189,11 +190,11 @@ class SystemInfo(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         """Send or update system information in the specific channel."""
-        logging.info("SystemInfo cog is ready.")
+        logger.info("SystemInfo cog is ready.")
         self.init_status_task.start()
 
 
 async def setup(bot):
     """Setup function to add the cog."""
     await bot.add_cog(SystemInfo(bot))
-    logging.info("SystemInfo cog loaded.")
+    logger.debug("SystemInfo cog loaded.")

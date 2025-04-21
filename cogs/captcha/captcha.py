@@ -6,6 +6,7 @@ import string
 import os
 import logging
 from config.settings import GUILD_ID, UNVERIFIED_ROLE, VERIFIED_ROLE
+from cogs.helpers.logger import logger
 
 
 class CaptchaSystem(commands.Cog):
@@ -18,7 +19,7 @@ class CaptchaSystem(commands.Cog):
         """Assign 'Unverified' role and send CAPTCHA."""
         guild = member.guild
 
-        logging.info(
+        logger.debug(
             f"on_member_join triggered for {member.name} in guild {guild.name}."
         )
 
@@ -30,19 +31,17 @@ class CaptchaSystem(commands.Cog):
                     unverified_role,
                     reason="Assigning Unverified role for CAPTCHA verification.",
                 )
-                logging.info(f"Assigned '{UNVERIFIED_ROLE}' role to {member.name}.")
+                logger.info(f"Assigned '{UNVERIFIED_ROLE}' role to {member.name}.")
             except discord.Forbidden:
-                logging.error(
+                logger.error(
                     f"Missing permissions to assign '{UNVERIFIED_ROLE}' role in guild {guild.name}."
                 )
             except Exception as e:
-                logging.error(
+                logger.error(
                     f"Unexpected error when assigning '{UNVERIFIED_ROLE}' role: {e}"
                 )
         else:
-            logging.warning(
-                f"'{UNVERIFIED_ROLE}' role not found in guild {guild.name}."
-            )
+            logger.warning(f"'{UNVERIFIED_ROLE}' role not found in guild {guild.name}.")
             return
 
         # Generate CAPTCHA
@@ -60,7 +59,7 @@ class CaptchaSystem(commands.Cog):
             "max_attempts": 3,
             "guild_id": guild.id,
         }
-        logging.debug(f"Generated CAPTCHA for {member.name}: {captcha_text}")
+        logger.debug(f"Generated CAPTCHA for {member.name}: {captcha_text}")
 
         # Send CAPTCHA via DM
         embed = discord.Embed(
@@ -82,9 +81,9 @@ class CaptchaSystem(commands.Cog):
             # Then send the CAPTCHA image as a separate message
             await member.send(file=discord.File(image_path))
             await member.send("Bitte antworte mit der Lösung des CAPTCHAs.")
-            logging.info(f"Sent CAPTCHA to {member.name} in DMs.")
+            logger.info(f"Sent CAPTCHA to {member.name} in DMs.")
         except discord.Forbidden:
-            logging.warning(
+            logger.warning(
                 f"Could not send CAPTCHA to {member.name}. DMs might be disabled."
             )
             system_channel = guild.system_channel
@@ -93,19 +92,17 @@ class CaptchaSystem(commands.Cog):
                     f"{member.mention}, bitte stelle sicher, dass Direktnachrichten aktiviert sind! Du kannst deine Direktnachrichten wieder deaktivieren, sobald du das CAPTCHA abgeschlossen hast."
                 )
         except Exception as e:
-            logging.error(
-                f"Unexpected error when sending CAPTCHA to {member.name}: {e}"
-            )
+            logger.error(f"Unexpected error when sending CAPTCHA to {member.name}: {e}")
         finally:
             if os.path.exists(image_path):
                 os.remove(image_path)
-                logging.debug(f"Deleted CAPTCHA image at {image_path}.")
+                logger.debug(f"Deleted CAPTCHA image at {image_path}.")
             else:
-                logging.warning(f"CAPTCHA image {image_path} not found for deletion.")
+                logger.warning(f"CAPTCHA image {image_path} not found for deletion.")
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        logging.debug(f"Message received: {message.content} from {message.author}")
+        logger.debug(f"Message received: {message.content} from {message.author}")
         """Validate CAPTCHA responses."""
         if message.author.bot or message.author.id not in self.captchas:
             return
@@ -114,7 +111,7 @@ class CaptchaSystem(commands.Cog):
         user_data = self.captchas[message.author.id]
         guild = self.bot.get_guild(user_data["guild_id"])
         if not guild:
-            logging.error(f"Guild with ID {user_data['guild_id']} not found.")
+            logger.error(f"Guild with ID {user_data['guild_id']} not found.")
             return
 
         if message.content.strip().upper() == user_data["text"].upper():
@@ -162,4 +159,4 @@ class CaptchaSystem(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(CaptchaSystem(bot))
-    logging.info("CaptchaSystem cog loaded.")
+    logger.debug("CaptchaSystem cog loaded.")

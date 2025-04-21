@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from config.settings import BOT_TOKEN, GUILD_ID
+from cogs.helpers.logger import logger
 
 
 class Admin(commands.Cog):

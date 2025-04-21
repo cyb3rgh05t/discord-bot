@@ -1,20 +1,28 @@
-import logging
 import codecs
 import sys
 import discord
 import os
+import logging
 from discord.ext import commands
 from config.settings import (
     BOT_TOKEN,
     GUILD_ID,
     COMMAND_PREFIX,
     LOGGING_LEVEL,
-    LOGGING_FORMAT,
-    LOGGING_DATEFMT,
     LOG_FILE,
     ASCII_LOGO,
 )
-from cogs.server.server import setup as system_info_setup
+from cogs.helpers.logger import setup_logging, logger  # Updated import path
+
+
+# Get version information
+def get_version():
+    """Reads the version from version.txt."""
+    try:
+        with open("version.txt", "r") as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        return "unknown"
 
 
 class MyBot(commands.Bot):
@@ -30,38 +38,44 @@ class MyBot(commands.Bot):
         """Setup hook for initializing bot operations."""
         # Clear global commands to prevent Discord from auto-registering them
         self.tree.clear_commands(guild=None)
-        logging.info("Cleared all global commands.")
+        logger.info("Cleared all global commands.")
 
         guild = discord.Object(id=GUILD_ID)
 
         # Verify guild exists
         try:
             guild_details = await self.fetch_guild(GUILD_ID)
-            logging.info(
-                f"Found guild '{guild_details.name}' (ID: {guild_details.id})."
-            )
+            logger.info(f"Found guild '{guild_details.name}' (ID: {guild_details.id}).")
         except discord.NotFound:
-            logging.error(
+            logger.error(
                 f"Guild with ID {GUILD_ID} not found. Ensure the bot is added to the guild."
             )
             raise
 
         # Dynamically load all cogs
         cogs_directory = "cogs"
-        excluded_dirs = {"__pycache__"}
+        excluded_dirs = {
+            "__pycache__",
+            "helpers",
+        }  # Added helpers to excluded directories
 
         for root, dirs, files in os.walk(cogs_directory):
+            # Filter out excluded directories
             dirs[:] = [d for d in dirs if d not in excluded_dirs]
+
+            # Skip the helpers directory
+            if "helpers" in root:
+                continue
 
             for file in files:
                 if file.endswith(".py"):
                     cog_path = os.path.join(root, file).replace(os.sep, ".")[:-3]
                     try:
                         await self.load_extension(cog_path)
-                        logging.debug(f"Loaded cog: {cog_path}")
+                        logger.debug(f"Loaded cog: {cog_path}")
                     except Exception as e:
-                        logging.error(f"Failed to load cog {cog_path}: {e}")
-        logging.info("Loaded all extensions (cogs).")
+                        logger.error(f"Failed to load cog {cog_path}: {e}")
+        logger.info("Loaded all extensions (cogs).")
 
         # Sync commands to the specific guild only
         await self.sync_commands(guild)
@@ -72,20 +86,20 @@ class MyBot(commands.Bot):
             return  # Avoid duplicate syncing
 
         try:
-            logging.info(f"Bot joined guild '{guild.name}' (ID: {guild.id}).")
+            logger.info(f"Bot joined guild '{guild.name}' (ID: {guild.id}).")
             await self.sync_commands(guild)
         except Exception as e:
-            logging.error(f"Error syncing commands to guild '{guild.name}': {e}")
+            logger.error(f"Error syncing commands to guild '{guild.name}': {e}")
 
     async def sync_commands(self, guild):
         """Sync commands for a specific guild."""
         try:
             synced = await self.tree.sync(guild=guild)
             self.synced_guilds.add(guild.id)
-            logging.info(f"Synced {len(synced)} commands to guild '{guild.id}'.")
-            logging.info(f"Synced commands: {[cmd.name for cmd in synced]}")
+            logger.info(f"Synced {len(synced)} commands to guild '{guild.id}'.")
+            logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
         except Exception as e:
-            logging.error(f"Error syncing commands to guild '{guild.id}': {e}")
+            logger.error(f"Error syncing commands to guild '{guild.id}': {e}")
 
     async def on_message(self, message):
         """Delete user's message after command execution."""
@@ -98,33 +112,14 @@ class MyBot(commands.Bot):
             try:
                 await message.delete()
             except discord.Forbidden:
-                logging.warning(
+                logger.warning(
                     f"Missing permissions to delete command message: {message.content}"
                 )
 
-    async def on_guild_join(self, guild):
-        try:
-            logging.info(f"Bot joined guild '{guild.name}' (ID: {guild.id}).")
-            synced = await self.tree.sync(guild=guild)
-            logging.info(
-                f"Synced {len(synced)} commands to guild '{guild.name}' (ID: {guild.id})."
-            )
-        except Exception as e:
-            logging.error(f"Error syncing commands to new guild: {e}")
-
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-
-        ctx = await self.get_context(message)
-        if ctx.valid:
-            await self.process_commands(message)
-            try:
-                await message.delete()
-            except discord.Forbidden:
-                logging.warning(
-                    f"Missing permissions to delete command message: {message.content}"
-                )
+    async def on_ready(self):
+        """Event fired when the bot is ready."""
+        logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
+        logger.info(f"Bot is ready and connected to Discord!")
 
 
 @commands.command(name="sync", help="Manually sync slash commands.")
@@ -135,7 +130,7 @@ async def sync(ctx):
         synced = await ctx.bot.tree.sync(guild=guild)
         await ctx.send(f"Synced {len(synced)} commands to this guild.")
     except Exception as e:
-        logging.error(f"Error during manual sync: {e}")
+        logger.error(f"Error during manual sync: {e}")
         await ctx.send(f"An error occurred: {e}")
 
 
@@ -159,66 +154,21 @@ async def list_cogs(ctx):
     await ctx.send(f"Loaded cogs: {', '.join(cogs)}")
 
 
-def get_version():
-    """Reads the version from version.txt."""
-    try:
-        with open("version.txt", "r") as file:
-            return file.read().strip()
-    except FileNotFoundError:
-        return "unknown"
-
-
-def configure_logging():
-    """Configure logging based on settings."""
-    version = get_version()
-    logging_level = getattr(logging, LOGGING_LEVEL.upper(), logging.INFO)
-    logging.getLogger("discord.gateway").setLevel(logging.WARNING)
-    handlers = []
-
-    # UTF-8 Console handler
-    class UTF8StreamHandler(logging.StreamHandler):
-        def __init__(self, stream=None):
-            super().__init__(stream=stream)
-            if stream is None:
-                stream = sys.stdout
-            self.stream = codecs.getwriter("utf-8")(stream.buffer)
-
-    console_handler = UTF8StreamHandler()
-    handlers.append(console_handler)
-
-    # File handler with UTF-8 encoding if LOG_FILE is set
-    if LOG_FILE:
-        file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8")
-        handlers.append(file_handler)
-
-    # Configure logging
-    logging.basicConfig(
-        level=logging_level,
-        format=LOGGING_FORMAT,
-        datefmt=LOGGING_DATEFMT,
-        handlers=handlers,
-    )
-
-    # Display ASCII logo and version
-    logging.getLogger("discord.gateway").setLevel(logging.WARNING)
-    logging.getLogger("discord.client").setLevel(logging.WARNING)
-    logging.info("\n" + ASCII_LOGO)
-    logging.info(f"Starting Bot {version}...")
-    logging.info("Logging configured successfully.")
-
-
-# Configure logging before initializing the bot
-configure_logging()
-
-# Instantiate the bot
-bot = MyBot()
-
-# Add commands to the bot
-bot.add_command(sync)
-bot.add_command(list_cogs)
-bot.add_command(list_guilds)
-bot.add_command(list_commands)
-
-# Run the bot
+# Main program
 if __name__ == "__main__":
+    # Display ASCII logo and version
+    version = get_version()
+    logger.info("\n" + ASCII_LOGO)
+    logger.info(f"Starting Bot {version}...")
+
+    # Create bot instance
+    bot = MyBot()
+
+    # Add commands to the bot
+    bot.add_command(sync)
+    bot.add_command(list_cogs)
+    bot.add_command(list_guilds)
+    bot.add_command(list_commands)
+
+    # Run the bot
     bot.run(BOT_TOKEN)

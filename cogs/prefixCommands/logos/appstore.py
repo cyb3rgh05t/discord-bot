@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Store(commands.Cog):
@@ -32,4 +33,4 @@ class Store(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Store(bot))
-    logging.info("AppStore Logo cog loaded.")
+    logger.debug("AppStore Logo cog loaded.")

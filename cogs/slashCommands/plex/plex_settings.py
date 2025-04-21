@@ -1,12 +1,12 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import logging
-import configparser
 import os
+import configparser
 from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 from config.settings import GUILD_ID
+from cogs.helpers.logger import logger  # Updated import
 
 # Configuration file path
 CONFIG_PATH = "config/plex_config.ini"
@@ -14,13 +14,6 @@ CONFIG_SECTION = "plex_settings"
 
 # Ensure config directory exists
 os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("logs/plex.log"), logging.StreamHandler()],
-)
 
 
 class PlexSettings(commands.Cog):
@@ -199,7 +192,7 @@ class PlexSettings(commands.Cog):
                     with open(settings_path, "w") as f:
                         f.write(content)
             except Exception as e:
-                logging.warning(f"Could not update settings.py: {e}")
+                logger.warning(f"Could not update settings.py: {e}")
 
             # Enable Plex
             self.set_config_value("plex_enabled", "True")
@@ -210,7 +203,7 @@ class PlexSettings(commands.Cog):
                 "Please restart the bot or reload the Plex cogs for the changes to take effect.",
             )
 
-            logging.info("Plex authentication details updated")
+            logger.info("Plex authentication details updated")
         except Exception as e:
             if "(429)" in str(e):
                 await self.embederror(
@@ -220,7 +213,7 @@ class PlexSettings(commands.Cog):
                 await self.embederror(
                     interaction, f"❌ Error connecting to Plex: {str(e)}"
                 )
-            logging.error(f"Error connecting to Plex: {e}")
+            logger.error(f"Error connecting to Plex: {e}")
 
     def update_setting(self, content, setting_name, value):
         """Update a setting in settings.py"""
@@ -274,7 +267,7 @@ class PlexSettings(commands.Cog):
                 with open(settings_path, "w") as f:
                     f.write(content)
         except Exception as e:
-            logging.warning(f"Could not update settings.py: {e}")
+            logger.warning(f"Could not update settings.py: {e}")
 
         # Update instance variable
         self.plex_roles = plex_roles
@@ -285,7 +278,7 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logging.info(f"Added role '{role.name}' for automatic Plex invites")
+        logger.info(f"Added role '{role.name}' for automatic Plex invites")
 
     @app_commands.command(
         name="removerole", description="Remove a role from automatic Plex invites"
@@ -328,7 +321,7 @@ class PlexSettings(commands.Cog):
                 with open(settings_path, "w") as f:
                     f.write(content)
         except Exception as e:
-            logging.warning(f"Could not update settings.py: {e}")
+            logger.warning(f"Could not update settings.py: {e}")
 
         # Update instance variable
         self.plex_roles = plex_roles
@@ -339,7 +332,7 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logging.info(f"Removed role '{role.name}' from automatic Plex invites")
+        logger.info(f"Removed role '{role.name}' from automatic Plex invites")
 
     @app_commands.command(
         name="setuplibs", description="Setup Plex libraries for sharing"
@@ -377,7 +370,7 @@ class PlexSettings(commands.Cog):
                 with open(settings_path, "w") as f:
                     f.write(content)
         except Exception as e:
-            logging.warning(f"Could not update settings.py: {e}")
+            logger.warning(f"Could not update settings.py: {e}")
 
         # Update instance variable
         self.plex_libs = library_list
@@ -388,7 +381,7 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logging.info(f"Updated Plex libraries: {', '.join(library_list)}")
+        logger.info(f"Updated Plex libraries: {', '.join(library_list)}")
 
     @app_commands.command(name="enable", description="Enable Plex integration")
     @app_commands.checks.has_permissions(administrator=True)
@@ -419,7 +412,7 @@ class PlexSettings(commands.Cog):
                 with open(settings_path, "w") as f:
                     f.write(content)
         except Exception as e:
-            logging.warning(f"Could not update settings.py: {e}")
+            logger.warning(f"Could not update settings.py: {e}")
 
         await self.embedinfo(
             interaction,
@@ -427,7 +420,7 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logging.info("Plex integration enabled")
+        logger.info("Plex integration enabled")
 
     @app_commands.command(name="disable", description="Disable Plex integration")
     @app_commands.checks.has_permissions(administrator=True)
@@ -458,7 +451,7 @@ class PlexSettings(commands.Cog):
                 with open(settings_path, "w") as f:
                     f.write(content)
         except Exception as e:
-            logging.warning(f"Could not update settings.py: {e}")
+            logger.warning(f"Could not update settings.py: {e}")
 
         await self.embedinfo(
             interaction,
@@ -466,7 +459,7 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logging.info("Plex integration disabled")
+        logger.info("Plex integration disabled")
 
     async def cog_load(self):
         """Associate commands with a specific guild."""
@@ -481,4 +474,4 @@ class PlexSettings(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(PlexSettings(bot))
-    logging.info("PlexSettings cog loaded.")
+    logger.debug("PlexSettings cog loaded.")

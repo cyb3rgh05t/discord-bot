@@ -1,6 +1,9 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import (
+    logger,
+)
 
 
 class Abo(commands.Cog):
@@ -32,4 +35,4 @@ class Abo(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Abo(bot))
-    logging.info("Abo Logo cog loaded.")
+    logger.debug("Abo Logo cog loaded.")

@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Channels(commands.Cog):
@@ -32,4 +33,4 @@ class Channels(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Channels(bot))
-    logging.info("Channels Logo cog loaded.")
+    logger.debug("Channels Logo cog loaded.")

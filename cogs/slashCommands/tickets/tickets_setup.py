@@ -4,6 +4,7 @@ from discord import app_commands
 import sqlite3
 import logging
 from config.settings import GUILD_ID
+from cogs.helpers.logger import logger
 
 
 class TicketSetup(commands.Cog):
@@ -91,7 +92,7 @@ class TicketSetup(commands.Cog):
         """Reinitialize the ticket panel on bot startup."""
         data = self.get_ticket_panel(guild.id)
         if not data:
-            logging.warning(
+            logger.warning(
                 f"No ticket panel found for guild '{guild.name}' (ID: {guild.id})."
             )
             return
@@ -100,14 +101,14 @@ class TicketSetup(commands.Cog):
         channel = guild.get_channel(channel_id)
 
         if not channel:
-            logging.warning(
+            logger.warning(
                 f"Channel with ID {channel_id} not found in guild '{guild.name}'."
             )
             return
 
         try:
             message = await channel.fetch_message(message_id)
-            logging.info(
+            logger.info(
                 f"Reinitialized ticket panel for guild '{guild.name}' (ID: {guild.id})."
             )
 
@@ -138,11 +139,11 @@ class TicketSetup(commands.Cog):
             await message.edit(view=view)
 
         except discord.NotFound:
-            logging.warning(
+            logger.warning(
                 f"Message with ID {message_id} not found in channel {channel.name} (ID: {channel.id})."
             )
         except Exception as e:
-            logging.error(f"Error while reinitializing ticket panel: {e}")
+            logger.error(f"Error while reinitializing ticket panel: {e}")
 
     @app_commands.command(name="ticketsetup", description="Setup your ticket panel")
     @app_commands.describe(
@@ -228,7 +229,7 @@ class TicketSetup(commands.Cog):
             )
 
         except Exception as e:
-            logging.error(f"Error during ticket setup: {e}")
+            logger.error(f"Error during ticket setup: {e}")
             await interaction.response.send_message(
                 "An error occurred while setting up the ticket system.", ephemeral=True
             )
@@ -247,4 +248,4 @@ class TicketSetup(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(TicketSetup(bot))
-    logging.info("TicketSetup cog loaded.")
+    logger.debug("TicketSetup cog loaded.")

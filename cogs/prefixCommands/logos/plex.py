@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Plex(commands.Cog):
@@ -32,4 +33,4 @@ class Plex(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Plex(bot))
-    logging.info("Plex Logo cog loaded.")
+    logger.debug("Plex Logo cog loaded.")

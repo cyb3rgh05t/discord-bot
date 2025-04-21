@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Invites(commands.Cog):
@@ -32,4 +33,4 @@ class Invites(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Invites(bot))
-    logging.info("Invites Logo cog loaded.")
+    logger.debug("Invites Logo cog loaded.")

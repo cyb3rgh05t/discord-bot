@@ -92,35 +92,84 @@ jobs:
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
 
-      - name: Send Discord Notification
-        if: success() # This step will only run if the build is successful
+      - name: Send Enhanced Discord Notification
+        if: success()
         run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d '{
-                  "content": "🚀 Docker build and push completed successfully!",
-                  "embeds": [
-                    {
-                      "title": "Build Details",
-                      "description": "The Docker image has been built and pushed.",
-                      "fields": [
-                        {
-                          "name": "Commit Hash",
-                          "value": "${{ github.sha }}",
-                          "inline": true
-                        },
-                        {
-                          "name": "Version",
-                          "value": "${{ steps.prep.outputs.version }}",
-                          "inline": true
-                        },
-                        {
-                          "name": "Repository",
-                          "value": "${{ github.repository }}",
-                          "inline": true
-                        }
-                      ]
-                    }
-                  ]
-                }' \
-            ${{ secrets.DISCORD_WEBHOOK }}
+          # Get short SHA - fix the variable capture
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+
+          # Create commit link properly formatted for the Discord notification
+          COMMIT_LINK="\`${SHORT_SHA}\`"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+
+          # Determine branch and tags info - we need to use string values for colors
+          if [[ "$GITHUB_REF" == refs/heads/main ]]; then
+            BRANCH="main"
+            BRANCH_COLOR="4885929"  # Decimal for Green
+            IMAGE_TAGS="${{ env.RELEASE_VERSION }}, latest"
+          elif [[ "$GITHUB_REF" == refs/heads/dev ]]; then
+            BRANCH="dev"
+            BRANCH_COLOR="16753920"  # Decimal for Orange
+            IMAGE_TAGS="dev"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            BRANCH="${GITHUB_REF#refs/tags/}"
+            BRANCH_COLOR="2201331"   # Decimal for Blue
+            IMAGE_TAGS="${BRANCH}, latest"
+          else
+            BRANCH="${GITHUB_REF#refs/heads/}"
+            BRANCH_COLOR="10233776"  # Decimal for Purple
+            IMAGE_TAGS="${{ env.DOCKER_TAGS }}"
+          fi
+
+          # Create a simpler JSON payload with less string manipulation in jq
+          cat > discord-payload.json << EOF
+          {
+            "embeds": [{
+              "title": "🚀 Docker Build Success: ${{ github.repository }}",
+              "color": $BRANCH_COLOR,
+              "description": "A new Docker image has been built and pushed to the container registry.",
+              "fields": [
+                {
+                  "name": "🏷️ Version",
+                  "value": "${{ env.RELEASE_VERSION }}",
+                  "inline": true
+                },
+                {
+                  "name": "🔖 Branch/Tag",
+                  "value": "$BRANCH",
+                  "inline": true
+                },
+                {
+                  "name": "🧠 Commit",
+                  "value": "[\`$SHORT_SHA\`]($COMMIT_URL)",
+                  "inline": true
+                },
+                {
+                  "name": "🏙️ Image",
+                  "value": "ghcr.io/${{ github.repository }}",
+                  "inline": false
+                },
+                {
+                  "name": "📋 Tags",
+                  "value": "$IMAGE_TAGS",
+                  "inline": false
+                }
+              ],
+              "thumbnail": {
+                "url": "https://github.com/cyb3rgh05t/brands-logos/blob/master/StreamNet/icons/2.png?raw=true"
+              },
+              "footer": {
+                "text": "Built with ❤️ by ${{ github.repository_owner }}",
+                "icon_url": "https://github.com/${{ github.repository_owner }}.png"
+              },
+              "timestamp": "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            }]
+          }
+          EOF
+
+          # Send the webhook if DISCORD_WEBHOOK is defined
+          if [ -n "${{ secrets.DISCORD_WEBHOOK }}" ]; then
+            curl -X POST ${{ secrets.DISCORD_WEBHOOK }} \
+              -H "Content-Type: application/json" \
+              -d @discord-payload.json
+          fi

@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class TVCommand(commands.Cog):

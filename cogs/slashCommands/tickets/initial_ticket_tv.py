@@ -5,6 +5,7 @@ import sqlite3
 import random
 import logging
 from config.settings import DATABASE_PATH, TICKET_CATEGORY_ID, STAFF_ROLE, LIVE_TICKET
+from cogs.helpers.logger import logger
 
 
 class TicketHandler(commands.Cog):
@@ -90,7 +91,7 @@ class TicketHandler(commands.Cog):
                 "Ticket category not found. Please contact an administrator.",
                 ephemeral=True,
             )
-            logging.error("Ticket category not found in the guild.")
+            logger.error("Ticket category not found in the guild.")
             return
 
         # Create the ticket channel
@@ -185,4 +186,4 @@ class TicketHandler(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(TicketHandler(bot))
-    logging.info("TicketHandler cog loaded.")
+    logger.debug("TicketHandler cog loaded.")

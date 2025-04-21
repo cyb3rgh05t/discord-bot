@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ui import Button, View
+from cogs.helpers.logger import logger
 
 
 class LinesCommand(commands.Cog):

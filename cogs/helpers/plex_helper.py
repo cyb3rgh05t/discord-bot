@@ -4,6 +4,7 @@ import logging
 import sqlite3
 import os
 import discord
+from cogs.helpers.logger import logger
 
 
 def plexinviter(plex, plexname, plex_libs):
@@ -24,10 +25,10 @@ def plexinviter(plex, plexname, plex_libs):
             filterTelevision=None,
             filterMusic=None,
         )
-        logging.info(f"{plexname} has been added to Plex")
+        logger.info(f"{plexname} has been added to Plex")
         return True
     except Exception as e:
-        logging.error(f"Error adding {plexname} to Plex: {e}")
+        logger.error(f"Error adding {plexname} to Plex: {e}")
         return False
 
 
@@ -37,10 +38,10 @@ def plexremove(plex, plexname):
     """
     try:
         plex.myPlexAccount().removeFriend(user=plexname)
-        logging.info(f"{plexname} has been removed from Plex")
+        logger.info(f"{plexname} has been removed from Plex")
         return True
     except Exception as e:
-        logging.error(f"Error removing {plexname} from Plex: {e}")
+        logger.error(f"Error removing {plexname} from Plex: {e}")
         return False
 
 
@@ -60,9 +61,9 @@ def create_connection(db_file):
     conn = None
     try:
         conn = sqlite3.connect(db_file)
-        logging.info("Connected to Plex database")
+        logger.info("Connected to Plex database")
     except sqlite3.Error as e:
-        logging.error(f"Error connecting to Plex database: {e}")
+        logger.error(f"Error connecting to Plex database: {e}")
     return conn
 
 
@@ -95,7 +96,7 @@ def init_db(db_path):
                 );"""
             )
             conn.commit()
-            logging.info("Created Plex clients table")
+            logger.info("Created Plex clients table")
     return conn
 
 
@@ -110,13 +111,13 @@ def save_user_email(conn, username, email):
                 """
             )
             conn.commit()
-            logging.info(f"User {username} added to database with email {email}")
+            logger.info(f"User {username} added to database with email {email}")
             return True
         except Exception as e:
-            logging.error(f"Error saving user to database: {e}")
+            logger.error(f"Error saving user to database: {e}")
             return False
     else:
-        logging.warning("Username and email cannot be empty")
+        logger.warning("Username and email cannot be empty")
         return False
 
 
@@ -136,10 +137,10 @@ def get_user_email(conn, username):
             else:
                 return None
         except Exception as e:
-            logging.error(f"Error getting user email: {e}")
+            logger.error(f"Error getting user email: {e}")
             return None
     else:
-        logging.warning("Username cannot be empty")
+        logger.warning("Username cannot be empty")
         return None
 
 
@@ -151,13 +152,13 @@ def remove_email(conn, username):
                 f"UPDATE clients SET email = null WHERE discord_username = '{username}'"
             )
             conn.commit()
-            logging.info(f"Email removed from user {username} in database")
+            logger.info(f"Email removed from user {username} in database")
             return True
         except Exception as e:
-            logging.error(f"Error removing email: {e}")
+            logger.error(f"Error removing email: {e}")
             return False
     else:
-        logging.warning("Username cannot be empty")
+        logger.warning("Username cannot be empty")
         return False
 
 
@@ -169,13 +170,13 @@ def delete_user(conn, username):
                 'DELETE from clients where discord_username="{}";'.format(username)
             )
             conn.commit()
-            logging.info(f"User {username} deleted from database")
+            logger.info(f"User {username} deleted from database")
             return True
         except Exception as e:
-            logging.error(f"Error deleting user: {e}")
+            logger.error(f"Error deleting user: {e}")
             return False
     else:
-        logging.warning("Username cannot be empty")
+        logger.warning("Username cannot be empty")
         return False
 
 
@@ -190,7 +191,7 @@ def read_all_users(conn):
             all_users.append(row)
         return all_users
     except Exception as e:
-        logging.error(f"Error reading users from database: {e}")
+        logger.error(f"Error reading users from database: {e}")
         return []
 
 

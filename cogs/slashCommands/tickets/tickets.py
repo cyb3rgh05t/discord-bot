@@ -5,6 +5,8 @@ import logging
 import asyncio
 from discord.utils import get
 import chat_exporter
+from cogs.helpers.logger import logger
+
 
 # Database path
 DATABASE_PATH = "databases/ticket_system.db"
@@ -78,7 +80,7 @@ class TicketOptions(commands.Cog):
                 "Ticket setup not found for this guild.",
                 ephemeral=True,
             )
-            logging.warning(f"Ticket setup not found for guild {guild.name}.")
+            logger.warning(f"Ticket setup not found for guild {guild.name}.")
             return
 
         transcripts_channel_id, helpers_role_id = setup_data
@@ -89,7 +91,7 @@ class TicketOptions(commands.Cog):
             await interaction.response.send_message(
                 "Nur für Staff Mitglieder!", ephemeral=True
             )
-            logging.warning(f"{member.name} attempted to interact without proper role.")
+            logger.warning(f"{member.name} attempted to interact without proper role.")
             return
 
         # Fetch ticket data
@@ -99,7 +101,7 @@ class TicketOptions(commands.Cog):
                 "No data found for this ticket. Please delete it manually.",
                 ephemeral=True,
             )
-            logging.warning(f"No ticket data found for channel {channel.name}.")
+            logger.warning(f"No ticket data found for channel {channel.name}.")
             return
 
         (
@@ -157,7 +159,7 @@ class TicketOptions(commands.Cog):
                         "Fehler beim Erstellen des Transkripts. Bitte versuche es erneut.",
                         ephemeral=True,
                     )
-                    logging.error(
+                    logger.error(
                         f"Transcript creation failed for channel {channel.name}."
                     )
                     return
@@ -191,11 +193,11 @@ class TicketOptions(commands.Cog):
                             ),
                             file=await transcript_file.to_file(),
                         )
-                        logging.info(
+                        logger.info(
                             f"Transcript sent to {ticket_creator.name} for ticket {ticket_id}."
                         )
                     except discord.Forbidden:
-                        logging.warning(
+                        logger.warning(
                             f"Could not send transcript to {ticket_creator.name} (DMs disabled)."
                         )
                         await transcripts_channel.send(
@@ -207,7 +209,7 @@ class TicketOptions(commands.Cog):
             await interaction.followup.send(embed=embed)
             await asyncio.sleep(10)
             await channel.delete()
-            logging.info(f"Ticket {ticket_id} was deleted.")
+            logger.info(f"Ticket {ticket_id} was deleted.")
 
         elif custom_id == "claim":
             if claimed:
@@ -227,4 +229,4 @@ class TicketOptions(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(TicketOptions(bot))
-    logging.info("TicketOptions cog loaded.")
+    logger.debug("TicketOptions cog loaded.")

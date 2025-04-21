@@ -1,6 +1,7 @@
 import discord
 import logging
 from discord.ext import commands
+from cogs.helpers.logger import logger
 
 
 class Tv(commands.Cog):
@@ -32,4 +33,4 @@ class Tv(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Tv(bot))
-    logging.info("TV Logo cog loaded.")
+    logger.debug("TV Logo cog loaded.")

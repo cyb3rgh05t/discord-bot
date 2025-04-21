@@ -2,12 +2,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import asyncio
-import logging
 import os
 from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 import texttable
 from config.settings import GUILD_ID
+from cogs.helpers.logger import logger  # Updated import
 from cogs.helpers.plex_helper import (
     plexinviter,
     plexremove,
@@ -23,12 +23,8 @@ from cogs.helpers.plex_helper import (
 # Database path
 PLEX_DB_PATH = "databases/plex_clients.db"
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("logs/plex.log"), logging.StreamHandler()],
-)
+# Ensure database directory exists
+os.makedirs(os.path.dirname(PLEX_DB_PATH), exist_ok=True)
 
 
 class PlexCommands(commands.Cog):
@@ -80,19 +76,19 @@ class PlexCommands(commands.Cog):
                     # Connect using token
                     self.plex_server = PlexServer(PLEX_BASE_URL, PLEX_TOKEN)
                     self.plex_configured = True
-                    logging.info("Connected to Plex using token")
+                    logger.info("Connected to Plex using token")
                 elif PLEX_USER and PLEX_PASS and PLEX_SERVER_NAME:
                     # Connect using username and password
                     account = MyPlexAccount(PLEX_USER, PLEX_PASS)
                     self.plex_server = account.resource(PLEX_SERVER_NAME).connect()
                     self.plex_configured = True
-                    logging.info("Connected to Plex using username and password")
+                    logger.info("Connected to Plex using username and password")
                 else:
-                    logging.warning("Insufficient Plex credentials provided")
+                    logger.warning("Insufficient Plex credentials provided")
         except ImportError:
-            logging.warning("Could not import Plex settings from config.settings")
+            logger.warning("Could not import Plex settings from config.settings")
         except Exception as e:
-            logging.error(f"Error connecting to Plex: {e}")
+            logger.error(f"Error connecting to Plex: {e}")
 
     # Embed message functions
     async def embederror(self, interaction, message):
@@ -281,11 +277,11 @@ class PlexCommands(commands.Cog):
                             plexremove(self.plex_server, email)
                             removed = remove_email(self.db_conn, user_id)
                             if removed:
-                                logging.info(
+                                logger.info(
                                     f"Removed Plex email for {after.name} from database"
                                 )
                             else:
-                                logging.warning(
+                                logger.warning(
                                     f"Could not remove Plex from user {after.name}"
                                 )
 
@@ -296,7 +292,7 @@ class PlexCommands(commands.Cog):
                             )
                             await after.send(embed=embed)
                     except Exception as e:
-                        logging.error(f"Error removing user from Plex: {e}")
+                        logger.error(f"Error removing user from Plex: {e}")
 
                     plex_processed = True
                     break
@@ -314,7 +310,7 @@ class PlexCommands(commands.Cog):
 
         deleted = delete_user(self.db_conn, member.id)
         if deleted:
-            logging.info(
+            logger.info(
                 f"Removed {member.name} from database because user left Discord server."
             )
 
@@ -410,7 +406,7 @@ class PlexCommands(commands.Cog):
                     "<:rejected:995614671128244224> Es gab einen Fehler beim Hinzufügen dieser Email-Adresse zur Datenbank. Bitte überprüfe die Logs für mehr Informationen.",
                 )
         except Exception as e:
-            logging.error(f"Error adding user to database: {e}")
+            logger.error(f"Error adding user to database: {e}")
             await self.embederror(
                 interaction,
                 "<:rejected:995614671128244224> Es gab einen Fehler beim Hinzufügen dieser Email-Adresse zur Datenbank. Bitte überprüfe die Logs für mehr Informationen.",
@@ -435,7 +431,7 @@ class PlexCommands(commands.Cog):
                 username = discord_user.name
 
                 if delete_user(self.db_conn, user_id):
-                    logging.info(f"Removed {username} from database")
+                    logger.info(f"Removed {username} from database")
                     await self.embedinfo(
                         interaction,
                         f"<:approved:995615632961847406> {username} wurde aus der Datenbank entfernt.",
@@ -451,7 +447,7 @@ class PlexCommands(commands.Cog):
                     "<:rejected:995614671128244224> Ungültige Position. Bitte verwende /dbls, um die richtige Position zu finden.",
                 )
         except Exception as e:
-            logging.error(f"Error removing user from database: {e}")
+            logger.error(f"Error removing user from database: {e}")
             await self.embederror(
                 interaction,
                 "<:rejected:995614671128244224> Es gab einen Fehler beim Entfernen dieses Benutzers aus der Datenbank. Bitte überprüfe die Logs für mehr Informationen.",
@@ -469,4 +465,4 @@ class PlexCommands(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(PlexCommands(bot))
-    logging.info("PlexCommands cog loaded.")
+    logger.debug("PlexCommands cog loaded.")
