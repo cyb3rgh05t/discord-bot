@@ -164,7 +164,7 @@ async def list_cogs(ctx):
 if __name__ == "__main__":
     # Display ASCII logo and version
     version = get_version()
-    print("\n" + ASCII_LOGO)
+    logger.info("\n" + ASCII_LOGO)
     logger.info(f"Starting Bot {version}...")
 
     # Create bot instance

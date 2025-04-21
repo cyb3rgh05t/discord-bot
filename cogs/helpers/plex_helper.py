@@ -49,7 +49,7 @@ def verifyemail(addressToVerify):
     """
     Verify if an email address is valid
     """
-    regex = "(^[a-zA-Z0-9'_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+    regex = r"(^[a-zA-Z0-9'_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
     match = re.match(regex, addressToVerify.lower())
     return match is not None
 
