@@ -3,6 +3,23 @@ import traceback
 import sys
 import os
 
+# Try to import settings, with fallbacks if import fails
+try:
+    from config.settings import LOGGING_LEVEL, LOG_FILE
+
+    # Convert string level name to actual logging level constant
+    numeric_level = getattr(logging, LOGGING_LEVEL.upper(), None)
+    if not isinstance(numeric_level, int):
+        print(f"Invalid log level: {LOGGING_LEVEL}, falling back to INFO")
+        numeric_level = logging.INFO
+    log_level = numeric_level
+    log_file = LOG_FILE
+except (ImportError, AttributeError) as e:
+    print(f"Could not import logging settings: {e}, using defaults")
+    # Default values if settings import fails
+    log_level = logging.INFO
+    log_file = "logs/bot.log"
+
 # ANSI Color codes
 COLORS = {
     "RESET": "\033[0m",
@@ -137,10 +154,16 @@ class StreamlinedFormatter(logging.Formatter):
         return formatted
 
 
-def setup_logging(log_file="logs/bot.log", log_level=logging.INFO):
+def setup_logging(log_file=None, log_level=None):
     """Configure application-wide logging"""
+    # Use parameters if provided, otherwise use the globals (from settings)
+    if log_file is None:
+        log_file = log_file_global
+    if log_level is None:
+        log_level = log_level_global
+
     # Print the log level we're trying to use
-    print(f"Setting up logging with level: {log_level}")
+    print(f"Setting up logging with level: {logging.getLevelName(log_level)}")
 
     # Create logs directory if it doesn't exist
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
@@ -215,8 +238,12 @@ def setup_logging(log_file="logs/bot.log", log_level=logging.INFO):
     return app_logger
 
 
+# Store the globals for use in setup_logging function
+log_level_global = log_level
+log_file_global = log_file
+
 # Initialize and export logger for importing
-logger = setup_logging()
+logger = setup_logging(log_file=log_file, log_level=log_level)
 
 
 # Add a simple test to ensure DEBUG messages work

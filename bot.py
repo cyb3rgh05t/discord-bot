@@ -12,7 +12,7 @@ from config.settings import (
     LOG_FILE,
     ASCII_LOGO,
 )
-from cogs.helpers.logger import setup_logging, logger  # Updated import path
+from cogs.helpers.logger import logger  # Import the pre-configured logger
 
 
 # Get version information
@@ -39,6 +39,11 @@ class MyBot(commands.Bot):
         # Clear global commands to prevent Discord from auto-registering them
         self.tree.clear_commands(guild=None)
         logger.info("Cleared all global commands.")
+
+        # Test debug logging
+        logger.debug(
+            "Setup hook initialized - if you see this, debug logging is working!"
+        )
 
         guild = discord.Object(id=GUILD_ID)
 
@@ -97,7 +102,7 @@ class MyBot(commands.Bot):
             synced = await self.tree.sync(guild=guild)
             self.synced_guilds.add(guild.id)
             logger.info(f"Synced {len(synced)} commands to guild '{guild.id}'.")
-            logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
+            logger.debug(f"Synced commands: {[cmd.name for cmd in synced]}")
         except Exception as e:
             logger.error(f"Error syncing commands to guild '{guild.id}': {e}")
 
@@ -120,6 +125,7 @@ class MyBot(commands.Bot):
         """Event fired when the bot is ready."""
         logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
         logger.info(f"Bot is ready and connected to Discord!")
+        logger.debug("Debug test message - checking if debug logs are visible")
 
 
 @commands.command(name="sync", help="Manually sync slash commands.")
@@ -158,7 +164,7 @@ async def list_cogs(ctx):
 if __name__ == "__main__":
     # Display ASCII logo and version
     version = get_version()
-    logger.info("\n" + ASCII_LOGO)
+    print("\n" + ASCII_LOGO)
     logger.info(f"Starting Bot {version}...")
 
     # Create bot instance
