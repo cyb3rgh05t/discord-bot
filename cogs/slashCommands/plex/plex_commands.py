@@ -246,7 +246,9 @@ class PlexCommands(commands.Cog):
                         await after.send(embed=embed)
 
                         if plexinviter(self.plex_server, email, self.plex_libs):
-                            save_user_email(self.db_conn, str(after.id), email)
+                            save_user_email(
+                                self.db_conn, str(after.id), email, after.name
+                            )
                             await asyncio.sleep(5)
 
                             embed = discord.Embed(
@@ -395,7 +397,7 @@ class PlexCommands(commands.Cog):
             return
 
         try:
-            if save_user_email(self.db_conn, str(member.id), email):
+            if save_user_email(self.db_conn, str(member.id), email, member.name):
                 await self.embedinfo(
                     interaction,
                     "<:approved:995615632961847406> Email wurde zur Datenbank hinzugefügt.",

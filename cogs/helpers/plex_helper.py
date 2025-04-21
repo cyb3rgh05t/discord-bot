@@ -100,18 +100,21 @@ def init_db(db_path):
     return conn
 
 
-def save_user_email(conn, username, email):
+def save_user_email(conn, user_id, email, username=None):
     """Save a user's email to the database"""
-    if username and email:
+    if user_id and email:
         try:
             conn.execute(
                 f"""
                 INSERT OR REPLACE INTO clients(discord_username, email)
-                VALUES('{username}', '{email}')
+                VALUES('{user_id}', '{email}')
                 """
             )
             conn.commit()
-            logger.info(f"User {username} added to database with email {email}")
+
+            # Use username in logs if provided
+            display_name = username or user_id
+            logger.info(f"User {display_name} added to database with email {email}")
             return True
         except Exception as e:
             logger.error(f"Error saving user to database: {e}")
