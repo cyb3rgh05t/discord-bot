@@ -7,3 +7,7 @@ pillow
 PyNaCl
 asyncio
 psutil
+python-dotenv
+plexapi==4.15.15
+texttable
+requests

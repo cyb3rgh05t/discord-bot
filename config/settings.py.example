@@ -31,3 +31,12 @@ WELCOME_CHANNEL_ID = 0000000000000000
 SYSTEM_CHANNEL_ID = 0000000000000000000
 TICKET_CATEGORY_ID = 0000000000000000000
 RULES_CHANNEL_ID = 0000000000000000
+
+PLEX_USER = ""  # Your Plex username
+PLEX_PASS = ""  # Your Plex password
+PLEX_SERVER_NAME = "StreamNet"  # Your Plex server name
+PLEX_TOKEN = ""  # Your Plex token (alternative to username/password)
+PLEX_BASE_URL = ""  # Your Plex server base URL (used with token)
+PLEX_ROLES = "member"  # Comma-separated list of roles for automatic Plex invites
+PLEX_LIBS = "all"  # Comma-separated list of libraries to share (use 'all' for all libraries)
+PLEX_ENABLED = True  # Enable/disable Plex integration
