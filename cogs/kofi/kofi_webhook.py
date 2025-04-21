@@ -15,6 +15,8 @@ from config.settings import (
     KOFI_WEBHOOK_PORT,
     KOFI_VERIFICATION_TOKEN,
     KOFI_CHANNEL_ID,
+    KOFI_NAME,
+    KOFI_LOGO,
     LANGUAGE,
 )
 from cogs.helpers.logger import logger
@@ -174,6 +176,8 @@ class KofiWebhook(commands.Cog):
         try:
             config["port"] = KOFI_WEBHOOK_PORT
             config["verification_token"] = KOFI_VERIFICATION_TOKEN
+            config["kofi_name"] = KOFI_NAME
+            config["kofi_logo"] = KOFI_LOGO
             config["channel_id"] = KOFI_CHANNEL_ID
             config["language"] = LANGUAGE.lower()
         except:

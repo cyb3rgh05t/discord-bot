@@ -14,6 +14,8 @@ services:
       - ${DOCKERNETWORK}
     security_opt:
       - "${SECURITYOPS}:${SECURITYOPSSET}"
+    ports:
+      - "3033:3033"
     volumes:
       - "${APPFOLDER}/discord-bot/config:/app/config:rw"
       - "${APPFOLDER}/discord-bot/databases:/app/databases:rw"
