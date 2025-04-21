@@ -16,7 +16,7 @@ class Invites(commands.Cog):
             await ctx.message.delete()
 
             # Replace with the path to your local image file
-            image_path = "./images/invites.png"
+            image_path = "./config/images/invites.png"
 
             # Create a file attachment
             file = discord.File(image_path, filename="invites.png")

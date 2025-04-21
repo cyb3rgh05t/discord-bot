@@ -1,7 +1,6 @@
-# Use the alpine lsio image as a base image
-FROM ghcr.io/linuxserver/baseimage-alpine:3.20
+# Use official Python image as a base image
+FROM python:3.12-slim
 
-# Owner Github
 LABEL maintainer=cyb3rgh05t
 LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
 
@@ -11,18 +10,18 @@ ENV TZ=Europe/Berlin
 # Update the package list and install dependencies using apk (Alpine package manager)
 RUN apk update && apk upgrade \
     && apk add --no-cache \
-        python3 \
-        py3-pip \
-        tini \
-        wget \
-        tzdata \
-        gcc \
-        musl-dev \
-        python3-dev \
-        linux-headers \
-        build-base \
-        libffi-dev \
-        openssl-dev \
+    python3 \
+    py3-pip \
+    tini \
+    wget \
+    tzdata \
+    gcc \
+    musl-dev \
+    python3-dev \
+    linux-headers \
+    build-base \
+    libffi-dev \
+    openssl-dev \
     && rm -rf /var/cache/apk/*  # Clean up after installation
 
 # Create and activate a virtual environment

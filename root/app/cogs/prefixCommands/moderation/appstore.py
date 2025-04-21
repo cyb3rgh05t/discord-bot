@@ -14,8 +14,8 @@ class StoreLinkCommand(commands.Cog):
             embed.add_field(
                 name="<:store:1312507116208128020> StreamNet Store",
                 value=(
-                    "<:icon_reply:1312507800689311854>Downloader App Code: 804370\n"
-                    "<:icon_reply:1312507800689311854>[Download Link](https://aftv.news/804370)"
+                    "<:icon_reply:1312507800689311854>Downloader App Code: 732041\n"
+                    "<:icon_reply:1312507800689311854>[Download Link](https://aftv.news/732041)"
                 ),
                 inline=False,
             )

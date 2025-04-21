@@ -63,13 +63,13 @@ class RulesAcceptButton(commands.Cog):
 
             if role in member.roles:
                 await interaction.response.send_message(
-                    f"✅ {member.mention}, you have already accepted the rules!",
+                    f"✅ {member.mention}, Du hast die Regeln schon bestätigt!!",
                     ephemeral=True,
                 )
             else:
                 await member.add_roles(role, reason="Accepted the rules")
                 await interaction.response.send_message(
-                    f"✅ {member.mention}, you have accepted the rules and the role '{role.name}' has been added to you!",
+                    f"✅ {member.mention}, du hast Regeln bestätigt und Rolle '{role.name}' wurde hinzugefügt!",
                     ephemeral=True,
                 )
 

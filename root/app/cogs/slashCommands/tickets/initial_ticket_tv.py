@@ -4,7 +4,7 @@ from discord import ui
 import sqlite3
 import random
 import logging
-from config.settings import DATABASE_PATH, TICKET_CATEGORY_ID, STAFF_ROLE
+from config.settings import DATABASE_PATH, TICKET_CATEGORY_ID, STAFF_ROLE, LIVE_TICKET
 
 
 class TicketHandler(commands.Cog):
@@ -80,6 +80,7 @@ class TicketHandler(commands.Cog):
 
         guild = interaction.guild
         member = interaction.user
+        ticket_name = LIVE_TICKET
         ticket_id = random.randint(10000, 99999)  # Generate random ticket ID
 
         # Fetch preconfigured category from settings
@@ -118,7 +119,7 @@ class TicketHandler(commands.Cog):
 
         # Create the ticket channel
         ticket_channel = await guild.create_text_channel(
-            f"ticket-{ticket_id}",
+            f"{ticket_name}-{ticket_id}",
             category=category,
             overwrites=overwrites,
         )

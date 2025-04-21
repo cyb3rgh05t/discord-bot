@@ -16,7 +16,7 @@ class Abo(commands.Cog):
             await ctx.message.delete()
 
             # Replace with the path to your local image file
-            image_path = "./images/abo.png"
+            image_path = "./config/images/abo.png"
 
             # Create a file attachment
             file = discord.File(image_path, filename="abo.png")

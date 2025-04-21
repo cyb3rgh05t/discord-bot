@@ -13,7 +13,9 @@ class VerifyMessage(commands.Cog):
     async def verifymessage(self, ctx):
         try:
             # Path to the image file
-            image_path = "./images/verify.png"  # Replace with your actual file path
+            image_path = (
+                "./config/images/verify.png"  # Replace with your actual file path
+            )
 
             # Create a Discord File object for the image
             file = discord.File(image_path, filename="verify.png")

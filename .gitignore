@@ -6,3 +6,7 @@
 config/settings.py
 *.log
 logs/bot.log
+/files
+/images
+*.pdf
+*.png
