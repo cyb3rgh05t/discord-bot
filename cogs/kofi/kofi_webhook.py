@@ -206,9 +206,20 @@ class KofiWebhook(commands.Cog):
                 }
             )
 
-        @app.route("/webhook", methods=["POST"])
+        @app.route("/webhook", methods=["GET", "POST"])
         def webhook():
             """Ko-fi webhook endpoint"""
+            # For GET requests (browser access), show a friendly message
+            if request.method == "GET":
+                return jsonify(
+                    {
+                        "status": "active",
+                        "message": f"{self.config['kofi_name']} webhook endpoint is active and waiting for POST requests from Ko-fi",
+                        "hint": "This endpoint only processes POST requests from Ko-fi's notification system",
+                    }
+                )
+
+            # Process POST requests (from Ko-fi)
             try:
                 data = request.json.get("data")
 
@@ -431,7 +442,7 @@ class KofiWebhook(commands.Cog):
 
             # Send the message
             await channel.send(embed=embed)
-            logger.info(f"Sent Ko-fi notification to channel #{channel.name}")
+            logger.info(f"Sent Ko-fi notification to channel {channel.name}")
 
         except Exception as e:
             logger.error(f"Error processing Ko-fi data: {str(e)}")
