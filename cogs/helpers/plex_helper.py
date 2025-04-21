@@ -130,6 +130,7 @@ def get_user_email(conn, username):
                     username
                 )
             )
+            email = None  # Initialize email variable
             for row in cursor:
                 email = row[1]
             if email:
