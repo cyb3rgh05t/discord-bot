@@ -1,0 +1,14 @@
+discord.py
+discord-py-slash-command
+py-discord-html-transcripts
+aiohttp
+captcha
+pillow
+PyNaCl
+asyncio
+psutil
+plex.py==0.9.0
+PlexAPI==4.15.15
+texttable
+python-dotenv
+requests

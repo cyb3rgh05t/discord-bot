@@ -31,3 +31,25 @@ WELCOME_CHANNEL_ID = 0000000000000000
 SYSTEM_CHANNEL_ID = 0000000000000000000
 TICKET_CATEGORY_ID = 0000000000000000000
 RULES_CHANNEL_ID = 0000000000000000
+
+# === Plex Integration Settings ===
+# Set to True to enable Plex integration
+USE_PLEX = False
+
+# Plex authentication - Either use token-based or username/password-based auth
+# Token-based authentication (recommended)
+PLEX_TOKEN = ""
+PLEX_BASE_URL = ""
+
+# Username/password authentication (not recommended for production)
+PLEX_USER = ""
+PLEX_PASS = ""
+
+# Plex server name
+PLEX_SERVER_NAME = "StreamNet"
+
+# Comma-separated list of Discord roles that trigger Plex invites
+PLEX_ROLES = "StreamNet..er"
+
+# Comma-separated list of Plex libraries to share or "all" to share all libraries
+PLEX_LIBS = "all"
