@@ -2,18 +2,11 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import os
-import configparser
+import re
 from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 from config.settings import GUILD_ID
-from cogs.helpers.logger import logger  # Updated import
-
-# Configuration file path
-CONFIG_PATH = "config/plex_config.ini"
-CONFIG_SECTION = "plex_settings"
-
-# Ensure config directory exists
-os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+from cogs.helpers.logger import logger
 
 
 class PlexSettings(commands.Cog):
@@ -21,52 +14,127 @@ class PlexSettings(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.settings_path = "config/settings.py"
 
-        # Initialize config
-        self.config = configparser.ConfigParser()
-        self.load_config()
+        # Load settings from settings.py
+        self.load_settings()
 
-        # Get settings
-        self.plex_roles = self.get_config_value("plex_roles", [])
-        if isinstance(self.plex_roles, str) and self.plex_roles:
-            self.plex_roles = self.plex_roles.split(",")
-        elif not isinstance(self.plex_roles, list):
-            self.plex_roles = []
-
-        self.plex_libs = self.get_config_value("plex_libs", ["all"])
-        if isinstance(self.plex_libs, str) and self.plex_libs:
-            self.plex_libs = self.plex_libs.split(",")
-        elif not isinstance(self.plex_libs, list):
-            self.plex_libs = ["all"]
-
-    def load_config(self):
-        """Load configuration from file"""
-        if os.path.exists(CONFIG_PATH):
-            self.config.read(CONFIG_PATH)
-            if not self.config.has_section(CONFIG_SECTION):
-                self.config.add_section(CONFIG_SECTION)
-        else:
-            self.config.add_section(CONFIG_SECTION)
-            self.save_config()
-
-    def save_config(self):
-        """Save configuration to file"""
-        with open(CONFIG_PATH, "w") as configfile:
-            self.config.write(configfile)
-
-    def get_config_value(self, key, default=None):
-        """Get a value from the configuration"""
+    def load_settings(self):
+        """Load Plex settings from settings.py"""
         try:
-            return self.config.get(CONFIG_SECTION, key)
-        except (configparser.NoSectionError, configparser.NoOptionError):
-            return default
+            # Import all settings directly
+            from config import settings
 
-    def set_config_value(self, key, value):
-        """Set a value in the configuration"""
-        if not self.config.has_section(CONFIG_SECTION):
-            self.config.add_section(CONFIG_SECTION)
-        self.config.set(CONFIG_SECTION, key, str(value))
-        self.save_config()
+            # Convert to appropriate types
+            self.plex_user = getattr(settings, "PLEX_USER", "")
+            self.plex_pass = getattr(settings, "PLEX_PASS", "")
+            self.plex_server_name = getattr(settings, "PLEX_SERVER_NAME", "")
+            self.plex_token = getattr(settings, "PLEX_TOKEN", "")
+            self.plex_base_url = getattr(settings, "PLEX_BASE_URL", "")
+
+            # Handle roles - could be string or list
+            plex_roles = getattr(settings, "PLEX_ROLES", [])
+            self.plex_roles = (
+                plex_roles.split(",") if isinstance(plex_roles, str) else plex_roles
+            )
+
+            # Handle libraries - could be string or list
+            plex_libs = getattr(settings, "PLEX_LIBS", ["all"])
+            self.plex_libs = (
+                plex_libs.split(",") if isinstance(plex_libs, str) else plex_libs
+            )
+
+            # Get enabled status
+            self.plex_enabled = getattr(settings, "PLEX_ENABLED", False)
+
+            # Log configuration in a clean, one-by-one format
+            logger.info(f"Plex configuration loaded:")
+            logger.info(
+                f"  → Plex Status: {'Enabled' if self.plex_enabled else 'Disabled'}"
+            )
+            logger.info(
+                f"  → Plex Server: {self.plex_server_name if self.plex_server_name else 'Not configured'}"
+            )
+
+            # Log roles in a cleaner format
+            if self.plex_roles:
+                logger.info(f"  → Plex Roles: {', '.join(self.plex_roles)}")
+            else:
+                logger.info(f"  → Plex Roles: None configured")
+
+            # Log libraries in a cleaner format
+            if self.plex_libs:
+                logger.info(f"  → Plex Share: {len(self.plex_libs)} Libraries")
+                logger.debug(f"Plex Shared Libraries: {', '.join(self.plex_libs)}")
+            else:
+                logger.info(f"  → Libraries: None configured")
+
+            # Log auth method but mask sensitive data
+            if self.plex_token:
+                logger.info(f"  → PlexAuth method: Token")
+            elif self.plex_user and self.plex_pass:
+                logger.info(f"  → PlexAuth method: Credentials")
+            else:
+                logger.info(f"  → PlexAuth method: Not configured")
+
+            return True
+        except (ImportError, AttributeError) as e:
+            logger.warning(f"Could not load Plex settings from settings.py: {e}")
+            # Set default values
+            self.plex_user = ""
+            self.plex_pass = ""
+            self.plex_server_name = ""
+            self.plex_token = ""
+            self.plex_base_url = ""
+            self.plex_roles = []
+            self.plex_libs = ["all"]
+            self.plex_enabled = False
+            return False
+
+    def read_settings_file(self):
+        """Read the settings.py file content"""
+        if os.path.exists(self.settings_path):
+            with open(self.settings_path, "r") as f:
+                return f.read()
+        else:
+            logger.error(f"Settings file not found at {self.settings_path}")
+            return None
+
+    def write_settings_file(self, content):
+        """Write the updated content to settings.py"""
+        try:
+            with open(self.settings_path, "w") as f:
+                f.write(content)
+            return True
+        except Exception as e:
+            logger.error(f"Error writing to settings file: {e}")
+            return False
+
+    def update_setting(self, content, setting_name, value):
+        """Update a setting in settings.py content"""
+        # Convert value to appropriate string representation
+        if isinstance(value, bool):
+            value_str = str(value)
+        elif isinstance(value, (int, float)):
+            value_str = str(value)
+        elif isinstance(value, str):
+            value_str = f'"{value}"'
+        elif isinstance(value, list):
+            value_str = f'"{",".join(str(v) for v in value)}"'
+        else:
+            value_str = f'"{str(value)}"'
+
+        # Try to find and update the setting
+        pattern = rf"{setting_name}\s*=\s*.*"
+        replacement = f"{setting_name} = {value_str}"
+
+        # If the setting exists, update it
+        if re.search(pattern, content):
+            updated_content = re.sub(pattern, replacement, content)
+            return updated_content
+        else:
+            # If setting doesn't exist, add it at the end
+            return f"{content}\n{setting_name} = {value_str}\n"
 
     # Embed message functions
     async def embedinfo(self, interaction, message):
@@ -114,96 +182,73 @@ class PlexSettings(commands.Cog):
             account = MyPlexAccount(username, password)
             plex = account.resource(server_name).connect()
 
+            # Read current settings
+            content = self.read_settings_file()
+            if not content:
+                await self.embederror(
+                    interaction,
+                    "❌ Could not read settings file. Please check the logs for more information.",
+                )
+                return
+
             if save_token:
                 # Save token
-                self.set_config_value("plex_token", plex._token)
-                self.set_config_value(
-                    "plex_base_url", plex._baseurl if not base_url else base_url
+                content = self.update_setting(content, "PLEX_TOKEN", plex._token)
+                content = self.update_setting(
+                    content,
+                    "PLEX_BASE_URL",
+                    plex._baseurl if not base_url else base_url,
                 )
-                self.set_config_value("plex_server_name", server_name)
+                content = self.update_setting(content, "PLEX_SERVER_NAME", server_name)
 
                 # Clear credentials
-                self.set_config_value("plex_user", "")
-                self.set_config_value("plex_pass", "")
+                content = self.update_setting(content, "PLEX_USER", "")
+                content = self.update_setting(content, "PLEX_PASS", "")
+
+                # Update local variables
+                self.plex_token = plex._token
+                self.plex_base_url = plex._baseurl if not base_url else base_url
+                self.plex_server_name = server_name
+                self.plex_user = ""
+                self.plex_pass = ""
             else:
                 # Save credentials
-                self.set_config_value("plex_user", username)
-                self.set_config_value("plex_pass", password)
-                self.set_config_value("plex_server_name", server_name)
+                content = self.update_setting(content, "PLEX_USER", username)
+                content = self.update_setting(content, "PLEX_PASS", password)
+                content = self.update_setting(content, "PLEX_SERVER_NAME", server_name)
 
                 # Clear token
-                self.set_config_value("plex_token", "")
-                self.set_config_value("plex_base_url", "")
+                content = self.update_setting(content, "PLEX_TOKEN", "")
+                content = self.update_setting(content, "PLEX_BASE_URL", "")
 
-            # Try to update settings.py if available
-            try:
-                settings_path = "config/settings.py"
-                if os.path.exists(settings_path):
-                    with open(settings_path, "r") as f:
-                        content = f.read()
-
-                    if save_token:
-                        # Update token settings
-                        if "PLEX_TOKEN" in content:
-                            content = self.update_setting(
-                                content, "PLEX_TOKEN", plex._token
-                            )
-                        else:
-                            content += f'\nPLEX_TOKEN = "{plex._token}"\n'
-
-                        if "PLEX_BASE_URL" in content:
-                            content = self.update_setting(
-                                content,
-                                "PLEX_BASE_URL",
-                                plex._baseurl if not base_url else base_url,
-                            )
-                        else:
-                            content += f'\nPLEX_BASE_URL = "{plex._baseurl if not base_url else base_url}"\n'
-
-                        if "PLEX_SERVER_NAME" in content:
-                            content = self.update_setting(
-                                content, "PLEX_SERVER_NAME", server_name
-                            )
-                        else:
-                            content += f'\nPLEX_SERVER_NAME = "{server_name}"\n'
-                    else:
-                        # Update credential settings
-                        if "PLEX_USER" in content:
-                            content = self.update_setting(
-                                content, "PLEX_USER", username
-                            )
-                        else:
-                            content += f'\nPLEX_USER = "{username}"\n'
-
-                        if "PLEX_PASS" in content:
-                            content = self.update_setting(
-                                content, "PLEX_PASS", password
-                            )
-                        else:
-                            content += f'\nPLEX_PASS = "{password}"\n'
-
-                        if "PLEX_SERVER_NAME" in content:
-                            content = self.update_setting(
-                                content, "PLEX_SERVER_NAME", server_name
-                            )
-                        else:
-                            content += f'\nPLEX_SERVER_NAME = "{server_name}"\n'
-
-                    with open(settings_path, "w") as f:
-                        f.write(content)
-            except Exception as e:
-                logger.warning(f"Could not update settings.py: {e}")
+                # Update local variables
+                self.plex_user = username
+                self.plex_pass = password
+                self.plex_server_name = server_name
+                self.plex_token = ""
+                self.plex_base_url = ""
 
             # Enable Plex
-            self.set_config_value("plex_enabled", "True")
+            content = self.update_setting(content, "PLEX_ENABLED", True)
+            self.plex_enabled = True
+
+            # Write updated settings
+            if not self.write_settings_file(content):
+                await self.embederror(
+                    interaction,
+                    "❌ Could not write to settings file. Please check the logs for more information.",
+                )
+                return
+
+            logger.info(f"Plex authentication updated:")
+            logger.info(f"  → Server: {server_name}")
+            logger.info(f"  → Auth method: {'Token' if save_token else 'Credentials'}")
 
             await self.embedinfo(
                 interaction,
                 "✅ Plex authentication details updated.\n"
                 "Please restart the bot or reload the Plex cogs for the changes to take effect.",
             )
-
-            logger.info("Plex authentication details updated")
         except Exception as e:
             if "(429)" in str(e):
                 await self.embederror(
@@ -215,17 +260,6 @@ class PlexSettings(commands.Cog):
                 )
             logger.error(f"Error connecting to Plex: {e}")
 
-    def update_setting(self, content, setting_name, value):
-        """Update a setting in settings.py"""
-        import re
-
-        # Try to match the setting with both single and double quotes
-        pattern = rf'{setting_name}\s*=\s*[\'"].*?[\'"]'
-        replacement = f'{setting_name} = "{value}"'
-
-        # Replace the setting
-        return re.sub(pattern, replacement, content)
-
     @app_commands.command(
         name="addrole", description="Add a role for automatic Plex invites"
     )
@@ -233,52 +267,42 @@ class PlexSettings(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def addrole(self, interaction: discord.Interaction, role: discord.Role):
         """Command to add a role for automatic Plex invites"""
-        # Load current roles
-        plex_roles = self.plex_roles
-
         # Check if role already exists
-        if role.name in plex_roles:
+        if role.name in self.plex_roles:
             await self.embederror(
                 interaction,
                 f"❌ Rolle '{role.name}' ist bereits für automatische Plex-Einladungen konfiguriert.",
             )
             return
 
-        # Add role
-        plex_roles.append(role.name)
+        # Add role to local list
+        self.plex_roles.append(role.name)
 
-        # Save roles
-        self.set_config_value("plex_roles", ",".join(plex_roles))
+        # Update settings.py
+        content = self.read_settings_file()
+        if not content:
+            await self.embederror(
+                interaction,
+                "❌ Could not read settings file. Please check the logs for more information.",
+            )
+            return
 
-        # Try to update settings.py if available
-        try:
-            settings_path = "config/settings.py"
-            if os.path.exists(settings_path):
-                with open(settings_path, "r") as f:
-                    content = f.read()
+        content = self.update_setting(content, "PLEX_ROLES", self.plex_roles)
 
-                if "PLEX_ROLES" in content:
-                    content = self.update_setting(
-                        content, "PLEX_ROLES", ",".join(plex_roles)
-                    )
-                else:
-                    content += f'\nPLEX_ROLES = "{",".join(plex_roles)}"\n'
+        if not self.write_settings_file(content):
+            await self.embederror(
+                interaction,
+                "❌ Could not write to settings file. Please check the logs for more information.",
+            )
+            return
 
-                with open(settings_path, "w") as f:
-                    f.write(content)
-        except Exception as e:
-            logger.warning(f"Could not update settings.py: {e}")
-
-        # Update instance variable
-        self.plex_roles = plex_roles
+        logger.info(f"Plex role added: '{role.name}'")
 
         await self.embedinfo(
             interaction,
             f"✅ Rolle '{role.name}' wurde für automatische Plex-Einladungen hinzugefügt.\n"
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
-
-        logger.info(f"Added role '{role.name}' for automatic Plex invites")
 
     @app_commands.command(
         name="removerole", description="Remove a role from automatic Plex invites"
@@ -287,52 +311,42 @@ class PlexSettings(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def removerole(self, interaction: discord.Interaction, role: discord.Role):
         """Command to remove a role from automatic Plex invites"""
-        # Load current roles
-        plex_roles = self.plex_roles
-
         # Check if role exists
-        if role.name not in plex_roles:
+        if role.name not in self.plex_roles:
             await self.embederror(
                 interaction,
                 f"❌ Rolle '{role.name}' ist nicht für automatische Plex-Einladungen konfiguriert.",
             )
             return
 
-        # Remove role
-        plex_roles.remove(role.name)
+        # Remove role from local list
+        self.plex_roles.remove(role.name)
 
-        # Save roles
-        self.set_config_value("plex_roles", ",".join(plex_roles))
+        # Update settings.py
+        content = self.read_settings_file()
+        if not content:
+            await self.embederror(
+                interaction,
+                "❌ Could not read settings file. Please check the logs for more information.",
+            )
+            return
 
-        # Try to update settings.py if available
-        try:
-            settings_path = "config/settings.py"
-            if os.path.exists(settings_path):
-                with open(settings_path, "r") as f:
-                    content = f.read()
+        content = self.update_setting(content, "PLEX_ROLES", self.plex_roles)
 
-                if "PLEX_ROLES" in content:
-                    content = self.update_setting(
-                        content, "PLEX_ROLES", ",".join(plex_roles)
-                    )
-                else:
-                    content += f'\nPLEX_ROLES = "{",".join(plex_roles)}"\n'
+        if not self.write_settings_file(content):
+            await self.embederror(
+                interaction,
+                "❌ Could not write to settings file. Please check the logs for more information.",
+            )
+            return
 
-                with open(settings_path, "w") as f:
-                    f.write(content)
-        except Exception as e:
-            logger.warning(f"Could not update settings.py: {e}")
-
-        # Update instance variable
-        self.plex_roles = plex_roles
+        logger.info(f"Plex role removed: '{role.name}'")
 
         await self.embedinfo(
             interaction,
             f"✅ Rolle '{role.name}' wurde aus der automatischen Plex-Einladungsliste entfernt.\n"
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
-
-        logger.info(f"Removed role '{role.name}' from automatic Plex invites")
 
     @app_commands.command(
         name="setuplibs", description="Setup Plex libraries for sharing"
@@ -349,31 +363,33 @@ class PlexSettings(commands.Cog):
 
         # Clean up the library list
         library_list = [lib.strip() for lib in libraries.split(",")]
-
-        # Save libraries
-        self.set_config_value("plex_libs", ",".join(library_list))
-
-        # Try to update settings.py if available
-        try:
-            settings_path = "config/settings.py"
-            if os.path.exists(settings_path):
-                with open(settings_path, "r") as f:
-                    content = f.read()
-
-                if "PLEX_LIBS" in content:
-                    content = self.update_setting(
-                        content, "PLEX_LIBS", ",".join(library_list)
-                    )
-                else:
-                    content += f'\nPLEX_LIBS = "{",".join(library_list)}"\n'
-
-                with open(settings_path, "w") as f:
-                    f.write(content)
-        except Exception as e:
-            logger.warning(f"Could not update settings.py: {e}")
-
-        # Update instance variable
         self.plex_libs = library_list
+
+        # Update settings.py
+        content = self.read_settings_file()
+        if not content:
+            await self.embederror(
+                interaction,
+                "❌ Could not read settings file. Please check the logs for more information.",
+            )
+            return
+
+        content = self.update_setting(content, "PLEX_LIBS", library_list)
+
+        if not self.write_settings_file(content):
+            await self.embederror(
+                interaction,
+                "❌ Could not write to settings file. Please check the logs for more information.",
+            )
+            return
+
+        logger.info(f"Plex libraries updated:")
+        if len(library_list) <= 5:
+            logger.info(f"  → Libraries: {', '.join(library_list)}")
+        else:
+            logger.info(
+                f"  → Libraries: {', '.join(library_list[:5])}... ({len(library_list)} total)"
+            )
 
         await self.embedinfo(
             interaction,
@@ -381,38 +397,39 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logger.info(f"Updated Plex libraries: {', '.join(library_list)}")
-
     @app_commands.command(name="enable", description="Enable Plex integration")
     @app_commands.checks.has_permissions(administrator=True)
     async def enable(self, interaction: discord.Interaction):
         """Command to enable Plex integration"""
         # Check if already enabled
-        if self.get_config_value("plex_enabled", "False").lower() == "true":
+        if self.plex_enabled:
             await self.embederror(
                 interaction, "❌ Plex-Integration ist bereits aktiviert."
             )
             return
 
-        # Enable Plex
-        self.set_config_value("plex_enabled", "True")
+        # Update local state
+        self.plex_enabled = True
 
-        # Try to update settings.py if available
-        try:
-            settings_path = "config/settings.py"
-            if os.path.exists(settings_path):
-                with open(settings_path, "r") as f:
-                    content = f.read()
+        # Update settings.py
+        content = self.read_settings_file()
+        if not content:
+            await self.embederror(
+                interaction,
+                "❌ Could not read settings file. Please check the logs for more information.",
+            )
+            return
 
-                if "PLEX_ENABLED" in content:
-                    content = self.update_setting(content, "PLEX_ENABLED", "True")
-                else:
-                    content += "\nPLEX_ENABLED = True\n"
+        content = self.update_setting(content, "PLEX_ENABLED", True)
 
-                with open(settings_path, "w") as f:
-                    f.write(content)
-        except Exception as e:
-            logger.warning(f"Could not update settings.py: {e}")
+        if not self.write_settings_file(content):
+            await self.embederror(
+                interaction,
+                "❌ Could not write to settings file. Please check the logs for more information.",
+            )
+            return
+
+        logger.info("Plex integration: Enabled")
 
         await self.embedinfo(
             interaction,
@@ -420,46 +437,45 @@ class PlexSettings(commands.Cog):
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
 
-        logger.info("Plex integration enabled")
-
     @app_commands.command(name="disable", description="Disable Plex integration")
     @app_commands.checks.has_permissions(administrator=True)
     async def disable(self, interaction: discord.Interaction):
         """Command to disable Plex integration"""
         # Check if already disabled
-        if self.get_config_value("plex_enabled", "False").lower() != "true":
+        if not self.plex_enabled:
             await self.embederror(
                 interaction, "❌ Plex-Integration ist bereits deaktiviert."
             )
             return
 
-        # Disable Plex
-        self.set_config_value("plex_enabled", "False")
+        # Update local state
+        self.plex_enabled = False
 
-        # Try to update settings.py if available
-        try:
-            settings_path = "config/settings.py"
-            if os.path.exists(settings_path):
-                with open(settings_path, "r") as f:
-                    content = f.read()
+        # Update settings.py
+        content = self.read_settings_file()
+        if not content:
+            await self.embederror(
+                interaction,
+                "❌ Could not read settings file. Please check the logs for more information.",
+            )
+            return
 
-                if "PLEX_ENABLED" in content:
-                    content = self.update_setting(content, "PLEX_ENABLED", "False")
-                else:
-                    content += "\nPLEX_ENABLED = False\n"
+        content = self.update_setting(content, "PLEX_ENABLED", False)
 
-                with open(settings_path, "w") as f:
-                    f.write(content)
-        except Exception as e:
-            logger.warning(f"Could not update settings.py: {e}")
+        if not self.write_settings_file(content):
+            await self.embederror(
+                interaction,
+                "❌ Could not write to settings file. Please check the logs for more information.",
+            )
+            return
+
+        logger.info("Plex integration: Disabled")
 
         await self.embedinfo(
             interaction,
             "✅ Plex-Integration wurde deaktiviert.\n"
             "Bitte starte den Bot neu oder lade die Plex-Cogs neu, damit die Änderungen wirksam werden.",
         )
-
-        logger.info("Plex integration disabled")
 
     async def cog_load(self):
         """Associate commands with a specific guild."""
@@ -474,4 +490,4 @@ class PlexSettings(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(PlexSettings(bot))
-    logger.debug("PlexSettings cog loaded.")
+    logger.debug("Plex settings module loaded successfully")

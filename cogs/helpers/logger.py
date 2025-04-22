@@ -189,7 +189,7 @@ def setup_logging(log_file=None, log_level=None):
         # Add our handlers directly to discord loggers
         discord_handler = logging.StreamHandler()
         discord_handler.setFormatter(formatter)
-        discord_handler.setLevel(logging.INFO)  # Keep Discord at INFO level
+        discord_handler.setLevel(logging.DEBUG)  # Keep Discord at INFO level
         discord_logger.addHandler(discord_handler)
 
         # Also log discord messages to file

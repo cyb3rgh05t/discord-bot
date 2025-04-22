@@ -98,10 +98,23 @@ class MyBot(commands.Bot):
 
     async def sync_commands(self, guild):
         """Sync commands for a specific guild."""
+        guild = discord.Object(id=GUILD_ID)
+
+        # Verify guild exists
+
+        guild_details = await self.fetch_guild(GUILD_ID)
+
         try:
             synced = await self.tree.sync(guild=guild)
             self.synced_guilds.add(guild.id)
-            logger.info(f"Synced {len(synced)} commands to guild '{guild.id}'.")
+
+            # Get the guild name if possible
+            guild_obj = self.get_guild(guild.id)
+            guild_name = guild_details.name if guild_details else "Unknown"
+
+            logger.info(
+                f"Synced {len(synced)} commands to guild '{guild_name}' (ID: {guild.id})."
+            )
             logger.debug(f"Synced commands: {[cmd.name for cmd in synced]}")
         except Exception as e:
             logger.error(f"Error syncing commands to guild '{guild.id}': {e}")

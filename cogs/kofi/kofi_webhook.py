@@ -15,9 +15,7 @@ from config.settings import (
     KOFI_WEBHOOK_PORT,
     KOFI_VERIFICATION_TOKEN,
     KOFI_CHANNEL_ID,
-    KOFI_NAME,
-    KOFI_LOGO,
-    LANGUAGE,
+    KOFI_LANGUAGE,
 )
 from cogs.helpers.logger import logger
 
@@ -74,6 +72,8 @@ TRANSLATIONS = {
         "tier!": "tier!",
         "Thanks for the support!": "Thanks for the support!",
         "{KOFI_NAME} Support": "{KOFI_NAME} Support",
+        "CustomMessage": "Thanks for the support! Your donation helps keep our community and services running.",
+        "CustomFooter": "{KOFI_NAME} Support",
     },
     "de": {
         # Types
@@ -100,6 +100,8 @@ TRANSLATIONS = {
         "tier!": "Stufe abonniert!",
         "Thanks for the support!": "Vielen Dank für die Unterstützung!",
         "{KOFI_NAME} Support": "{KOFI_NAME} Support",
+        "CustomMessage": "Vielen Dank für die Unterstützung! Deine Spende hilft uns, unsere Community und Dienste am Laufen zu halten.",
+        "CustomFooter": "{KOFI_NAME} Support",
     },
     "fr": {
         # Types
@@ -126,6 +128,8 @@ TRANSLATIONS = {
         "tier!": "!",
         "Thanks for the support!": "Merci pour le soutien !",
         "{KOFI_NAME} Support": "Support {KOFI_NAME}",
+        "CustomMessage": "Merci pour votre soutien! Votre don nous aide à maintenir notre communauté et nos services.",
+        "CustomFooter": "Support {KOFI_NAME}",
     },
 }
 
@@ -156,15 +160,14 @@ class KofiWebhook(commands.Cog):
         self.config = self.load_config()
 
         # Log configuration
-        logger.info("Ko-fi webhook configuration loaded:")
-        logger.info(f"LANGUAGE: {self.config['language']}")
-        logger.info(f"KOFI_NAME: {self.config['kofi_name']}")
-        logger.info(f"PORT: {self.config['port']}")
+        logger.info("  → Ko-fi configuration loaded:")
+        logger.info(f"  → Ko-Fi Language: {self.config['language']}")
+        logger.info(f"  → Ko-Fi Name: {self.config['kofi_name']}")
+        logger.info(f"  → Ko-Fi Port: {self.config['port']}")
         logger.info(
-            f"VERIFICATION_TOKEN: {'Set [REDACTED]' if self.config['verification_token'] else 'NOT SET - REQUIRED'}"
+            f"  → Ko-Fi Token: {'Set [REDACTED]' if self.config['verification_token'] else 'NOT SET - REQUIRED'}"
         )
-        logger.info(f"CHANNEL_ID: {self.config['channel_id']}")
-
+        logger.info(f"  → Ko-Fi Channel: {self.config['channel_id']}")
         # Setup Flask routes
         self.setup_routes()
 
@@ -176,14 +179,42 @@ class KofiWebhook(commands.Cog):
         try:
             config["port"] = KOFI_WEBHOOK_PORT
             config["verification_token"] = KOFI_VERIFICATION_TOKEN
-            config["kofi_name"] = KOFI_NAME
-            config["kofi_logo"] = KOFI_LOGO
             config["channel_id"] = KOFI_CHANNEL_ID
-            config["language"] = LANGUAGE.lower()
+            config["language"] = KOFI_LANGUAGE.lower()
+
+            # Try to load optional settings
+            try:
+                from config.settings import (
+                    KOFI_NAME,
+                    KOFI_LOGO,
+                    KOFI_CUSTOM_MESSAGE,
+                    KOFI_CUSTOM_FOOTER,
+                )
+
+                # Load basic settings
+                if "KOFI_NAME" in locals() and KOFI_NAME:
+                    config["kofi_name"] = KOFI_NAME
+                if "KOFI_LOGO" in locals() and KOFI_LOGO:
+                    config["kofi_logo"] = KOFI_LOGO
+
+                # If custom messages are defined, override the translations
+                if "KOFI_CUSTOM_MESSAGE" in locals() and KOFI_CUSTOM_MESSAGE:
+                    lang = config["language"]
+                    if lang in TRANSLATIONS:
+                        TRANSLATIONS[lang]["CustomMessage"] = KOFI_CUSTOM_MESSAGE
+
+                # If custom footer is defined, override the translations
+                if "KOFI_CUSTOM_FOOTER" in locals() and KOFI_CUSTOM_FOOTER:
+                    lang = config["language"]
+                    if lang in TRANSLATIONS:
+                        TRANSLATIONS[lang]["CustomFooter"] = KOFI_CUSTOM_FOOTER
+
+            except ImportError:
+                pass  # Optional settings not defined
+
         except:
             logger.warning("Could not load all Ko-fi settings from config.settings")
 
-        # Additional configuration could be loaded from a file if needed
         return config
 
     def setup_routes(self):
@@ -225,7 +256,7 @@ class KofiWebhook(commands.Cog):
 
             # Process POST requests (from Ko-fi)
             try:
-                logger.info(
+                logger.debug(
                     f"Received webhook request with Content-Type: {request.content_type}"
                 )
 
@@ -236,12 +267,12 @@ class KofiWebhook(commands.Cog):
                 if request.is_json:
                     payload = request.json
                     data = payload.get("data")
-                    logger.info("Processing JSON payload")
+                    logger.debug("Processing JSON payload")
 
                 # Handle form data (application/x-www-form-urlencoded)
                 elif request.form:
                     data = request.form.get("data")
-                    logger.info("Processing form data payload")
+                    logger.debug("Processing form data payload")
 
                 # Handle raw data as a fallback
                 elif request.data:
@@ -249,11 +280,11 @@ class KofiWebhook(commands.Cog):
                         # Try to parse raw data as JSON
                         payload = json.loads(request.data.decode("utf-8"))
                         data = payload.get("data")
-                        logger.info("Processing raw data as JSON")
+                        logger.debug("Processing raw data as JSON")
                     except:
                         # If parsing fails, try to use the raw data as-is
                         data = request.data.decode("utf-8")
-                        logger.info("Processing raw data as string")
+                        logger.debug("Processing raw data as string")
 
                 if not data:
                     logger.error("No data provided in webhook request")
@@ -309,6 +340,24 @@ class KofiWebhook(commands.Cog):
         if lang not in TRANSLATIONS:
             lang = "en"  # Fall back to English
 
+        # Handle CustomMessage and CustomFooter specially to allow overrides from settings
+        if key in ["CustomMessage", "CustomFooter"]:
+            try:
+                # Try to import custom message settings
+                if key == "CustomMessage":
+                    from config.settings import KOFI_CUSTOM_MESSAGE
+
+                    if "KOFI_CUSTOM_MESSAGE" in locals() and KOFI_CUSTOM_MESSAGE:
+                        return KOFI_CUSTOM_MESSAGE
+                elif key == "CustomFooter":
+                    from config.settings import KOFI_CUSTOM_FOOTER
+
+                    if "KOFI_CUSTOM_FOOTER" in locals() and KOFI_CUSTOM_FOOTER:
+                        return KOFI_CUSTOM_FOOTER
+            except ImportError:
+                pass
+
+        # Get translation from the dictionary
         text = TRANSLATIONS[lang].get(key, TRANSLATIONS["en"].get(key, key))
         return text.replace("{KOFI_NAME}", self.config["kofi_name"])
 
@@ -329,12 +378,12 @@ class KofiWebhook(commands.Cog):
     def get_type_emoji(self, type_str):
         """Get appropriate emoji for different transaction types"""
         if not type_str:
-            return "💖"
+            return "<:donation:1364168027716976731>"
 
         type_lower = type_str.lower()
 
         if type_lower in ["donation", "spende", "don"]:
-            return "☕"
+            return "<:donation:1364168027716976731>"
         elif type_lower in ["subscription", "abo", "abonnement"]:
             return "🏆"
         elif type_lower in ["commission", "auftrag"]:
@@ -342,7 +391,7 @@ class KofiWebhook(commands.Cog):
         elif type_lower in ["shop order", "bestellung", "commande"]:
             return "🛍️"
         else:
-            return "💖"
+            return "<:donation:1364168027716976731>"
 
     def get_color(self, data):
         """Get color based on transaction type or tier"""
@@ -399,6 +448,9 @@ class KofiWebhook(commands.Cog):
             # Get translated type
             translated_type = self.t(kofi_data.get("type", "Donation"))
 
+            # Get current language
+            lang = self.config["language"]
+
             # Create embed
             embed = discord.Embed(
                 title=f"{self.get_type_emoji(kofi_data.get('type'))} {self.t('New {KOFI_NAME} Support Received!')}",
@@ -414,13 +466,14 @@ class KofiWebhook(commands.Cog):
             elif is_subscription:
                 embed.description = f"**{kofi_data.get('from_name', self.t('Anonymous'))}** {self.t('has subscribed to the')} {kofi_data.get('tier_name', '')} {self.t('tier!')} 🎉"
             else:
-                embed.description = f"{self.t('Thanks for the support!')} 💖"
+                # Use custom message if available
+                embed.description = self.t("CustomMessage")
 
             # Set footer and timestamp
-            embed.set_footer(
-                text=f"{self.t('{KOFI_NAME} Support')}",
-                icon_url=self.config["kofi_logo"],
+            footer_text = self.t("CustomFooter").replace(
+                "{KOFI_NAME}", self.config["kofi_name"]
             )
+            embed.set_footer(text=footer_text, icon_url=self.config["kofi_logo"])
             embed.timestamp = datetime.datetime.utcnow()
 
             # Add main fields
@@ -518,7 +571,7 @@ class KofiWebhook(commands.Cog):
                 try:
                     # Run Flask with all output silenced
                     logger.info(
-                        f"Ko-fi webhook server listening on port {self.config['port']}"
+                        f"Starting Ko-fi webhook server on port {self.config['port']}"
                     )
                     self.app.run(
                         host="0.0.0.0", port=self.config["port"], use_reloader=False
@@ -534,14 +587,15 @@ class KofiWebhook(commands.Cog):
         self.thread = threading.Thread(target=run_app)
         self.thread.daemon = True
         self.thread.start()
-        logger.info(f"Ko-fi webhook service running")
+        logger.info(f"Ko-fi webhook started")
+        logger.info(f"Ko-fi webhook service up and running")
 
     @commands.Cog.listener()
     async def on_ready(self):
         """Start the webhook server when the bot is ready"""
         if not self.thread or not self.thread.is_alive():
             self.start_webhook_server()
-            logger.info("Ko-fi webhook server started (or restarted)")
+            logger.debug("Ko-fi webhook server started (or restarted)")
 
     @commands.command(name="kofitest", help="Test the Ko-fi integration")
     @commands.has_permissions(administrator=True)
