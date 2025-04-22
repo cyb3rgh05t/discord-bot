@@ -53,6 +53,15 @@ class StreamlinedFormatter(logging.Formatter):
 
         # Special handling for Discord library messages
         if record.name.startswith("discord."):
+            # Handle RESUMED session messages - set to DEBUG level
+            if "RESUMED session" in record.getMessage():
+                session_id = record.getMessage().split("session ")[-1].strip(".")
+                session_short = (
+                    session_id[:8] + "..." if len(session_id) > 8 else session_id
+                )
+                msg = f"Discord connection resumed (Session: {session_short})"
+                return f"[{timestamp}] DEBUG: {self.colorize(msg, COLORS['BLUE'])}"
+
             if "Attempting a reconnect" in record.getMessage():
                 reconnect_time = record.getMessage().split()[-1]
                 msg = (
@@ -91,6 +100,7 @@ class StreamlinedFormatter(logging.Formatter):
                 "Shard ID",
                 "Websocket closed",
                 "Attempting a reconnect",
+                "RESUMED session",
             ]
             for pattern in important_patterns:
                 if pattern in record.getMessage():
@@ -189,7 +199,7 @@ def setup_logging(log_file=None, log_level=None):
         # Add our handlers directly to discord loggers
         discord_handler = logging.StreamHandler()
         discord_handler.setFormatter(formatter)
-        discord_handler.setLevel(logging.DEBUG)  # Keep Discord at INFO level
+        discord_handler.setLevel(logging.INFO)  # Keep Discord at INFO level
         discord_logger.addHandler(discord_handler)
 
         # Also log discord messages to file

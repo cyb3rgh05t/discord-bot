@@ -167,7 +167,7 @@ class KofiWebhook(commands.Cog):
         logger.info(
             f"  → Ko-Fi Token: {'Set [REDACTED]' if self.config['verification_token'] else 'NOT SET - REQUIRED'}"
         )
-        logger.info(f"  → Ko-Fi Channel: {self.config['channel_id']}")
+        logger.info(f"  → Ko-Fi Channel ID: {self.config['channel_id']}")
         # Setup Flask routes
         self.setup_routes()
 

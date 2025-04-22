@@ -223,7 +223,7 @@ class SystemInfo(commands.Cog):
             # Progress bar function
             def get_progress_bar(percent, length=10):
                 filled = int(percent * length / 100)
-                bar = "█" * filled + "░" * (length - filled)
+                bar = "█" * filled + "" * (length - filled)
                 return bar
 
             # Format file sizes
@@ -236,27 +236,37 @@ class SystemInfo(commands.Cog):
             # Status indicators
             def get_status_emoji(percent):
                 if percent < 60:
-                    return "🟢"  # Green/Good
+                    return "<:icon_online:993231898291736576>"  # Green/Good
                 elif percent < 85:
-                    return "🟠"  # Orange/Warning
+                    return "<:icon_connecting:993232321685762048>"  # Orange/Warning
                 else:
-                    return "🔴"  # Red/Critical
+                    return "<:icon_offline:993232252647514152>"  # Red/Critical
 
             # Create embed with a dark theme
             embed = discord.Embed(
                 title="StreamNet Plex Server",
                 description="Real-time system monitoring information",
-                color=0x2F3136,  # Dark theme color
+                color=0xE5A209,  # Dark theme color
                 timestamp=datetime.utcnow(),
+            )
+            embed.add_field(
+                name="",
+                value="",
+                inline=False,
             )
 
             # Add CPU field with progress bar
             cpu_bar = get_progress_bar(cpu_usage)
             cpu_emoji = get_status_emoji(cpu_usage)
             embed.add_field(
-                name="🔄 CPU Usage",
-                value=f"\n{cpu_emoji} `{cpu_bar}` **{cpu_usage:.1f}%**\n"
-                f"Processor: {cpu_info.split()[0] if len(cpu_info.split()) > 0 else 'Unknown'}\n",
+                name="CPU Usage",
+                value=f"\n<:icon_reply:993231553083736135> {cpu_emoji} `{cpu_bar}` **{cpu_usage:.1f}%**\n"
+                f"<:icon_reply:993231553083736135> Processor: {cpu_info.split()[0] if len(cpu_info.split()) > 0 else 'Unknown'}\n",
+                inline=False,
+            )
+            embed.add_field(
+                name="",
+                value="",
                 inline=False,
             )
 
@@ -264,9 +274,14 @@ class SystemInfo(commands.Cog):
             memory_bar = get_progress_bar(memory_percent)
             memory_emoji = get_status_emoji(memory_percent)
             embed.add_field(
-                name="💾 Memory Usage",
-                value=f"\n{memory_emoji} `{memory_bar}` **{memory_percent:.1f}%**\n"
-                f"Used: {format_size(memory_used)} / Total: {format_size(memory_total)}\n",
+                name="Memory Usage",
+                value=f"\n<:icon_reply:993231553083736135> {memory_emoji} `{memory_bar}` **{memory_percent:.1f}%**\n"
+                f"<:icon_reply:993231553083736135> Used: {format_size(memory_used)} / Total: {format_size(memory_total)}\n",
+                inline=False,
+            )
+            embed.add_field(
+                name="",
+                value="",
                 inline=False,
             )
 
@@ -274,25 +289,44 @@ class SystemInfo(commands.Cog):
             disk_bar = get_progress_bar(disk_percent)
             disk_emoji = get_status_emoji(disk_percent)
             embed.add_field(
-                name="💿 Disk Usage",
-                value=f"\n{disk_emoji} `{disk_bar}` **{disk_percent:.1f}%**\n"
-                f"Used: {disk_used:.2f} GB / Total: {disk_total:.2f} GB\n",
+                name="Disk Usage",
+                value=f"\n<:icon_reply:993231553083736135> {disk_emoji} `{disk_bar}` **{disk_percent:.1f}%**\n"
+                f"<:icon_reply:993231553083736135> Used: {disk_used:.2f} GB / Total: {disk_total:.2f} GB\n",
+                inline=False,
+            )
+            embed.add_field(
+                name="",
+                value="",
                 inline=False,
             )
 
             # Add Network field
             embed.add_field(
-                name="🌐 Network Transfer",
-                value=f"\n↑ Sent: {network_sent / (1024 * 1024):.2f} MB\n"
-                f"↓ Received: {network_recv / (1024 * 1024):.2f} MB\n",
+                name="Network Transfer",
+                value=f"\n<:icon_reply:993231553083736135> ⬆️ Sent: {network_sent / (1024 * 1024):.2f} MB\n"
+                f"<:icon_reply:993231553083736135> ⬇️ Received: {network_recv / (1024 * 1024):.2f} MB\n",
+                inline=False,
+            )
+            embed.add_field(
+                name="",
+                value="",
                 inline=False,
             )
 
             # Add Database Status
-            db_emoji = "🟢" if sqlite_status == "Online" else "🔴"
+            db_emoji = (
+                "<:icon_online:993231898291736576>"
+                if sqlite_status == "Online"
+                else "<:icon_offline:993232252647514152>"
+            )
             embed.add_field(
-                name="🗄️ Database Status",
-                value=f"{db_emoji} **{sqlite_status}**",
+                name="Database Status",
+                value=f"<:icon_reply:993231553083736135> {db_emoji} **{sqlite_status}**",
+                inline=False,
+            )
+            embed.add_field(
+                name="",
+                value="",
                 inline=False,
             )
 
@@ -313,8 +347,13 @@ class SystemInfo(commands.Cog):
                 uptime_str += f"{seconds}s"
 
                 embed.add_field(
-                    name="⏱️ System Uptime",
-                    value=f"\n**{uptime_str}**",
+                    name="System Uptime",
+                    value=f"\n<:icon_reply:993231553083736135> **{uptime_str}**",
+                    inline=False,
+                )
+                embed.add_field(
+                    name="",
+                    value="",
                     inline=False,
                 )
             except:
@@ -349,25 +388,21 @@ class SystemInfo(commands.Cog):
                     uptime_str += f"{seconds}s"
 
                     embed.add_field(
-                        name="⏱️ System Uptime",
-                        value=f"\n**{uptime_str}**",
+                        name="System Uptime",
+                        value=f"\n<:icon_reply:993231553083736135> **{uptime_str}**",
+                        inline=False,
+                    )
+                    embed.add_field(
+                        name="",
+                        value="",
                         inline=False,
                     )
                 except:
                     pass
 
-            # Add bot info
-            if hasattr(self.bot, "user") and self.bot.user:
-                embed.set_author(
-                    name=f"{self.bot.user.name} Status",
-                    icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
-                )
-
-            # Add server icon as thumbnail if available
-            for guild in self.bot.guilds:
-                if guild.icon:
-                    embed.set_thumbnail(url=guild.icon.url)
-                    break
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+            )
 
             # Set footer with last updated time
             embed.set_footer(text="Last Updated")
