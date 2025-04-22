@@ -45,6 +45,27 @@ class FlaskHandler(logging.Handler):
         logger.log(record.levelno, f"Flask: {record.getMessage()}")
 
 
+# Create a filter to ignore common port scanning requests
+class IgnoreScansFilter(logging.Filter):
+    def filter(self, record):
+        log_message = record.getMessage()
+        # Skip common port scanning errors
+        if any(
+            pattern in log_message
+            for pattern in [
+                "Bad HTTP/0.9 request type",
+                "Failed to decode",
+                "Bad request syntax",
+                "Bad request version",
+                "Received invalid data",
+                "Invalid HTTP request",
+                "Malformed HTTP request",
+            ]
+        ):
+            return False
+        return True
+
+
 # Translations for multiple languages
 TRANSLATIONS = {
     "en": {
@@ -149,9 +170,8 @@ class KofiWebhook(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        # Suppress Flask logging
-        log = logging.getLogger("werkzeug")
-        log.setLevel(logging.ERROR)
+        # Configure Flask logging
+        self.configure_flask_logging()
 
         self.app = Flask(__name__)
         self.thread = None
@@ -160,16 +180,28 @@ class KofiWebhook(commands.Cog):
         self.config = self.load_config()
 
         # Log configuration
-        logger.info("  → Ko-fi configuration loaded:")
-        logger.info(f"  → Ko-Fi Language: {self.config['language']}")
-        logger.info(f"  → Ko-Fi Name: {self.config['kofi_name']}")
-        logger.info(f"  → Ko-Fi Port: {self.config['port']}")
+        logger.info("Ko-fi configuration loaded:")
+        logger.info(f"  → Ko-Fi Language: '{self.config['language']}'")
+        logger.info(f"  → Ko-Fi Name: '{self.config['kofi_name']}'")
+        logger.info(f"  → Ko-Fi Port: '{self.config['port']}'")
         logger.info(
-            f"  → Ko-Fi Token: {'Set [REDACTED]' if self.config['verification_token'] else 'NOT SET - REQUIRED'}"
+            f"  → Ko-Fi Token: {'[REDACTED]' if self.config['verification_token'] else 'NOT SET - REQUIRED'}"
         )
-        logger.info(f"  → Ko-Fi Channel ID: {self.config['channel_id']}")
+        logger.info(f"  → Ko-Fi Channel ID: '{self.config['channel_id']}'")
         # Setup Flask routes
         self.setup_routes()
+
+    def configure_flask_logging(self):
+        """Configure Flask's logging to suppress common port scanning errors"""
+        # Suppress Flask/Werkzeug logging
+        werkzeug_logger = logging.getLogger("werkzeug")
+        werkzeug_logger.setLevel(logging.ERROR)
+
+        # Apply the filter to ignore scan attempts
+        werkzeug_logger.addFilter(IgnoreScansFilter())
+
+        # Also apply the filter to the root logger to catch any forwarded messages
+        logging.getLogger().addFilter(IgnoreScansFilter())
 
     def load_config(self):
         """Load configuration from environment or settings"""

@@ -7,6 +7,7 @@ from discord.ext import commands
 from config.settings import (
     BOT_TOKEN,
     GUILD_ID,
+    GUILD_NAME,
     COMMAND_PREFIX,
     LOGGING_LEVEL,
     LOG_FILE,
@@ -85,8 +86,8 @@ class MyBot(commands.Bot):
                 channel = await self.fetch_channel(channel_id)
                 if channel:
                     # Store in global map
-                    channel_map[channel_id] = f"#{channel.name}"
-                    return f"#{channel.name}"
+                    channel_map[channel_id] = f"{channel.name}"
+                    return f"{channel.name}"
                 return "Unknown Channel"
         except discord.NotFound:
             return "Channel not found"
@@ -136,6 +137,7 @@ class MyBot(commands.Bot):
             logger.info(f"Bot configuration loaded:")
             logger.info(f"  → Command Prefix: '{COMMAND_PREFIX}'")
             logger.info(f"  → Guild ID: '{GUILD_ID}'")
+            logger.info(f"  → Guild Name: '{GUILD_NAME}'")
             logger.info(f"  → Logging Level: '{LOGGING_LEVEL}'")
             logger.info(f"  → Log File: '/{LOG_FILE}'")
             logger.info(
@@ -143,17 +145,17 @@ class MyBot(commands.Bot):
             )
             logger.info(f"  → Database Path: '/{DATABASE_PATH}'")
             logger.info("Discord Channel Configuration:")
-            logger.info(f"  → System Channel ID: {SYSTEM_CHANNEL_ID}")
-            logger.info(f"  → '{system_channel_name}'")
-            logger.info(f"  → Welcome Channel ID: {WELCOME_CHANNEL_ID}")
-            logger.info(f"  → '{welcome_channel_name}'")
-            logger.info(f"  → Rules Channel ID: {RULES_CHANNEL_ID}")
-            logger.info(f"  → '{rules_channel_name}'")
-            logger.info(f"  → Kofi Channel ID: {KOFI_CHANNEL_ID}")
-            logger.info(f"  → '{kofi_channel_name}'")
+            logger.info(f"  → System Channel ID: '{SYSTEM_CHANNEL_ID}'")
+            logger.info(f"  → System Channel Name:'{system_channel_name}'")
+            logger.info(f"  → Welcome Channel ID: '{WELCOME_CHANNEL_ID}'")
+            logger.info(f"  → Welcome Channel Name:'{welcome_channel_name}'")
+            logger.info(f"  → Rules Channel ID: '{RULES_CHANNEL_ID}'")
+            logger.info(f"  → Rules Channel Name:'{rules_channel_name}'")
+            logger.info(f"  → Kofi Channel ID: '{KOFI_CHANNEL_ID}'")
+            logger.info(f"  → Kofi Channel Name: '{kofi_channel_name}'")
             logger.info("Discord Categorie Configuration:")
-            logger.info(f"  → Ticket Category ID: {TICKET_CATEGORY_ID}")
-            logger.info(f"  → '{ticket_category_name}'")
+            logger.info(f"  → Ticket Category ID: '{TICKET_CATEGORY_ID}'")
+            logger.info(f"  → Ticket Category Name:'{ticket_category_name}'")
             logger.info("Discord Role Configuration:")
             logger.info(f"  → Unverified Role: '{UNVERIFIED_ROLE}'")
             logger.info(f"  → Verified Role: '{VERIFIED_ROLE}'")
