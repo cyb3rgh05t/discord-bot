@@ -62,7 +62,7 @@ class TicketManagement(commands.Cog):
 
         custom_id = interaction.data.get("custom_id")
 
-        # Check if this is a ticket management button
+        # Check if this is a management button
         if not (custom_id.startswith("plex_") or custom_id.startswith("tv_")):
             return
 
@@ -76,8 +76,9 @@ class TicketManagement(commands.Cog):
         else:
             return
 
-        # Check if this is a management action
+        # Check if this is a management action (not a ticket creation button)
         if action not in ["close", "lock", "unlock", "claim"]:
+            # Not a management action, ignore
             return
 
         guild = interaction.guild
@@ -180,64 +181,119 @@ class TicketManagement(commands.Cog):
                 # Acknowledge the interaction immediately
                 await interaction.response.defer(ephemeral=True)
 
+                # Import missing io module
+                import io
+
                 # Generate transcript using `py-discord-html-transcripts`
-                transcript_message = await chat_exporter.quick_export(channel)
-                if not transcript_message.attachments:
-                    await interaction.followup.send(
-                        "Fehler beim Erstellen des Transkripts. Bitte versuche es erneut.",
-                        ephemeral=True,
+                try:
+                    transcript = await chat_exporter.export(
+                        channel=channel,
+                        limit=None,
+                        tz_info="Europe/Berlin",
+                        guild=guild,
+                        bot=self.bot,
                     )
-                    logger.error(
-                        f"Transcript creation failed for {table_prefix} channel {channel.name}."
+
+                    if transcript is None:
+                        await interaction.followup.send(
+                            "Fehler beim Erstellen des Transkripts. Bitte versuche es erneut.",
+                            ephemeral=True,
+                        )
+                        logger.error(
+                            f"Transcript creation failed for {table_prefix} channel {channel.name}."
+                        )
+                        return
+
+                    # Save transcript to file
+                    transcript_file = discord.File(
+                        io.BytesIO(transcript.encode()),
+                        filename=f"transcript-{table_prefix}-{ticket_id}.html",
+                    )
+
+                    # Fetch the transcripts channel
+                    transcripts_channel = guild.get_channel(transcripts_channel_id)
+                    if transcripts_channel:
+                        try:
+                            await transcripts_channel.send(
+                                embed=discord.Embed(
+                                    title=f"{table_prefix.upper()} Ticket ID: {ticket_id}",
+                                    description=f"Closed By: {member.mention}\nMember: <@{created_by}>",
+                                    timestamp=discord.utils.utcnow(),
+                                ),
+                                file=transcript_file,
+                            )
+                            logger.info(
+                                f"Transcript saved to channel {transcripts_channel.name}"
+                            )
+                        except Exception as e:
+                            logger.error(f"Failed to send transcript to channel: {e}")
+                            await interaction.followup.send(
+                                f"Failed to save transcript to channel: {e}",
+                                ephemeral=True,
+                            )
+                    else:
+                        logger.error(
+                            f"Transcript channel {transcripts_channel_id} not found!"
+                        )
+
+                    # Send the transcript as a DM to the ticket creator
+                    ticket_creator = guild.get_member(created_by)
+                    if ticket_creator:
+                        try:
+                            # Create a new file object for DM since the first one is consumed
+                            dm_transcript_file = discord.File(
+                                io.BytesIO(transcript.encode()),
+                                filename=f"transcript-{table_prefix}-{ticket_id}.html",
+                            )
+
+                            await ticket_creator.send(
+                                embed=discord.Embed(
+                                    title=f"{table_prefix.upper()} Ticket Transcript",
+                                    description=f"Hier ist das Transkript für dein {table_prefix.upper()} Ticket ID: {ticket_id}.",
+                                    timestamp=discord.utils.utcnow(),
+                                ),
+                                file=dm_transcript_file,
+                            )
+                            logger.info(
+                                f"Transcript sent to {ticket_creator.name} for {table_prefix} ticket {ticket_id}."
+                            )
+                        except discord.Forbidden:
+                            logger.warning(
+                                f"Could not send transcript to {ticket_creator.name} (DMs disabled)."
+                            )
+                            if transcripts_channel:
+                                await transcripts_channel.send(
+                                    f"{ticket_creator.mention} konnte nicht über DMs erreicht werden. Das Transkript ist hier im Kanal verfügbar."
+                                )
+                except Exception as e:
+                    logger.error(f"Error creating or sending transcript: {e}")
+                    await interaction.followup.send(
+                        f"Error creating transcript: {e}", ephemeral=True
                     )
                     return
 
-                # Extract the transcript file
-                transcript_file = transcript_message.attachments[0]
-
-                # Fetch the transcripts channel
-                transcripts_channel = get(
-                    guild.text_channels, id=transcripts_channel_id
-                )
-                if transcripts_channel:
-                    await transcripts_channel.send(
-                        embed=discord.Embed(
-                            title=f"{table_prefix.upper()} Ticket ID: {ticket_id}",
-                            description=f"Closed By: {member.mention}\nMember: <@{created_by}>",
-                            timestamp=discord.utils.utcnow(),
-                        ),
-                        file=await transcript_file.to_file(),  # Correctly attach the transcript file
-                    )
-
-                # Send the transcript as a DM to the ticket creator
-                ticket_creator = guild.get_member(created_by)
-                if ticket_creator:
-                    try:
-                        await ticket_creator.send(
-                            embed=discord.Embed(
-                                title=f"{table_prefix.upper()} Ticket Transcript",
-                                description=f"Hier ist das Transkript für dein {table_prefix.upper()} Ticket ID: {ticket_id}.",
-                                timestamp=discord.utils.utcnow(),
-                            ),
-                            file=await transcript_file.to_file(),
-                        )
-                        logger.info(
-                            f"Transcript sent to {ticket_creator.name} for {table_prefix} ticket {ticket_id}."
-                        )
-                    except discord.Forbidden:
-                        logger.warning(
-                            f"Could not send transcript to {ticket_creator.name} (DMs disabled)."
-                        )
-                        await transcripts_channel.send(
-                            f"{ticket_creator.mention} konnte nicht über DMs erreicht werden. Das Transkript ist hier im Kanal verfügbar."
-                        )
-
+                # Mark ticket as closed in database
                 await self.update_ticket_data(channel.id, table_prefix, closed=True)
+
+                # Send response and close the ticket
                 embed.description = "Das Ticket wurde erfolgreich geschlossen, wird gelöscht und archiviert."
                 await interaction.followup.send(embed=embed)
+
+                # Wait a bit before deleting to let users see the message
                 await asyncio.sleep(10)
-                await channel.delete()
-                logger.info(f"{table_prefix.upper()} Ticket {ticket_id} was deleted.")
+
+                try:
+                    await channel.delete(
+                        reason=f"Ticket {ticket_id} closed by {member.name}"
+                    )
+                    logger.info(
+                        f"{table_prefix.upper()} Ticket {ticket_id} was deleted."
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to delete ticket channel: {e}")
+                    await interaction.followup.send(
+                        f"Failed to delete ticket channel: {e}", ephemeral=True
+                    )
 
         elif action == "claim":
             if claimed:

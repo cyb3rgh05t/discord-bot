@@ -4,11 +4,13 @@ from discord import ui
 import sqlite3
 import random
 import logging
-from config.settings import DATABASE_PATH, STAFF_ROLE
+from config.settings import DATABASE_PATH, STAFF_ROLE, TICKET_CATEGORY_ID
 from cogs.helpers.logger import logger
 
 
 class TicketCreation(commands.Cog):
+    """Handler for ticket creation from button clicks"""
+
     """Handler for ticket creation from button clicks"""
 
     def __init__(self, bot):
@@ -62,6 +64,19 @@ class TicketCreation(commands.Cog):
 
         custom_id = interaction.data.get("custom_id")
 
+        # Handle special case for management buttons
+        # These should NOT create new tickets
+        if (
+            custom_id.startswith("plex_")
+            and custom_id[5:] in ["close", "lock", "unlock", "claim"]
+        ) or (
+            custom_id.startswith("tv_")
+            and custom_id[3:] in ["close", "lock", "unlock", "claim"]
+        ):
+            # This is a management button, not a ticket creation button
+            # Skip it - the TicketManagement cog will handle these
+            return
+
         # Handle special case for the Test Line button from lines.py
         if custom_id == "create_ticket":
             # This is the TV test line button
@@ -95,7 +110,7 @@ class TicketCreation(commands.Cog):
         member = interaction.user
         ticket_id = random.randint(10000, 99999)  # Generate random ticket ID
 
-        # Fetch ticket panel setup
+        # Fetch ticket panel setup for getting helper roles and transcripts channel
         setup_data = await self.fetch_ticket_setup(guild.id, table_prefix)
         if not setup_data:
             await interaction.response.send_message(
@@ -107,12 +122,12 @@ class TicketCreation(commands.Cog):
             )
             return
 
-        # Extract configuration from database
+        # Extract configuration from database (we only need helpers_role_id and transcripts_id)
         (
             _,
-            channel_id,
             _,
-            category_id,
+            _,
+            _,
             transcripts_id,
             helpers_role_id,
             everyone_role_id,
@@ -120,19 +135,28 @@ class TicketCreation(commands.Cog):
             _,
         ) = setup_data
 
-        # Get category and roles from the database configuration
-        category = guild.get_channel(category_id)
-        helpers_role = guild.get_role(helpers_role_id)
-        everyone_role = guild.get_role(everyone_role_id)
-
-        if not (category and helpers_role and everyone_role):
+        # Get the global TICKET_CATEGORY_ID from settings.py - this is where all tickets are created
+        category = guild.get_channel(TICKET_CATEGORY_ID)
+        if not category:
             await interaction.response.send_message(
-                "Required roles or category not found. Please run the setup command again.",
+                f"Ticket category not found (ID: {TICKET_CATEGORY_ID}). Please check your settings.py configuration.",
                 ephemeral=True,
             )
             logger.error(
-                f"Missing roles or category for {table_prefix} ticket creation"
+                f"TICKET_CATEGORY_ID {TICKET_CATEGORY_ID} not found in guild '{guild.name}'"
             )
+            return
+
+        # Get roles from the database configuration
+        helpers_role = guild.get_role(helpers_role_id)
+        everyone_role = guild.get_role(everyone_role_id)
+
+        if not (helpers_role and everyone_role):
+            await interaction.response.send_message(
+                "Required roles not found. Please run the setup command again.",
+                ephemeral=True,
+            )
+            logger.error(f"Missing roles for {table_prefix} ticket creation")
             return
 
         # Create ticket channel
@@ -261,8 +285,3 @@ class TicketCreation(commands.Cog):
             content=f"{member.mention}, dein {table_prefix.upper()} Ticket wurde erstellt: {ticket_channel.mention}",
             ephemeral=True,
         )
-
-
-async def setup(bot):
-    await bot.add_cog(TicketCreation(bot))
-    logger.debug("TicketCreation cog loaded.")
