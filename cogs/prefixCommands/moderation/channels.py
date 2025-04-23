@@ -29,9 +29,10 @@ class TVChannelsMessage(commands.Cog):
             )
         except Exception as error:
             await ctx.send("Some Error Occurred")
-            print(f"Error sending channels message: {error}")
+            logger.error(f"Error sending channels message: {error}")
 
 
 async def setup(bot):
     """Setup function to add the cog."""
     await bot.add_cog(TVChannelsMessage(bot))
+    logger.debug("TVChannelsMessage cog loaded.")

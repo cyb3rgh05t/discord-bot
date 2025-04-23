@@ -28,7 +28,7 @@ class App3(commands.Cog):
         except Exception as e:
             await ctx.send("Some Error Occurred")
             # Log the error to the console
-            print(f"Error sending the app picture: {e}")
+            logger.error(f"Error sending the app picture: {e}")
 
 
 async def setup(bot):

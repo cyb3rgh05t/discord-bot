@@ -23,8 +23,9 @@ class TVCommand(commands.Cog):
             await ctx.send(content=message_content)
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
-            print(f"Error in tv command: {error}")
+            logger.error(f"Error in tv command: {error}")
 
 
 async def setup(bot):
     await bot.add_cog(TVCommand(bot))
+    logger.debug("TvCommand cog loaded.")

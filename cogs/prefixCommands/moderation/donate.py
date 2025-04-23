@@ -29,7 +29,7 @@ class DonationCommands(commands.Cog):
             )
         except Exception as error:
             await ctx.send("Some Error Occurred")
-            print(f"Error sending donation message: {error}")
+            logger.error(f"Error sending donation message: {error}")
 
     @commands.command(name="paylink", help="Send donation payment links.")
     @commands.has_permissions(administrator=True)
@@ -48,7 +48,7 @@ class DonationCommands(commands.Cog):
             await ctx.send(embed=embed)
         except Exception as error:
             await ctx.send("Some Error Occurred")
-            print(f"Error sending payment links: {error}")
+            logger.error(f"Error sending payment links: {error}")
 
     @commands.command(name="thankyou", help="Send a thank-you message.")
     @commands.has_permissions(administrator=True)
@@ -60,9 +60,10 @@ class DonationCommands(commands.Cog):
             )
         except Exception as error:
             await ctx.send("Some Error Occurred")
-            print(f"Error sending thank-you message: {error}")
+            logger.error(f"Error sending thank-you message: {error}")
 
 
 async def setup(bot):
     """Setup function to add the cog."""
     await bot.add_cog(DonationCommands(bot))
+    logger.debug("DonationCommands cog loaded.")

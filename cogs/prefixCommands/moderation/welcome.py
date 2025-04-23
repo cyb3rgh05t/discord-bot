@@ -28,9 +28,10 @@ class WelcomeMessage(commands.Cog):
             # Handle any errors
             await ctx.send("Some Error Occurred")
             # Log the error if you have a logger setup
-            print(f"Error sending welcome message: {error}")
+            logger.error(f"Error sending welcome message: {error}")
 
 
 async def setup(bot):
     """Setup function to add the cog."""
     await bot.add_cog(WelcomeMessage(bot))
+    logger.debug("WelcomeMessage cog loaded.")

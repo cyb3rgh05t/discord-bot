@@ -24,8 +24,9 @@ class StoreLinkCommand(commands.Cog):
             await ctx.send(embed=embed)
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
-            print(f"Error in storelink command: {error}")
+            logger.error(f"Error in storelink command: {error}")
 
 
 async def setup(bot):
     await bot.add_cog(StoreLinkCommand(bot))
+    logger.debug("StoreLinkCommand cog loaded.")

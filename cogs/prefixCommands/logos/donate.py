@@ -28,7 +28,7 @@ class Donate(commands.Cog):
         except Exception as e:
             await ctx.send("Some Error Occurred")
             # Log the error to the console
-            print(f"Error sending the donate picture: {e}")
+            logger.error(f"Error sending the donate picture: {e}")
 
 
 async def setup(bot):

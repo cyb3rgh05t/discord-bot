@@ -5,53 +5,48 @@ import logging
 import asyncio
 from discord.utils import get
 import chat_exporter
+from config.settings import DATABASE_PATH
 from cogs.helpers.logger import logger
 
 
-# Database path
-DATABASE_PATH = "databases/ticket_system.db"
+class TicketManagement(commands.Cog):
+    """Handler for ticket management buttons"""
 
-
-class TicketOptions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.db_path = DATABASE_PATH
-        self._init_db()
+        self.db_path = f"{DATABASE_PATH}/ticket_system.db"
 
-    def _init_db(self):
-        """Initialize SQLite database for ticket options."""
-        conn = sqlite3.connect(self.db_path)
-        conn.commit()
-        conn.close()
-
-    async def fetch_ticket_setup(self, guild_id):
+    async def fetch_ticket_setup(self, guild_id, table_prefix):
         """Fetch ticket setup data for a guild."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT transcripts_id, helpers_role_id FROM ticket_panel WHERE guild_id = ?",
+            f"SELECT transcripts_id, helpers_role_id FROM {table_prefix}_ticket_panel WHERE guild_id = ?",
             (guild_id,),
         )
         setup_data = cursor.fetchone()
         conn.close()
         return setup_data
 
-    async def fetch_ticket_data(self, channel_id):
+    async def fetch_ticket_data(self, channel_id, table_prefix):
         """Fetch ticket data for a specific channel."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM ticket_data WHERE channel_id = ?", (channel_id,))
+        cursor.execute(
+            f"SELECT * FROM {table_prefix}_ticket_data WHERE channel_id = ?",
+            (channel_id,),
+        )
         ticket_data = cursor.fetchone()
         conn.close()
         return ticket_data
 
-    async def update_ticket_data(self, channel_id, **updates):
+    async def update_ticket_data(self, channel_id, table_prefix, **updates):
         """Update ticket data in the database."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         for key, value in updates.items():
             cursor.execute(
-                f"UPDATE ticket_data SET {key} = ? WHERE channel_id = ?",
+                f"UPDATE {table_prefix}_ticket_data SET {key} = ? WHERE channel_id = ?",
                 (value, channel_id),
             )
         conn.commit()
@@ -66,7 +61,23 @@ class TicketOptions(commands.Cog):
             return
 
         custom_id = interaction.data.get("custom_id")
-        if custom_id not in ["close", "lock", "unlock", "claim"]:
+
+        # Check if this is a ticket management button
+        if not (custom_id.startswith("plex_") or custom_id.startswith("tv_")):
+            return
+
+        # Parse the table prefix and action
+        if custom_id.startswith("plex_"):
+            table_prefix = "plex"
+            action = custom_id[5:]  # Remove "plex_" prefix
+        elif custom_id.startswith("tv_"):
+            table_prefix = "tv"
+            action = custom_id[3:]  # Remove "tv_" prefix
+        else:
+            return
+
+        # Check if this is a management action
+        if action not in ["close", "lock", "unlock", "claim"]:
             return
 
         guild = interaction.guild
@@ -74,13 +85,15 @@ class TicketOptions(commands.Cog):
         channel = interaction.channel
 
         # Fetch ticket setup data
-        setup_data = await self.fetch_ticket_setup(guild.id)
+        setup_data = await self.fetch_ticket_setup(guild.id, table_prefix)
         if not setup_data:
             await interaction.response.send_message(
-                "Ticket setup not found for this guild.",
+                f"{table_prefix.capitalize()} ticket setup not found for this guild.",
                 ephemeral=True,
             )
-            logger.warning(f"Ticket setup not found for guild {guild.name}.")
+            logger.warning(
+                f"{table_prefix.capitalize()} ticket setup not found for guild {guild.name}."
+            )
             return
 
         transcripts_channel_id, helpers_role_id = setup_data
@@ -91,17 +104,21 @@ class TicketOptions(commands.Cog):
             await interaction.response.send_message(
                 "Nur für Staff Mitglieder!", ephemeral=True
             )
-            logger.warning(f"{member.name} attempted to interact without proper role.")
+            logger.warning(
+                f"{member.name} attempted to interact with {table_prefix} ticket without proper role."
+            )
             return
 
         # Fetch ticket data
-        ticket_data = await self.fetch_ticket_data(channel.id)
+        ticket_data = await self.fetch_ticket_data(channel.id, table_prefix)
         if not ticket_data:
             await interaction.response.send_message(
-                "No data found for this ticket. Please delete it manually.",
+                f"No data found for this {table_prefix} ticket. Please delete it manually.",
                 ephemeral=True,
             )
-            logger.warning(f"No ticket data found for channel {channel.name}.")
+            logger.warning(
+                f"No {table_prefix} ticket data found for channel {channel.name}."
+            )
             return
 
         (
@@ -119,31 +136,41 @@ class TicketOptions(commands.Cog):
         ) = ticket_data
 
         embed = discord.Embed(color=discord.Color.blue())
-        if custom_id == "lock":
+        if action == "lock":
             if locked:
                 await interaction.response.send_message(
                     "Das Ticket ist bereits gesperrt", ephemeral=True
                 )
             else:
-                await self.update_ticket_data(channel.id, locked=True)
+                await self.update_ticket_data(channel.id, table_prefix, locked=True)
                 embed.description = (
                     "🔐 | Dieses Ticket ist jetzt zur Überprüfung gesperrt."
                 )
-                await channel.set_permissions(member, send_messages=False)
+
+                # Get the ticket creator
+                creator = guild.get_member(created_by)
+                if creator:
+                    await channel.set_permissions(creator, send_messages=False)
+
                 await interaction.response.send_message(embed=embed)
 
-        elif custom_id == "unlock":
+        elif action == "unlock":
             if not locked:
                 await interaction.response.send_message(
                     "Das Ticket ist bereits freigeschaltet", ephemeral=True
                 )
             else:
-                await self.update_ticket_data(channel.id, locked=False)
+                await self.update_ticket_data(channel.id, table_prefix, locked=False)
                 embed.description = "🔓 | Dieses Ticket ist jetzt freigeschaltet."
-                await channel.set_permissions(member, send_messages=True)
+
+                # Get the ticket creator
+                creator = guild.get_member(created_by)
+                if creator:
+                    await channel.set_permissions(creator, send_messages=True)
+
                 await interaction.response.send_message(embed=embed)
 
-        elif custom_id == "close":
+        elif action == "close":
             if closed:
                 await interaction.response.send_message(
                     "Das Ticket ist bereits geschlossen, bitte warte, bis es gelöscht wird.",
@@ -152,6 +179,7 @@ class TicketOptions(commands.Cog):
             else:
                 # Acknowledge the interaction immediately
                 await interaction.response.defer(ephemeral=True)
+
                 # Generate transcript using `py-discord-html-transcripts`
                 transcript_message = await chat_exporter.quick_export(channel)
                 if not transcript_message.attachments:
@@ -160,7 +188,7 @@ class TicketOptions(commands.Cog):
                         ephemeral=True,
                     )
                     logger.error(
-                        f"Transcript creation failed for channel {channel.name}."
+                        f"Transcript creation failed for {table_prefix} channel {channel.name}."
                     )
                     return
 
@@ -174,7 +202,7 @@ class TicketOptions(commands.Cog):
                 if transcripts_channel:
                     await transcripts_channel.send(
                         embed=discord.Embed(
-                            title=f"Ticket ID: {ticket_id}",
+                            title=f"{table_prefix.upper()} Ticket ID: {ticket_id}",
                             description=f"Closed By: {member.mention}\nMember: <@{created_by}>",
                             timestamp=discord.utils.utcnow(),
                         ),
@@ -187,14 +215,14 @@ class TicketOptions(commands.Cog):
                     try:
                         await ticket_creator.send(
                             embed=discord.Embed(
-                                title="Ticket Transcript",
-                                description=f"Hier ist das Transkript für dein Ticket ID: {ticket_id}.",
+                                title=f"{table_prefix.upper()} Ticket Transcript",
+                                description=f"Hier ist das Transkript für dein {table_prefix.upper()} Ticket ID: {ticket_id}.",
                                 timestamp=discord.utils.utcnow(),
                             ),
                             file=await transcript_file.to_file(),
                         )
                         logger.info(
-                            f"Transcript sent to {ticket_creator.name} for ticket {ticket_id}."
+                            f"Transcript sent to {ticket_creator.name} for {table_prefix} ticket {ticket_id}."
                         )
                     except discord.Forbidden:
                         logger.warning(
@@ -204,14 +232,14 @@ class TicketOptions(commands.Cog):
                             f"{ticket_creator.mention} konnte nicht über DMs erreicht werden. Das Transkript ist hier im Kanal verfügbar."
                         )
 
-            await self.update_ticket_data(channel.id, closed=True)
-            embed.description = "Das Ticket wurde erfolgreich geschlossen, wird gelöscht und archiviert."
-            await interaction.followup.send(embed=embed)
-            await asyncio.sleep(10)
-            await channel.delete()
-            logger.info(f"Ticket {ticket_id} was deleted.")
+                await self.update_ticket_data(channel.id, table_prefix, closed=True)
+                embed.description = "Das Ticket wurde erfolgreich geschlossen, wird gelöscht und archiviert."
+                await interaction.followup.send(embed=embed)
+                await asyncio.sleep(10)
+                await channel.delete()
+                logger.info(f"{table_prefix.upper()} Ticket {ticket_id} was deleted.")
 
-        elif custom_id == "claim":
+        elif action == "claim":
             if claimed:
                 await interaction.response.send_message(
                     f"Dieses Ticket wurde bereits von <@{claimed_by}> beansprucht.",
@@ -219,7 +247,7 @@ class TicketOptions(commands.Cog):
                 )
             else:
                 await self.update_ticket_data(
-                    channel.id, claimed=True, claimed_by=member.id
+                    channel.id, table_prefix, claimed=True, claimed_by=member.id
                 )
                 embed.description = (
                     f"📰 | Dieses Ticket wird jetzt von {member.mention} beansprucht."
@@ -228,5 +256,5 @@ class TicketOptions(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(TicketOptions(bot))
-    logger.debug("TicketOptions cog loaded.")
+    await bot.add_cog(TicketManagement(bot))
+    logger.debug("TicketManagement cog loaded.")

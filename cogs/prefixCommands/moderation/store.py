@@ -21,9 +21,10 @@ class AppStoreMessage(commands.Cog):
             )
         except Exception as error:
             await ctx.send("Some Error Occurred")
-            print(f"Error sending app store message: {error}")
+            logger.error(f"Error sending app store message: {error}")
 
 
 async def setup(bot):
     """Setup function to add the cog."""
     await bot.add_cog(AppStoreMessage(bot))
+    logger.debug("AppStoreMessage cog loaded.")

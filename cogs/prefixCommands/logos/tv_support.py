@@ -4,23 +4,23 @@ from discord.ext import commands
 from cogs.helpers.logger import logger
 
 
-class Support(commands.Cog):
+class TvSupport(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="support", help="Sends the support channel logo.")
+    @commands.command(name="tvsupport", help="Sends the plex support channel logo.")
     @commands.has_permissions(administrator=True)
-    async def support(self, ctx):
+    async def tvsupport(self, ctx):
         """Send a support channel logo as an image attachment and delete the command message."""
         try:
             # Delete the user's command message
             await ctx.message.delete()
 
             # Replace with the path to your local image file
-            image_path = "./config/images/support.png"
+            image_path = "./config/images/tv_support.png"
 
             # Create a file attachment
-            file = discord.File(image_path, filename="support.png")
+            file = discord.File(image_path, filename="tv_support.png")
 
             # Send the image in the channel
             await ctx.send(file=file)
@@ -28,9 +28,9 @@ class Support(commands.Cog):
         except Exception as e:
             await ctx.send("Some Error Occurred")
             # Log the error to the console
-            print(f"Error sending the app picture: {e}")
+            logger.error(f"Error sending the app picture: {e}")
 
 
 async def setup(bot):
-    await bot.add_cog(Support(bot))
-    logger.debug("Support Logo cog loaded.")
+    await bot.add_cog(TvSupport(bot))
+    logger.debug("Live TV Support Logo cog loaded.")

@@ -27,8 +27,9 @@ class InviteCommand(commands.Cog):
             )
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
-            print(f"Error in invite command: {error}")
+            logger.error(f"Error in invite command: {error}")
 
 
 async def setup(bot):
     await bot.add_cog(InviteCommand(bot))
+    logger.debug("InviteCommand cog loaded.")

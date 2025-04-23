@@ -507,7 +507,7 @@ class KofiWebhook(commands.Cog):
                 "{KOFI_NAME}", self.config["kofi_name"]
             )
             embed.set_footer(text=footer_text, icon_url=self.config["kofi_logo"])
-            embed.timestamp = datetime.datetime.utcnow()
+            embed.timestamp = datetime.datetimezone.utc()
 
             # Add main fields
             embed.add_field(

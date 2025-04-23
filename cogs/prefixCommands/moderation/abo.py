@@ -51,8 +51,9 @@ class LiveLinkCommand(commands.Cog):
 
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
-            print(f"Error in livelink command: {error}")
+            logger.error(f"Error in LiveLink command: {error}")
 
 
 async def setup(bot):
     await bot.add_cog(LiveLinkCommand(bot))
+    logger.debug("LiveLinkCommand cog loaded.")

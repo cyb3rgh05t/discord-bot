@@ -26,8 +26,9 @@ class PlexCommand(commands.Cog):
             await ctx.send(content=content)
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
-            print(f"Error in plex command: {error}")
+            logger.error(f"Error in plex command: {error}")
 
 
 async def setup(bot):
     await bot.add_cog(PlexCommand(bot))
+    logger.debug("PlexCommand cog loaded.")

@@ -14,11 +14,11 @@ class LinesCommand(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def linesmessage(self, ctx):
         try:
-            # Define the button
+            # Define the button - keep the same custom_id for backwards compatibility
             button = Button(
-                label="STREAMNET TV TEST LINIE",
-                custom_id="create_ticket",  # This is used for handling interaction
-                style=discord.ButtonStyle.primary,  # Use primary style for interaction
+                label="LIVE TV TEST LINIE",
+                custom_id="create_ticket",  # This will be handled by our new ticket system
+                style=discord.ButtonStyle.primary,
             )
 
             # Create a view and add the button
@@ -35,10 +35,16 @@ class LinesCommand(commands.Cog):
                 ),
                 view=view,
             )
+
+            # Success message
+            success_msg = await ctx.send("Ticket button created successfully!")
+            await success_msg.delete(delay=5)  # Delete after 5 seconds
+
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
-            print(f"Error in lines command: {error}")
+            logger.error(f"Error in lines command: {error}")
 
 
 async def setup(bot):
     await bot.add_cog(LinesCommand(bot))
+    logger.debug("LinesCommand cog loaded.")
