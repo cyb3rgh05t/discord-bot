@@ -194,18 +194,18 @@ def setup_logging(log_file=None, log_level=None):
     for discord_logger in discord_loggers:
         discord_logger.handlers = []
         discord_logger.propagate = False  # Don't propagate to root logger
-        discord_logger.setLevel(logging.INFO)  # Discord libs are noisy at DEBUG level
+        discord_logger.setLevel(log_level)  # Use the configured log level
 
         # Add our handlers directly to discord loggers
         discord_handler = logging.StreamHandler()
         discord_handler.setFormatter(formatter)
-        discord_handler.setLevel(logging.INFO)  # Keep Discord at INFO level
+        discord_handler.setLevel(log_level)  # Use the configured log level
         discord_logger.addHandler(discord_handler)
 
         # Also log discord messages to file
         discord_file_handler = logging.FileHandler(log_file, encoding="utf-8")
         discord_file_handler.setFormatter(formatter)
-        discord_file_handler.setLevel(logging.INFO)  # Keep Discord at INFO level
+        discord_file_handler.setLevel(log_level)  # Use the configured log level
         discord_logger.addHandler(discord_file_handler)
 
     # Create console handler for non-discord logs
