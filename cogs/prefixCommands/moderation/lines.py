@@ -1,3 +1,5 @@
+# cogs/prefixCommands/moderation/lines.py
+
 import discord
 from discord.ext import commands
 from discord.ui import Button, View
@@ -14,11 +16,12 @@ class LinesCommand(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def linesmessage(self, ctx):
         try:
-            # Define the button - keep the same custom_id for backwards compatibility
+            # Define the button - keep the custom_id="create_ticket" for test lines
             button = Button(
                 label="LIVE TV TEST LINIE",
                 custom_id="create_ticket",  # This will be handled by our new ticket system
-                style=discord.ButtonStyle.primary,
+                style=discord.ButtonStyle.secondary,
+                emoji="<:stv:1312506945634177064>",  # Use your StreamNet TV emoji
             )
 
             # Create a view and add the button
@@ -36,9 +39,11 @@ class LinesCommand(commands.Cog):
                 view=view,
             )
 
-            # Success message
+            # Success message that will auto-delete
             success_msg = await ctx.send("Ticket button created successfully!")
             await success_msg.delete(delay=5)  # Delete after 5 seconds
+
+            logger.info("TV Test Line button created successfully")
 
         except Exception as error:
             await ctx.send("Ein Fehler ist aufgetreten.")
@@ -47,4 +52,4 @@ class LinesCommand(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(LinesCommand(bot))
-    logger.debug("LinesCommand cog loaded.")
+    logger.debug("Lines command cog loaded.")

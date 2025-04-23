@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import sqlite3
-import logging
 from cogs.helpers.logger import logger
 
 
@@ -140,13 +139,13 @@ class BaseTicketSetup(commands.Cog):
 
             # Create buttons dynamically
             class TicketButtons(discord.ui.View):
-                def __init__(self):
+                def __init__(self, table_prefix):
                     super().__init__(timeout=None)
                     for i, button_name in enumerate(buttons.split(",")):
                         self.add_item(
                             discord.ui.Button(
                                 label=button_name,
-                                custom_id=f"{self.table_prefix}_{button_name}",
+                                custom_id=f"{table_prefix}_{button_name}",
                                 style=[
                                     discord.ButtonStyle.danger,
                                     discord.ButtonStyle.secondary,
@@ -165,7 +164,7 @@ class BaseTicketSetup(commands.Cog):
                         )
 
             # Edit the message to attach the view again
-            view = TicketButtons()
+            view = TicketButtons(self.table_prefix)
             await message.edit(view=view)
 
         except discord.NotFound:

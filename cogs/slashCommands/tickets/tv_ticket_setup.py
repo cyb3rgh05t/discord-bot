@@ -72,7 +72,7 @@ class TVTicketSetup(BaseTicketSetup):
                             )
                         )
 
-            # Create embed
+            # Create embed with TV specifics
             embed = discord.Embed(
                 title=f"{guild.name} | Live TV Ticket System",
                 description=description,
@@ -100,11 +100,12 @@ class TVTicketSetup(BaseTicketSetup):
             await interaction.response.send_message(
                 "TV ticket system setup successfully!", ephemeral=True
             )
+            logger.info(f"TV ticket system setup complete for guild {guild.name}")
 
         except Exception as e:
             logger.error(f"Error during TV ticket setup: {e}")
             await interaction.response.send_message(
-                "An error occurred while setting up the TV ticket system.",
+                f"An error occurred while setting up the TV ticket system: {str(e)}",
                 ephemeral=True,
             )
 

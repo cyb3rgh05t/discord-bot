@@ -101,11 +101,12 @@ class PlexTicketSetup(BaseTicketSetup):
             await interaction.response.send_message(
                 "Plex ticket system setup successfully!", ephemeral=True
             )
+            logger.info(f"Plex ticket system setup complete for guild {guild.name}")
 
         except Exception as e:
             logger.error(f"Error during Plex ticket setup: {e}")
             await interaction.response.send_message(
-                "An error occurred while setting up the Plex ticket system.",
+                f"An error occurred while setting up the Plex ticket system: {str(e)}",
                 ephemeral=True,
             )
 

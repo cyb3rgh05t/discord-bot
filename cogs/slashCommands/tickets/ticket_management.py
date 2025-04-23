@@ -3,6 +3,7 @@ from discord.ext import commands
 import sqlite3
 import logging
 import asyncio
+import io
 from discord.utils import get
 import chat_exporter
 from config.settings import DATABASE_PATH
@@ -61,6 +62,7 @@ class TicketManagement(commands.Cog):
             return
 
         custom_id = interaction.data.get("custom_id")
+        logger.debug(f"Ticket management button clicked: {custom_id}")
 
         # Check if this is a management button
         if not (custom_id.startswith("plex_") or custom_id.startswith("tv_")):
@@ -79,6 +81,7 @@ class TicketManagement(commands.Cog):
         # Check if this is a management action (not a ticket creation button)
         if action not in ["close", "lock", "unlock", "claim"]:
             # Not a management action, ignore
+            logger.debug(f"Not a management action: {action} - skipping")
             return
 
         guild = interaction.guild
@@ -137,6 +140,7 @@ class TicketManagement(commands.Cog):
         ) = ticket_data
 
         embed = discord.Embed(color=discord.Color.blue())
+
         if action == "lock":
             if locked:
                 await interaction.response.send_message(
@@ -154,6 +158,7 @@ class TicketManagement(commands.Cog):
                     await channel.set_permissions(creator, send_messages=False)
 
                 await interaction.response.send_message(embed=embed)
+                logger.info(f"Ticket {ticket_id} locked by {member.name}")
 
         elif action == "unlock":
             if not locked:
@@ -170,6 +175,7 @@ class TicketManagement(commands.Cog):
                     await channel.set_permissions(creator, send_messages=True)
 
                 await interaction.response.send_message(embed=embed)
+                logger.info(f"Ticket {ticket_id} unlocked by {member.name}")
 
         elif action == "close":
             if closed:
@@ -180,9 +186,9 @@ class TicketManagement(commands.Cog):
             else:
                 # Acknowledge the interaction immediately
                 await interaction.response.defer(ephemeral=True)
+                logger.debug(f"Starting close process for ticket {ticket_id}")
 
                 # Import missing io module
-                import io
 
                 # Generate transcript using `py-discord-html-transcripts`
                 try:
@@ -309,6 +315,7 @@ class TicketManagement(commands.Cog):
                     f"📰 | Dieses Ticket wird jetzt von {member.mention} beansprucht."
                 )
                 await interaction.response.send_message(embed=embed)
+                logger.info(f"Ticket {ticket_id} claimed by {member.name}")
 
 
 async def setup(bot):
