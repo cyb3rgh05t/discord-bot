@@ -4,6 +4,8 @@ import psutil
 import shutil
 import platform
 import sqlite3
+import os
+import re
 from datetime import datetime
 from discord.ext import commands, tasks
 from config.settings import SYSTEM_CHANNEL_ID
@@ -174,22 +176,82 @@ class SystemInfo(commands.Cog):
 
     def get_cpu_usage(self):
         """Retrieve CPU usage percentage."""
-        return psutil.cpu_percent(interval=1)
+        try:
+            return psutil.cpu_percent(interval=1)
+        except Exception as e:
+            logger.error(f"Error getting CPU usage: {e}")
+            return 0.0
+
+    def get_cpu_info(self):
+        """Get CPU information using multiple methods to work in Docker."""
+        cpu_info = "Unknown"
+
+        # Try several methods to get CPU info
+        try:
+            # Method 1: platform.processor() - doesn't always work in Docker
+            processor = platform.processor()
+            if processor and len(processor.strip()) > 0:
+                cpu_info = processor
+                logger.debug(f"CPU info from platform.processor(): {cpu_info}")
+                return cpu_info
+
+            # Method 2: Try to read from /proc/cpuinfo directly
+            if os.path.exists("/proc/cpuinfo"):
+                with open("/proc/cpuinfo", "r") as f:
+                    for line in f:
+                        if line.startswith("model name"):
+                            cpu_info = line.split(":", 1)[1].strip()
+                            logger.debug(f"CPU info from /proc/cpuinfo: {cpu_info}")
+                            return cpu_info
+
+            # Method 3: Try lscpu command (may not be available in all containers)
+            import subprocess
+
+            try:
+                result = subprocess.run(
+                    ["lscpu"], capture_output=True, text=True, timeout=1
+                )
+                if result.returncode == 0:
+                    for line in result.stdout.splitlines():
+                        if "Model name:" in line:
+                            cpu_info = line.split(":", 1)[1].strip()
+                            logger.debug(f"CPU info from lscpu: {cpu_info}")
+                            return cpu_info
+            except (subprocess.SubprocessError, FileNotFoundError) as e:
+                logger.debug(f"lscpu command failed: {e}")
+
+        except Exception as e:
+            logger.debug(f"Error getting CPU info: {e}")
+
+        # Final fallback
+        return cpu_info
 
     def get_memory_usage(self):
         """Retrieve memory usage in MB."""
-        memory = psutil.virtual_memory()
-        return memory.used / (1024 * 1024), memory.total / (1024 * 1024)
+        try:
+            memory = psutil.virtual_memory()
+            return memory.used / (1024 * 1024), memory.total / (1024 * 1024)
+        except Exception as e:
+            logger.error(f"Error getting memory usage: {e}")
+            return 0, 1  # Return dummy values to avoid division by zero
 
     def get_disk_usage(self):
         """Retrieve disk usage statistics."""
-        disk = shutil.disk_usage("/")
-        return disk.used / (1024 * 1024 * 1024), disk.total / (1024 * 1024 * 1024)
+        try:
+            disk = shutil.disk_usage("/")
+            return disk.used / (1024 * 1024 * 1024), disk.total / (1024 * 1024 * 1024)
+        except Exception as e:
+            logger.error(f"Error getting disk usage: {e}")
+            return 0, 1  # Return dummy values to avoid division by zero
 
     def get_network_stats(self):
         """Retrieve network statistics."""
-        stats = psutil.net_io_counters()
-        return stats.bytes_sent, stats.bytes_recv
+        try:
+            stats = psutil.net_io_counters()
+            return stats.bytes_sent, stats.bytes_recv
+        except Exception as e:
+            logger.error(f"Error getting network stats: {e}")
+            return 0, 0  # Return dummy values
 
     def check_sqlite_connection(self):
         """Check the connection status of the SQLite database."""
@@ -203,6 +265,63 @@ class SystemInfo(commands.Cog):
             logger.error(f"SQLite connection error: {e}")
             return "Offline"
 
+    def get_system_uptime(self):
+        """Get system uptime in a human-readable format."""
+        uptime_seconds = 0
+        uptime_str = "Unknown"
+
+        # Try multiple methods to get uptime
+        try:
+            # Method 1: Read from /proc/uptime (Linux)
+            if os.path.exists("/proc/uptime"):
+                with open("/proc/uptime", "r") as f:
+                    uptime_seconds = int(float(f.read().split()[0]))
+
+            # Method 2: Use psutil if available
+            if uptime_seconds == 0:
+                try:
+                    uptime_seconds = int(time.time() - psutil.boot_time())
+                except:
+                    pass
+
+            # Method 3: For Windows systems
+            if uptime_seconds == 0 and platform.system() == "Windows":
+                try:
+                    import ctypes
+
+                    class LASTINPUTINFO(ctypes.Structure):
+                        _fields_ = [
+                            ("cbSize", ctypes.c_uint),
+                            ("dwTime", ctypes.c_uint),
+                        ]
+
+                    GetTickCount = ctypes.windll.kernel32.GetTickCount
+                    GetTickCount.restype = ctypes.c_uint
+                    uptime_ms = GetTickCount()
+                    uptime_seconds = uptime_ms // 1000
+                except:
+                    pass
+
+            # Format uptime if we got it
+            if uptime_seconds > 0:
+                days, remainder = divmod(uptime_seconds, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+
+                uptime_str = ""
+                if days > 0:
+                    uptime_str += f"{days}d "
+                if hours > 0 or days > 0:
+                    uptime_str += f"{hours}h "
+                if minutes > 0 or hours > 0 or days > 0:
+                    uptime_str += f"{minutes}m "
+                uptime_str += f"{seconds}s"
+
+        except Exception as e:
+            logger.debug(f"Error getting system uptime: {e}")
+
+        return uptime_str
+
     def create_embed(self):
         """Create a beautifully styled embed for system information."""
         try:
@@ -211,8 +330,9 @@ class SystemInfo(commands.Cog):
             disk_used, disk_total = self.get_disk_usage()
             network_sent, network_recv = self.get_network_stats()
             cpu_usage = self.get_cpu_usage()
-            cpu_info = platform.processor()
+            cpu_info = self.get_cpu_info()
             sqlite_status = self.check_sqlite_connection()
+            uptime_str = self.get_system_uptime()
 
             # Calculate usage percentages
             memory_percent = (
@@ -261,7 +381,7 @@ class SystemInfo(commands.Cog):
             embed.add_field(
                 name="CPU Usage",
                 value=f"\n<:icon_reply:993231553083736135> {cpu_emoji} `{cpu_bar}` **{cpu_usage:.1f}%**\n"
-                f"<:icon_reply:993231553083736135> Processor: {cpu_info.split()[0] if len(cpu_info.split()) > 0 else 'Unknown'}\n",
+                f"<:icon_reply:993231553083736135> Processor: {cpu_info}\n",
                 inline=False,
             )
             embed.add_field(
@@ -330,22 +450,8 @@ class SystemInfo(commands.Cog):
                 inline=False,
             )
 
-            # Add system uptime if available
-            try:
-                uptime_seconds = int(float(open("/proc/uptime").read().split()[0]))
-                days, remainder = divmod(uptime_seconds, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-
-                uptime_str = ""
-                if days > 0:
-                    uptime_str += f"{days}d "
-                if hours > 0 or days > 0:
-                    uptime_str += f"{hours}h "
-                if minutes > 0 or hours > 0 or days > 0:
-                    uptime_str += f"{minutes}m "
-                uptime_str += f"{seconds}s"
-
+            # Add system uptime
+            if uptime_str != "Unknown":
                 embed.add_field(
                     name="System Uptime",
                     value=f"\n<:icon_reply:993231553083736135> **{uptime_str}**",
@@ -356,49 +462,6 @@ class SystemInfo(commands.Cog):
                     value="",
                     inline=False,
                 )
-            except:
-                # Uptime might not be available on all systems (especially Windows)
-                try:
-                    # For Windows systems
-                    import ctypes
-
-                    class LASTINPUTINFO(ctypes.Structure):
-                        _fields_ = [
-                            ("cbSize", ctypes.c_uint),
-                            ("dwTime", ctypes.c_uint),
-                        ]
-
-                    GetTickCount = ctypes.windll.kernel32.GetTickCount
-                    GetTickCount.restype = ctypes.c_uint
-
-                    uptime_ms = GetTickCount()
-                    uptime_seconds = uptime_ms // 1000
-
-                    days, remainder = divmod(uptime_seconds, 86400)
-                    hours, remainder = divmod(remainder, 3600)
-                    minutes, seconds = divmod(remainder, 60)
-
-                    uptime_str = ""
-                    if days > 0:
-                        uptime_str += f"{days}d "
-                    if hours > 0 or days > 0:
-                        uptime_str += f"{hours}h "
-                    if minutes > 0 or hours > 0 or days > 0:
-                        uptime_str += f"{minutes}m "
-                    uptime_str += f"{seconds}s"
-
-                    embed.add_field(
-                        name="System Uptime",
-                        value=f"\n<:icon_reply:993231553083736135> **{uptime_str}**",
-                        inline=False,
-                    )
-                    embed.add_field(
-                        name="",
-                        value="",
-                        inline=False,
-                    )
-                except:
-                    pass
 
             embed.set_thumbnail(
                 url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
