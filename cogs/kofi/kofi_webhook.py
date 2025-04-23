@@ -339,7 +339,8 @@ class KofiWebhook(commands.Cog):
                             400,
                         )
 
-                logger.info(f"Received Ko-fi data: {kofi_data}")
+                logger.info(f"Received Ko-fi Donation webhook")
+                logger.debug(f"Received Ko-fi data: {kofi_data}")
 
                 # Verify the token if configured
                 if (

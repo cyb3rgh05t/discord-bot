@@ -335,6 +335,7 @@ class PlexCommands(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def dbls(self, interaction: discord.Interaction):
         """Command to list the Plex database"""
+
         all_users = read_all_users(self.db_conn)
 
         embed = discord.Embed(title="PlexInviter Database.")
@@ -346,14 +347,19 @@ class PlexCommands(commands.Cog):
 
         for index, user in enumerate(all_users):
             index = index + 1
-            user_id = int(user[1])
-            db_user = self.bot.get_user(user_id)
-            db_email = user[2] if user[2] else "No Plex"
+            # Add check to handle empty user ID
+            if user[1] and str(user[1]).strip():
+                try:
+                    user_id = int(user[1])
+                    db_user = self.bot.get_user(user_id)
+                    username = db_user.name if db_user else "User Not Found."
+                except (ValueError, AttributeError):
+                    # Handle invalid user IDs
+                    username = f"Invalid ID: {user[1]}"
+            else:
+                username = "No Discord ID"
 
-            try:
-                username = db_user.name
-            except:
-                username = "User Not Found."
+            db_email = user[2] if user[2] else "No Plex"
 
             embed.add_field(
                 name=f"**{index}. {username}**",
