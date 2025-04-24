@@ -134,6 +134,7 @@ class MyBot(commands.Bot):
 
             # Log bot configuration
             version = get_version()
+            print("---------------------------------------------")
             logger.info(f"Bot configuration loaded:")
             logger.info(f"  → Command Prefix: '{COMMAND_PREFIX}'")
             logger.info(f"  → Guild ID: '{GUILD_ID}'")
@@ -161,6 +162,7 @@ class MyBot(commands.Bot):
             logger.info(f"  → Verified Role: '{VERIFIED_ROLE}'")
             logger.info(f"  → Member Role: '{MEMBER_ROLE}'")
             logger.info(f"  → Staff Role: '{STAFF_ROLE}'")
+            print("---------------------------------------------")
 
         except discord.NotFound:
             logger.error(

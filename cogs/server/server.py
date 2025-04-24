@@ -186,7 +186,7 @@ class SystemInfo(commands.Cog):
     def get_cpu_info(self):
         """Get CPU information using multiple methods to work in Docker."""
         cpu_info = "Unknown"
-        
+
         # Try several methods to get CPU info
         try:
             # Method 1: platform.processor() - doesn't always work in Docker
@@ -195,7 +195,7 @@ class SystemInfo(commands.Cog):
                 cpu_info = processor
                 logger.debug(f"CPU info from platform.processor(): {cpu_info}")
                 return cpu_info
-                
+
             # Method 2: Try to read from /proc/cpuinfo directly
             if os.path.exists("/proc/cpuinfo"):
                 with open("/proc/cpuinfo", "r") as f:
@@ -204,11 +204,14 @@ class SystemInfo(commands.Cog):
                             cpu_info = line.split(":", 1)[1].strip()
                             logger.debug(f"CPU info from /proc/cpuinfo: {cpu_info}")
                             return cpu_info
-            
+
             # Method 3: Try lscpu command (may not be available in all containers)
             import subprocess
+
             try:
-                result = subprocess.run(["lscpu"], capture_output=True, text=True, timeout=1)
+                result = subprocess.run(
+                    ["lscpu"], capture_output=True, text=True, timeout=1
+                )
                 if result.returncode == 0:
                     for line in result.stdout.splitlines():
                         if "Model name:" in line:
@@ -217,10 +220,10 @@ class SystemInfo(commands.Cog):
                             return cpu_info
             except (subprocess.SubprocessError, FileNotFoundError) as e:
                 logger.debug(f"lscpu command failed: {e}")
-                
+
         except Exception as e:
             logger.debug(f"Error getting CPU info: {e}")
-            
+
         # Final fallback
         return cpu_info
 
@@ -243,13 +246,67 @@ class SystemInfo(commands.Cog):
             return 0, 1  # Return dummy values to avoid division by zero
 
     def get_network_stats(self):
-        """Retrieve network statistics."""
+        """Retrieve network statistics trying to access host data if possible."""
         try:
-            stats = psutil.net_io_counters()
-            return stats.bytes_sent, stats.bytes_recv
+            # First try to read from host's network interfaces if accessible
+            if os.path.exists("/host/proc/net/dev"):
+                # Host proc is mounted at /host/proc
+                return self._read_proc_net_dev("/host/proc/net/dev")
+            elif os.path.exists("/proc/net/dev"):
+                # Try regular /proc, might be host if using --net=host
+                return self._read_proc_net_dev("/proc/net/dev")
+            else:
+                # Fall back to container stats
+                stats = psutil.net_io_counters()
+                return stats.bytes_sent, stats.bytes_recv
         except Exception as e:
             logger.error(f"Error getting network stats: {e}")
             return 0, 0  # Return dummy values
+
+    def _read_proc_net_dev(self, path):
+        """Parse /proc/net/dev to get total bytes sent/received."""
+        try:
+            with open(path, "r") as f:
+                lines = f.readlines()
+
+            # Skip the first two header lines
+            lines = lines[2:]
+
+            bytes_sent = 0
+            bytes_recv = 0
+
+            for line in lines:
+                # Split line and remove whitespace
+                parts = line.strip().split()
+                if len(parts) >= 10 and ":" in parts[0]:
+                    # Skip loopback interface (lo)
+                    if "lo:" in parts[0]:
+                        continue
+
+                    # Format is: Interface: rx_bytes rx_packets ... tx_bytes tx_packets ...
+                    # We want rx_bytes (index 1) and tx_bytes (index 9)
+                    interface = parts[0].replace(":", "")
+                    try:
+                        rx = int(parts[1])  # received bytes
+                        tx = int(parts[9])  # transmitted bytes
+
+                        bytes_recv += rx
+                        bytes_sent += tx
+
+                        logger.debug(
+                            f"Network interface {interface}: RX={rx} bytes, TX={tx} bytes"
+                        )
+                    except (IndexError, ValueError) as e:
+                        logger.debug(
+                            f"Could not parse stats for interface {interface}: {e}"
+                        )
+
+            return bytes_sent, bytes_recv
+        except Exception as e:
+            logger.error(f"Error reading from {path}: {e}")
+            # Fall back to container stats
+            stats = psutil.net_io_counters()
+            return stats.bytes_sent, stats.bytes_recv
 
     def check_sqlite_connection(self):
         """Check the connection status of the SQLite database."""
@@ -267,37 +324,39 @@ class SystemInfo(commands.Cog):
         """Get system uptime in a human-readable format."""
         uptime_seconds = 0
         uptime_str = "Unknown"
-        
+
         # Try multiple methods to get uptime
         try:
             # Method 1: Read from /proc/uptime (Linux)
             if os.path.exists("/proc/uptime"):
                 with open("/proc/uptime", "r") as f:
                     uptime_seconds = int(float(f.read().split()[0]))
-            
+
             # Method 2: Use psutil if available
             if uptime_seconds == 0:
                 try:
                     uptime_seconds = int(time.time() - psutil.boot_time())
                 except:
                     pass
-                    
+
             # Method 3: For Windows systems
             if uptime_seconds == 0 and platform.system() == "Windows":
                 try:
                     import ctypes
+
                     class LASTINPUTINFO(ctypes.Structure):
                         _fields_ = [
                             ("cbSize", ctypes.c_uint),
                             ("dwTime", ctypes.c_uint),
                         ]
+
                     GetTickCount = ctypes.windll.kernel32.GetTickCount
                     GetTickCount.restype = ctypes.c_uint
                     uptime_ms = GetTickCount()
                     uptime_seconds = uptime_ms // 1000
                 except:
                     pass
-            
+
             # Format uptime if we got it
             if uptime_seconds > 0:
                 days, remainder = divmod(uptime_seconds, 86400)
@@ -312,10 +371,10 @@ class SystemInfo(commands.Cog):
                 if minutes > 0 or hours > 0 or days > 0:
                     uptime_str += f"{minutes}m "
                 uptime_str += f"{seconds}s"
-                
+
         except Exception as e:
             logger.debug(f"Error getting system uptime: {e}")
-            
+
         return uptime_str
 
     def create_embed(self):
@@ -508,7 +567,7 @@ class SystemInfo(commands.Cog):
                 return message
             except discord.NotFound:
                 logger.warning(
-                    f"Message with ID {message_id} not found in channel #{channel.name}, sending a new one."
+                    f"System Info message with ID {message_id} not found in channel #{channel.name}, sending a new one."
                 )
                 message = await channel.send(embed=embed)
                 self.store_message_id(guild_id, message.id, channel.id)
@@ -589,7 +648,7 @@ class SystemInfo(commands.Cog):
         # Log the channel where we'll be updating info
         channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
         if channel:
-            logger.info(f"System channel found #{channel.name}")
+            logger.info(f"System Information channel found #{channel.name}")
         else:
             logger.error(
                 f"System channel with ID {SYSTEM_CHANNEL_ID} not found. Cannot start system info updates."

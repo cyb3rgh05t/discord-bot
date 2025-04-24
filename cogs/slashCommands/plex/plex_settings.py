@@ -72,10 +72,13 @@ class PlexSettings(commands.Cog):
             # Log auth method but mask sensitive data
             if self.plex_token:
                 logger.info(f"  → PlexAuth method: Token")
+                print("---------------------------------------------")
             elif self.plex_user and self.plex_pass:
                 logger.info(f"  → PlexAuth method: Credentials")
+                print("---------------------------------------------")
             else:
                 logger.info(f"  → PlexAuth method: Not configured")
+                print("---------------------------------------------")
 
             return True
         except (ImportError, AttributeError) as e:
