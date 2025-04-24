@@ -74,13 +74,52 @@ class RulesAcceptButton(commands.Cog):
                     ephemeral=True,
                 )
 
+                # Send welcome message to channel with enhanced content in plain text
                 welcome_channel = guild.get_channel(WELCOME_CHANNEL_ID)
                 if welcome_channel:
-                    await welcome_channel.send(
-                        f"🎉 Willkommen {member.mention} im **{guild.name}**!\n"
-                        f"Das <:sclub:1312507027951452160> Team wünscht dir gute Unterhaltung 😀\n\n"
+                    welcome_message = (
+                        f"<:boss:1030145002568958024> **Willkommen bei {guild.name}!**\n\n"
+                        f"Wir freuen uns, dich in unserer Community begrüßen zu dürfen, {member.mention}!\n\n"
+                        f"<:tc_error:1364320671261262016> **Nächste Schritte**\n"
                         f"Befolge die Schritte wenn du Zutritt zum Service willst.\n"
-                        f"<#825364230827409479>"
+                        f"<#825364230827409479>\n\n"
+                        f"<:sclub:1312507027951452160> **StreamNet Club**\n"
+                        f"Unser Team steht dir bei Fragen gerne zur Verfügung!\n\n"
+                        f"Wir wünschen dir gute Unterhaltung 😀"
+                    )
+
+                    await welcome_channel.send(welcome_message)
+
+                # Send a direct message to the user
+                try:
+                    dm_embed = discord.Embed(
+                        title=f"Willkommen bei {guild.name}!",
+                        description=(
+                            f"Hallo {member.name},\n\n"
+                            f"Vielen Dank für deine Regelbestätigung! Du hast nun Zugriff auf alle Member-Bereiche in unserem Server.\n\n"
+                            f"**Wichtige Informationen:**\n"
+                            f"• In <#825364230827409479> findest du Anweisungen, wie du Zugang zu unseren Services bekommst\n"
+                            f"• Bei Fragen kannst du jederzeit ein Support-Ticket eröffnen\n"
+                            f"• Wir freuen uns auf deine aktive Teilnahme in unserer Community!"
+                        ),
+                        color=discord.Color.blue(),
+                    )
+
+                    # Add server logo/icon
+                    if guild.icon:
+                        dm_embed.set_thumbnail(url=guild.icon.url)
+
+                    # Add footer
+                    dm_embed.set_footer(
+                        text=f"{guild.name} • StreamNet Club",
+                        icon_url=guild.icon.url if guild.icon else None,
+                    )
+
+                    await member.send(embed=dm_embed)
+                    logger.info(f"Sent welcome DM to {member.name}")
+                except discord.Forbidden:
+                    logger.warning(
+                        f"Could not send DM to {member.name} - DMs may be disabled"
                     )
 
     def save_message_id(self, guild_id, message_id):
@@ -174,7 +213,7 @@ class RulesAcceptButton(commands.Cog):
             "• Bitte verwende den richtigen Kanal für deine Frage und bleib innerhalb des Kanals beim Thema.\n\n"
             "**```diff\n- Regel #4: Sei geduldig```**\n"
             "• Nicht jeder ist jederzeit verfügbar. Jemand wird dir antworten, wenn er kann.\n"
-            "==============================\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
         )
 
         message = await channel.send(content=rules_text, view=view)
