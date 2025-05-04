@@ -42,7 +42,7 @@ class FlaskHandler(logging.Handler):
                 else:
                     logger.info(f"Flask: {msg}")
             return
-        logger.log(record.levelno, f"Flask: {record.getMessage()}")
+        logger.info(record.levelno, f"Flask: {record.getMessage()}")
 
 
 # Create a filter to ignore common port scanning requests
@@ -508,7 +508,8 @@ class KofiWebhook(commands.Cog):
                 "{KOFI_NAME}", self.config["kofi_name"]
             )
             embed.set_footer(text=footer_text, icon_url=self.config["kofi_logo"])
-            embed.timestamp = datetime.datetimezone.utc()
+            # FIX: Use the correct UTC timestamp format
+            embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
 
             # Add main fields
             embed.add_field(
