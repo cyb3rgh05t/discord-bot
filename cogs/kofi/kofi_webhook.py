@@ -614,20 +614,19 @@ class KofiWebhook(commands.Cog):
             # Set thumbnail
             embed.set_thumbnail(url=self.config["kofi_logo"])
 
-            # Add message or default text to description
-            if kofi_data.get("message") and kofi_data["message"].strip():
-                embed.description = f"\"{kofi_data['message']}\""
-            elif is_subscription:
+            # Add appropriate text to description
+            if is_subscription:
+                # For subscriptions, use a special message
                 embed.description = f"**{kofi_data.get('from_name', self.t('Anonymous'))}** {self.t('has subscribed to the')} {kofi_data.get('tier_name', '')} {self.t('tier!')} 🎉"
             else:
-                # Use custom message if available
+                # For donations, always use custom message
                 embed.description = self.t("CustomMessage")
 
             # Set footer and timestamp
             footer_text = self.t("CustomFooter").replace(
                 "{KOFI_NAME}", self.config["kofi_name"]
             )
-            embed.set_footer(text=footer_text, icon_url=self.config["kofi_logo"])
+            embed.set_footer(text=footer_text)
             # FIX: Use the correct UTC timestamp format
             embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
 
@@ -685,12 +684,8 @@ class KofiWebhook(commands.Cog):
                     inline=False,
                 )
 
-            # Add message as separate field if not used in description
-            if (
-                kofi_data.get("message")
-                and kofi_data["message"].strip()
-                and is_subscription
-            ):
+            # Add message as a separate field if one was included
+            if kofi_data.get("message") and kofi_data["message"].strip():
                 embed.add_field(
                     name=self.t("Message"), value=kofi_data["message"], inline=False
                 )
