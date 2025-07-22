@@ -165,6 +165,75 @@ DEFAULT_CONFIG = {
     "port": 3033,
 }
 
+# Month and weekday names for different languages to handle date formatting
+# without relying on locale settings which might not be available in containers
+MONTH_NAMES = {
+    "en": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ],
+    "de": [
+        "Januar",
+        "Februar",
+        "März",
+        "April",
+        "Mai",
+        "Juni",
+        "Juli",
+        "August",
+        "September",
+        "Oktober",
+        "November",
+        "Dezember",
+    ],
+    "fr": [
+        "janvier",
+        "février",
+        "mars",
+        "avril",
+        "mai",
+        "juin",
+        "juillet",
+        "août",
+        "septembre",
+        "octobre",
+        "novembre",
+        "décembre",
+    ],
+}
+
+WEEKDAY_NAMES = {
+    "en": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ],
+    "de": [
+        "Montag",
+        "Dienstag",
+        "Mittwoch",
+        "Donnerstag",
+        "Freitag",
+        "Samstag",
+        "Sonntag",
+    ],
+    "fr": ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"],
+}
+
 
 class KofiWebhook(commands.Cog):
     def __init__(self, bot):
@@ -179,6 +248,11 @@ class KofiWebhook(commands.Cog):
         # Load configuration
         self.config = self.load_config()
 
+        # Store the custom messages by language
+        self.custom_messages = {}
+        self.custom_footers = {}
+        self.load_custom_messages()
+
         # Log configuration
         logger.info("Ko-fi configuration loaded:")
         logger.info(f"  → Ko-Fi Language: '{self.config['language']}'")
@@ -191,6 +265,54 @@ class KofiWebhook(commands.Cog):
         print("---------------------------------------------")
         # Setup Flask routes
         self.setup_routes()
+
+    def load_custom_messages(self):
+        """Load custom messages for different languages"""
+        try:
+            # Try to import regular custom message
+            from config.settings import KOFI_CUSTOM_MESSAGE, KOFI_CUSTOM_FOOTER
+
+            # Store the messages for all languages
+            for lang in TRANSLATIONS.keys():
+                # If we have a language-specific message, use it, otherwise use the generic one
+                try:
+                    # Try to import language-specific message (e.g. KOFI_CUSTOM_MESSAGE_DE)
+                    specific_message_var = f"KOFI_CUSTOM_MESSAGE_{lang.upper()}"
+                    specific_footer_var = f"KOFI_CUSTOM_FOOTER_{lang.upper()}"
+
+                    # Import dynamically if exists
+                    try:
+                        specific_message = getattr(
+                            __import__(
+                                "config.settings", fromlist=[specific_message_var]
+                            ),
+                            specific_message_var,
+                        )
+                        self.custom_messages[lang] = specific_message
+                    except (ImportError, AttributeError):
+                        # If language-specific message doesn't exist, use generic one
+                        if "KOFI_CUSTOM_MESSAGE" in locals() and KOFI_CUSTOM_MESSAGE:
+                            self.custom_messages[lang] = KOFI_CUSTOM_MESSAGE
+
+                    # Same for footer
+                    try:
+                        specific_footer = getattr(
+                            __import__(
+                                "config.settings", fromlist=[specific_footer_var]
+                            ),
+                            specific_footer_var,
+                        )
+                        self.custom_footers[lang] = specific_footer
+                    except (ImportError, AttributeError):
+                        # If language-specific footer doesn't exist, use generic one
+                        if "KOFI_CUSTOM_FOOTER" in locals() and KOFI_CUSTOM_FOOTER:
+                            self.custom_footers[lang] = KOFI_CUSTOM_FOOTER
+
+                except Exception as e:
+                    logger.debug(f"Error loading specific message for {lang}: {e}")
+
+        except ImportError:
+            logger.debug("No custom Ko-fi messages found in settings")
 
     def configure_flask_logging(self):
         """Configure Flask's logging to suppress common port scanning errors"""
@@ -220,8 +342,6 @@ class KofiWebhook(commands.Cog):
                 from config.settings import (
                     KOFI_NAME,
                     KOFI_LOGO,
-                    KOFI_CUSTOM_MESSAGE,
-                    KOFI_CUSTOM_FOOTER,
                 )
 
                 # Load basic settings
@@ -229,18 +349,6 @@ class KofiWebhook(commands.Cog):
                     config["kofi_name"] = KOFI_NAME
                 if "KOFI_LOGO" in locals() and KOFI_LOGO:
                     config["kofi_logo"] = KOFI_LOGO
-
-                # If custom messages are defined, override the translations
-                if "KOFI_CUSTOM_MESSAGE" in locals() and KOFI_CUSTOM_MESSAGE:
-                    lang = config["language"]
-                    if lang in TRANSLATIONS:
-                        TRANSLATIONS[lang]["CustomMessage"] = KOFI_CUSTOM_MESSAGE
-
-                # If custom footer is defined, override the translations
-                if "KOFI_CUSTOM_FOOTER" in locals() and KOFI_CUSTOM_FOOTER:
-                    lang = config["language"]
-                    if lang in TRANSLATIONS:
-                        TRANSLATIONS[lang]["CustomFooter"] = KOFI_CUSTOM_FOOTER
 
             except ImportError:
                 pass  # Optional settings not defined
@@ -374,39 +482,51 @@ class KofiWebhook(commands.Cog):
         if lang not in TRANSLATIONS:
             lang = "en"  # Fall back to English
 
-        # Handle CustomMessage and CustomFooter specially to allow overrides from settings
-        if key in ["CustomMessage", "CustomFooter"]:
-            try:
-                # Try to import custom message settings
-                if key == "CustomMessage":
-                    from config.settings import KOFI_CUSTOM_MESSAGE
+        # Special handling for custom messages
+        if key == "CustomMessage":
+            # If we have a custom message for this language, use it
+            if lang in self.custom_messages:
+                return self.custom_messages[lang]
+            # Otherwise fall back to the default translation
+            return TRANSLATIONS[lang].get(key, TRANSLATIONS["en"].get(key, key))
 
-                    if "KOFI_CUSTOM_MESSAGE" in locals() and KOFI_CUSTOM_MESSAGE:
-                        return KOFI_CUSTOM_MESSAGE
-                elif key == "CustomFooter":
-                    from config.settings import KOFI_CUSTOM_FOOTER
+        elif key == "CustomFooter":
+            # If we have a custom footer for this language, use it
+            if lang in self.custom_footers:
+                return self.custom_footers[lang]
+            # Otherwise fall back to the default translation
+            return TRANSLATIONS[lang].get(key, TRANSLATIONS["en"].get(key, key))
 
-                    if "KOFI_CUSTOM_FOOTER" in locals() and KOFI_CUSTOM_FOOTER:
-                        return KOFI_CUSTOM_FOOTER
-            except ImportError:
-                pass
-
-        # Get translation from the dictionary
+        # Regular translations
         text = TRANSLATIONS[lang].get(key, TRANSLATIONS["en"].get(key, key))
         return text.replace("{KOFI_NAME}", self.config["kofi_name"])
 
     def format_date(self, timestamp):
-        """Format timestamp nicely based on language"""
+        """Format timestamp nicely based on language using manual localization"""
         try:
             date = datetime.datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+            lang = self.config["language"].lower()
 
-            if self.config["language"] == "de":
-                return date.strftime("%A, %d. %B %Y, %H:%M Uhr")
-            elif self.config["language"] == "fr":
-                return date.strftime("%A %d %B %Y, %H:%M")
+            # Get localized month and weekday names
+            month_name = MONTH_NAMES.get(lang, MONTH_NAMES["en"])[date.month - 1]
+            weekday_name = WEEKDAY_NAMES.get(lang, WEEKDAY_NAMES["en"])[date.weekday()]
+
+            # Format the date according to the language conventions
+            if lang == "de":
+                # German format: Montag, 7. Mai 2025, 15:30 Uhr
+                return f"{weekday_name}, {date.day}. {month_name} {date.year}, {date.hour:02d}:{date.minute:02d} Uhr"
+            elif lang == "fr":
+                # French format: lundi 7 mai 2025, 15:30
+                return f"{weekday_name} {date.day} {month_name} {date.year}, {date.hour:02d}:{date.minute:02d}"
             else:
-                return date.strftime("%A, %B %d, %Y at %I:%M %p")
-        except:
+                # English format: Monday, May 7, 2025 at 3:30 PM
+                hour = date.hour % 12
+                if hour == 0:
+                    hour = 12
+                am_pm = "PM" if date.hour >= 12 else "AM"
+                return f"{weekday_name}, {month_name} {date.day}, {date.year} at {hour}:{date.minute:02d} {am_pm}"
+        except Exception as e:
+            logger.error(f"Error formatting date: {e}")
             return timestamp or "Unknown date"
 
     def get_type_emoji(self, type_str):
@@ -494,20 +614,19 @@ class KofiWebhook(commands.Cog):
             # Set thumbnail
             embed.set_thumbnail(url=self.config["kofi_logo"])
 
-            # Add message or default text to description
-            if kofi_data.get("message") and kofi_data["message"].strip():
-                embed.description = f"\"{kofi_data['message']}\""
-            elif is_subscription:
+            # Add appropriate text to description
+            if is_subscription:
+                # For subscriptions, use a special message
                 embed.description = f"**{kofi_data.get('from_name', self.t('Anonymous'))}** {self.t('has subscribed to the')} {kofi_data.get('tier_name', '')} {self.t('tier!')} 🎉"
             else:
-                # Use custom message if available
+                # For donations, always use custom message
                 embed.description = self.t("CustomMessage")
 
             # Set footer and timestamp
             footer_text = self.t("CustomFooter").replace(
                 "{KOFI_NAME}", self.config["kofi_name"]
             )
-            embed.set_footer(text=footer_text, icon_url=self.config["kofi_logo"])
+            embed.set_footer(text=footer_text)
             # FIX: Use the correct UTC timestamp format
             embed.timestamp = datetime.datetime.now(datetime.timezone.utc)
 
@@ -565,12 +684,8 @@ class KofiWebhook(commands.Cog):
                     inline=False,
                 )
 
-            # Add message as separate field if not used in description
-            if (
-                kofi_data.get("message")
-                and kofi_data["message"].strip()
-                and is_subscription
-            ):
+            # Add message as a separate field if one was included
+            if kofi_data.get("message") and kofi_data["message"].strip():
                 embed.add_field(
                     name=self.t("Message"), value=kofi_data["message"], inline=False
                 )
