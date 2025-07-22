@@ -18,7 +18,7 @@ class InviteCommand(commands.Cog):
                     "**SPENDEN** sind das A und O damit dieses **Projekt** am Leben bleibt.\n\n"
                     "Deshalb frage ich für jede **Server Einladung** eine kleine **Spende** um die Server und alles was ansteht zu bezahlen...\n\n"
                     "➡️  Betätige eine **Spende** indem du den Anweisungen in <#912755161078849598> folgst.\n\n"
-                    "➡️  Nach einer **Spende** eröffne ein **Invite-Ticket** in <#995631213995905094>, poste die Spenden-Bestätigung "
+                    "➡️  Nach einer **Spende** eröffne ein **Invite-Ticket** in <#1364540807427915777>, poste die Spenden-Bestätigung "
                     "und frage nach einer **StreamNet Einladung**. Nach Bestätigung des **Staff Teams** wird dir der <@825635238188285952> Bot per **DM** schreiben. "
                     "Folge diesen Anweisungen.\n\n"
                     "➡️  **NACHDEM** du hinzugefügt worden bist, kannst du die **EINLADUNG** in deiner **MAILBOX** *(Mailbox der Email welche du dem Bot angegeben hast)* akzeptieren.\n"
