@@ -25,6 +25,14 @@ services:
     labels:
       - "dockupdater.enable=true"
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.bot-rtr.entrypoints=https"
+      - "traefik.http.routers.bot-rtr.rule=Host(`bot.${DOMAIN}`)"
+      - "traefik.http.routers.bot-rtr.tls=true"
+      - "traefik.http.routers.bot-rtr.tls.certresolver=dns-cloudflare"
+      - "traefik.http.routers.bot-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.bot-rtr.service=bot-svc"
+      - "traefik.http.services.bot-svc.loadbalancer.server.port=3033"
 networks:
   proxy:
     driver: bridge

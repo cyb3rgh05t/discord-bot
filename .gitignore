@@ -10,3 +10,4 @@ logs/bot.log
 *.pdf
 /tools
 /config/images
+/docs
