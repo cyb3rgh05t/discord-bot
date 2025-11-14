@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 import asyncio
 import os
@@ -41,9 +41,14 @@ class PlexCommands(commands.Cog):
         self.plex_roles = []
         self.plex_libs = ["all"]
         self.use_plex = False
+        self.plex_connection_failed = False  # Track connection status
+        self.admin_user_id = None  # Will be loaded from config
 
         # Try to initialize Plex
         self.load_plex_config()
+
+        # Start the Plex health check task
+        self.plex_health_check.start()
 
     def load_plex_config(self):
         """Load Plex configuration from settings or environment variables"""
@@ -60,6 +65,17 @@ class PlexCommands(commands.Cog):
                 PLEX_LIBS,
                 PLEX_ENABLED,
             )
+
+            # Try to load admin user ID
+            try:
+                from config.settings import ADMIN_USER_ID
+
+                self.admin_user_id = int(ADMIN_USER_ID)
+            except (ImportError, AttributeError):
+                logger.warning(
+                    "ADMIN_USER_ID not found in settings - Plex health check notifications will be disabled"
+                )
+                self.admin_user_id = None
 
             self.plex_server_name = PLEX_SERVER_NAME
             self.plex_roles = (
@@ -104,9 +120,26 @@ class PlexCommands(commands.Cog):
     async def embedemail(self, user, message):
         """Send an email request embed message"""
         embed = discord.Embed(
-            title=f"**{self.plex_server_name} Invite**  🎟️",
-            description=message,
-            color=0x00FF00,
+            title="<:splex:1033460420587049021> StreamNet Plex Einladung",
+            description=(
+                f"**Hallo {user.mention}!**\n\n"
+                f"Du wurdest für **{self.plex_server_name}** freigeschalten!\n\n"
+                f"━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"📧 **Bitte antworte mit deiner Plex Email-Adresse**\n\n"
+                f"⚠️ **Wichtig:**\n"
+                f"• Verwende die Email, die bei Plex registriert ist\n"
+                f"• Nur die Email-Adresse senden (keine zusätzlichen Texte)\n"
+                f"• Du hast 24 Stunden Zeit zu antworten\n\n"
+                f"💡 *Beispiel: deine-email@beispiel.de*"
+            ),
+            color=0xE5A00D,
+        )
+        embed.set_thumbnail(
+            url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+        )
+        embed.set_footer(
+            text=f"{self.plex_server_name} • Warte auf deine Antwort...",
+            icon_url="https://cdn.discordapp.com/emojis/1310635856318562334.png",
         )
         await user.send(embed=embed)
 
@@ -238,10 +271,14 @@ class PlexCommands(commands.Cog):
                 ):
                     email = await self.getemail(after)
                     if email is not None:
+                        # Processing embed
                         embed = discord.Embed(
-                            title="",
-                            description="**GOTCHA**, wir werden deine Email bearbeiten!",
-                            color=0x00FF00,
+                            title="📧 Email wird verarbeitet",
+                            description="Deine Email-Adresse wird gerade bearbeitet...\nBitte warte einen Moment......",
+                            color=0xE5A00D,
+                        )
+                        embed.set_thumbnail(
+                            url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
                         )
                         await after.send(embed=embed)
 
@@ -251,18 +288,65 @@ class PlexCommands(commands.Cog):
                             )
                             await asyncio.sleep(5)
 
+                            # Success embed
                             embed = discord.Embed(
-                                title="",
-                                description=f"**Whoop, Whoop**\n\n<:approved:995615632961847406> **{email}** \n\nwurde bei **{self.plex_server_name}** hinzugefügt!\n\n➡️ **[{self.plex_server_name} Invite akzeptieren](https://app.plex.tv/desktop/#!/settings/manage-library-access)**",
-                                color=0x00FF00,
+                                title="<:approved:995615632961847406> **Erfolgreich zu StreamNet Plex hinzugefügt!**",
+                                description=(
+                                    f"📧 Email: `{email}`\n"
+                                    f"🎬 Server: **{self.plex_server_name}**\n\n"
+                                    f"━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                                    f"**➡️ Nächste Schritte:**\n"
+                                    f"1️⃣ Überprüfe deine Email für die Plex-Einladung\n"
+                                    f"2️⃣ Klicke auf den Button unten oder den Link in der Email\n"
+                                    f"3️⃣ Akzeptiere die Einladung in deinen Plex-Einstellungen\n\n"
+                                    f"<:splex:1033460420587049021> Viel Spaß beim Streamen!"
+                                ),
+                                color=0xE5A00D,
                             )
-                            await after.send(embed=embed)
+                            embed.set_thumbnail(
+                                url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+                            )
+                            embed.set_footer(
+                                text=f"{self.plex_server_name} • StreamNet Club",
+                                icon_url="https://cdn.discordapp.com/emojis/1310635856318562334.png",
+                            )
+
+                            # Create button for accepting invite
+                            view = discord.ui.View()
+                            button = discord.ui.Button(
+                                label="Einladung akzeptieren",
+                                style=discord.ButtonStyle.link,
+                                url="https://app.plex.tv/desktop/#!/settings/manage-library-access",
+                                emoji="✅",
+                            )
+                            view.add_item(button)
+
+                            await after.send(embed=embed, view=view)
+
+                            # Start Plex walkthrough after successful invitation
+                            await asyncio.sleep(3)  # Brief pause before walkthrough
+                            walkthrough_cog = self.bot.get_cog("PlexWalkthrough")
+                            if walkthrough_cog:
+                                await walkthrough_cog.send_walkthrough(after)
                         else:
+                            # Error embed
                             embed = discord.Embed(
-                                title="",
-                                description="<:rejected:995614671128244224> Es gab einen Fehler beim Hinzufügen deiner Email. Bitte kontaktiere <@408885990971670531>.",
+                                title="❌ Fehler beim Hinzufügen",
+                                description=(
+                                    f"<:rejected:995614671128244224> **Es gab einen Fehler!**\n\n"
+                                    f"Deine Email-Adresse konnte nicht zu Plex hinzugefügt werden.\n\n"
+                                    f"**Mögliche Gründe:**\n"
+                                    f"• Email-Adresse ist bereits eingeladen\n"
+                                    f"• Ungültige Email-Adresse\n"
+                                    f"• Plex-Server ist nicht erreichbar\n\n"
+                                    f"Bitte kontaktiere <@408885990971670531> für Hilfe."
+                                ),
                                 color=0xF50000,
                             )
+                            embed.set_thumbnail(
+                                url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+                            )
+                            embed.set_footer(text="Plex Fehler")
                             await after.send(embed=embed)
 
                     plex_processed = True
@@ -288,9 +372,26 @@ class PlexCommands(commands.Cog):
                                 )
 
                             embed = discord.Embed(
-                                title="",
-                                description=f"<:approved:995615632961847406> Du wurdest bei **{self.plex_server_name}** entfernt!",
-                                color=0x00FF00,
+                                title="👋 StreamNet Plex Zugriff entfernt",
+                                description=(
+                                    f"**Hallo {after.mention}!**\n\n"
+                                    f"Dein Zugriff auf **{self.plex_server_name}** wurde entfernt.\n\n"
+                                    f"━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                                    f"📧 Email: `{email}`\n"
+                                    f"🎬 Server: **{self.plex_server_name}**\n\n"
+                                    f"ℹ️ **Grund:**\n"
+                                    f"• Deine Rolle wurde entfernt\n"
+                                    f"• Zugriff auf Plex wurde automatisch entzogen\n\n"
+                                    f"💡 *Bei Fragen wende dich an <@408885990971670531>*"
+                                ),
+                                color=0xE5A00D,
+                            )
+                            embed.set_thumbnail(
+                                url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+                            )
+                            embed.set_footer(
+                                text=f"{self.plex_server_name} • Zugriff entfernt",
+                                icon_url="https://cdn.discordapp.com/emojis/1310635856318562334.png",
                             )
                             await after.send(embed=embed)
                     except Exception as e:
@@ -371,7 +472,9 @@ class PlexCommands(commands.Cog):
         total = str(len(all_users))
         if len(all_users) > 25:
             with open("plex_db.txt", "w") as f:
-                f.write(table.draw())
+                table_output = table.draw()
+                if table_output:
+                    f.write(table_output)
 
             await interaction.response.send_message(
                 f"Database too large! Total: {total}",
@@ -460,6 +563,90 @@ class PlexCommands(commands.Cog):
                 interaction,
                 "<:rejected:995614671128244224> Es gab einen Fehler beim Entfernen dieses Benutzers aus der Datenbank. Bitte überprüfe die Logs für mehr Informationen.",
             )
+
+    @tasks.loop(hours=1)
+    async def plex_health_check(self):
+        """Check Plex connection every hour and notify admin if it fails"""
+        if not self.use_plex or not self.plex_configured:
+            return
+
+        try:
+            # Try to connect to Plex server
+            if self.plex_server:
+                # Simple ping to check if server is responsive
+                _ = self.plex_server.library.sections()
+
+                # If we get here, connection is successful
+                if self.plex_connection_failed:
+                    # Connection was down but is now back up
+                    self.plex_connection_failed = False
+                    logger.info("Plex connection restored")
+
+                    # Notify admin that connection is back
+                    if self.admin_user_id:
+                        try:
+                            admin = await self.bot.fetch_user(self.admin_user_id)
+                            embed = discord.Embed(
+                                title="✅ Plex Connection Restored",
+                                description=(
+                                    f"**Good news!**\n\n"
+                                    f"Connection to **{self.plex_server_name}** has been restored.\n\n"
+                                    f"🎬 Server: **{self.plex_server_name}**\n"
+                                    f"✅ Status: **Online**"
+                                ),
+                                color=0x00FF00,
+                            )
+                            embed.set_thumbnail(
+                                url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+                            )
+                            await admin.send(embed=embed)
+                        except Exception as e:
+                            logger.error(f"Could not send restoration DM to admin: {e}")
+        except Exception as e:
+            # Connection failed
+            if not self.plex_connection_failed:
+                # First time failure - notify admin
+                self.plex_connection_failed = True
+                logger.error(f"Plex health check failed: {e}")
+
+                # Send DM to admin
+                if self.admin_user_id:
+                    try:
+                        admin = await self.bot.fetch_user(self.admin_user_id)
+                        embed = discord.Embed(
+                            title="⚠️ Plex Connection Failed",
+                            description=(
+                                f"**Connection issue detected!**\n\n"
+                                f"Unable to connect to **{self.plex_server_name}**.\n\n"
+                                f"🎬 Server: **{self.plex_server_name}**\n"
+                                f"❌ Status: **Offline/Unreachable**\n"
+                                f"⚠️ Error: `{str(e)[:100]}`\n\n"
+                                f"Please check the server status and network connection."
+                            ),
+                            color=0xFF0000,
+                        )
+                        embed.set_thumbnail(
+                            url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+                        )
+                        await admin.send(embed=embed)
+                        logger.info(
+                            f"Sent Plex connection failure notification to admin {self.admin_user_id}"
+                        )
+                    except Exception as dm_error:
+                        logger.error(f"Could not send DM to admin: {dm_error}")
+                else:
+                    logger.warning(
+                        "Admin user ID not configured - cannot send Plex failure notification"
+                    )
+
+    @plex_health_check.before_loop
+    async def before_plex_health_check(self):
+        """Wait until the bot is ready before starting the health check"""
+        await self.bot.wait_until_ready()
+
+    def cog_unload(self):
+        """Stop the health check task when cog is unloaded"""
+        self.plex_health_check.cancel()
 
     async def cog_load(self):
         """Associate commands with a specific guild."""

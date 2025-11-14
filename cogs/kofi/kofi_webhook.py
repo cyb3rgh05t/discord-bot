@@ -19,10 +19,6 @@ from config.settings import (
 )
 from cogs.helpers.logger import logger
 
-# Silence Flask's startup banner
-cli = importlib.import_module("flask.cli")
-cli.show_server_banner = lambda *args, **kwargs: None
-
 
 # Configure Flask to use our logger
 class FlaskHandler(logging.Handler):
@@ -407,7 +403,7 @@ class KofiWebhook(commands.Cog):
                 # Handle application/json content type
                 if request.is_json:
                     payload = request.json
-                    data = payload.get("data")
+                    data = payload.get("data") if payload else None
                     logger.debug("Processing JSON payload")
 
                 # Handle form data (application/x-www-form-urlencoded)
@@ -454,6 +450,7 @@ class KofiWebhook(commands.Cog):
                 # Verify the token if configured
                 if (
                     self.config["verification_token"]
+                    and isinstance(kofi_data, dict)
                     and kofi_data.get("verification_token")
                     != self.config["verification_token"]
                 ):
@@ -499,7 +496,9 @@ class KofiWebhook(commands.Cog):
 
         # Regular translations
         text = TRANSLATIONS[lang].get(key, TRANSLATIONS["en"].get(key, key))
-        return text.replace("{KOFI_NAME}", self.config["kofi_name"])
+        if text:
+            return text.replace("{KOFI_NAME}", self.config["kofi_name"])
+        return key
 
     def format_date(self, timestamp):
         """Format timestamp nicely based on language using manual localization"""

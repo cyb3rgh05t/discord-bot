@@ -11,7 +11,9 @@ ASCII_LOGO = r"""
 
 BOT_TOKEN = "yourBotToken"
 GUILD_ID = "00000000000000000000000"
+GUILD_NAME = "YourGuildName"
 COMMAND_PREFIX = "!"
+ADMIN_USER_ID = "000000000000000000"  # Discord user ID for admin notifications
 
 DATABASE_PATH = "databases"
 

@@ -451,7 +451,7 @@ class SystemInfo(commands.Cog):
             embed.add_field(
                 name="Memory Usage",
                 value=f"\n<:icon_reply:993231553083736135> {memory_emoji} `{memory_bar}` **{memory_percent:.1f}%**\n"
-                f"<:icon_reply:993231553083736135> Used: {format_size(memory_used)} / Total: {format_size(memory_total)}\n",
+                f"<:icon_reply:993231553083736135> RAM: {memory_used/1024:.1f}GB/{memory_total/1024:.1f}GB\n",
                 inline=False,
             )
             embed.add_field(

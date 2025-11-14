@@ -35,11 +35,46 @@ def plexinviter(plex, plexname, plex_libs):
 def plexremove(plex, plexname):
     """
     Remove a user from the Plex server
+    Args:
+        plex: Plex server instance
+        plexname: Email or username to remove
     """
     try:
-        plex.myPlexAccount().removeFriend(user=plexname)
-        logger.info(f"{plexname} has been removed from Plex")
-        return True
+        account = plex.myPlexAccount()
+
+        # Get all friends to find the correct one
+        friends = account.users()
+
+        # Try to find the user by email or username
+        user_to_remove = None
+        for friend in friends:
+            # Check if the friend's email or username matches
+            if (
+                hasattr(friend, "email")
+                and friend.email
+                and friend.email.lower() == plexname.lower()
+            ) or (
+                hasattr(friend, "username")
+                and friend.username
+                and friend.username.lower() == plexname.lower()
+            ):
+                user_to_remove = (
+                    friend.username if hasattr(friend, "username") else friend.email
+                )
+                break
+
+        if user_to_remove:
+            account.removeFriend(user=user_to_remove)
+            logger.info(
+                f"{user_to_remove} (searched as {plexname}) has been removed from Plex"
+            )
+            return True
+        else:
+            # If not found, try the direct removal (backwards compatibility)
+            account.removeFriend(user=plexname)
+            logger.info(f"{plexname} has been removed from Plex")
+            return True
+
     except Exception as e:
         logger.error(f"Error removing {plexname} from Plex: {e}")
         return False

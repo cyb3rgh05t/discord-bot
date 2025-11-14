@@ -53,29 +53,24 @@ class StreamlinedFormatter(logging.Formatter):
 
         # Special handling for Discord library messages
         if record.name.startswith("discord."):
-            # Handle RESUMED session messages - set to DEBUG level
+            # Skip RESUMED session messages
             if "RESUMED session" in record.getMessage():
-                session_id = record.getMessage().split("session ")[-1].strip(".")
-                session_short = (
-                    session_id[:8] + "..." if len(session_id) > 8 else session_id
-                )
-                msg = f"Discord connection resumed (Session: {session_short})"
-                return f"[{timestamp}] DEBUG: {self.colorize(msg, COLORS['BLUE'])}"
+                return None
 
             if "Attempting a reconnect" in record.getMessage():
                 reconnect_time = record.getMessage().split()[-1]
                 msg = (
                     f"Discord connection refreshing (reconnecting in {reconnect_time})"
                 )
-                return f"[{timestamp}] INFO: {self.colorize(msg, COLORS['BLUE'])}"
+                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['BLUE'])} {self.colorize(msg, COLORS['BLUE'])}"
 
             if "WebSocket closed" in record.getMessage():
                 code = "1000" if "1000" in record.getMessage() else "unknown"
                 msg = f"Discord connection reset (code: {code})"
-                return f"[{timestamp}] INFO: {self.colorize(msg, COLORS['CYAN'])}"
+                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['CYAN'])} {self.colorize(msg, COLORS['CYAN'])}"
 
             if "logging in using static token" in record.getMessage():
-                return f"[{timestamp}] INFO: {self.colorize('Discord bot logging in', COLORS['GREEN'])}"
+                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize('Discord bot logging in', COLORS['GREEN'])}"
 
             if (
                 "Shard ID" in record.getMessage()
@@ -92,7 +87,7 @@ class StreamlinedFormatter(logging.Formatter):
                 else:
                     session_short = "unknown"
                 msg = f"Discord connection established (Session: {session_short})"
-                return f"[{timestamp}] INFO: {self.colorize(msg, COLORS['GREEN'])}"
+                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize(msg, COLORS['GREEN'])}"
 
             # Filter out other Discord messages that we don't care about
             important_patterns = [
@@ -123,7 +118,7 @@ class StreamlinedFormatter(logging.Formatter):
             level_color = COLORS["BLUE"]
 
         # Format log message with level after timestamp
-        log_msg = f"[{timestamp}] {record.levelname}: {self.colorize(record.getMessage(), level_color)}"
+        log_msg = f"[{timestamp}] {self.colorize(f'[{record.levelname}]', level_color)} {self.colorize(record.getMessage(), level_color)}"
 
         # Add traceback info for exceptions, formatted nicely
         if record.exc_info:

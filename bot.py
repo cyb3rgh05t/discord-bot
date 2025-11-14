@@ -22,6 +22,7 @@ from config.settings import (
     STAFF_ROLE,
     DATABASE_PATH,
     KOFI_CHANNEL_ID,
+    ADMIN_USER_ID,
 )
 from cogs.helpers.logger import logger  # Import the pre-configured logger
 
@@ -84,7 +85,15 @@ class MyBot(commands.Bot):
             else:
                 # For regular channels
                 channel = await self.fetch_channel(channel_id)
-                if channel:
+                if channel and isinstance(
+                    channel,
+                    (
+                        discord.TextChannel,
+                        discord.VoiceChannel,
+                        discord.StageChannel,
+                        discord.ForumChannel,
+                    ),
+                ):
                     # Store in global map
                     channel_map[channel_id] = f"{channel.name}"
                     return f"{channel.name}"
@@ -99,10 +108,6 @@ class MyBot(commands.Bot):
 
     async def setup_hook(self):
         """Setup hook for initializing bot operations."""
-        # Clear global commands to prevent Discord from auto-registering them
-        self.tree.clear_commands(guild=None)
-        logger.info("Cleared all global commands.")
-
         # Test debug logging
         logger.debug(
             "Setup hook initialized - if you see this, debug logging is working!"
@@ -112,7 +117,7 @@ class MyBot(commands.Bot):
 
         # Verify guild exists
         try:
-            guild_details = await self.fetch_guild(GUILD_ID)
+            guild_details = await self.fetch_guild(int(GUILD_ID))
             logger.info(f"Found Guild '{guild_details.name}' (ID: {guild_details.id}).")
 
             # Get channel and category names
@@ -145,6 +150,7 @@ class MyBot(commands.Bot):
                 f"  → Bot Token: {'[REDACTED]' if BOT_TOKEN else 'NOT SET - REQUIRED'}"
             )
             logger.info(f"  → Database Path: '/{DATABASE_PATH}'")
+            logger.info(f"  → Admin User ID: '{ADMIN_USER_ID}'")
             logger.info("Discord Channel Configuration:")
             logger.info(f"  → System Channel ID: '{SYSTEM_CHANNEL_ID}'")
             logger.info(f"  → System Channel Name:'{system_channel_name}'")
@@ -195,8 +201,15 @@ class MyBot(commands.Bot):
                         logger.error(f"Failed to load cog {cog_path}: {e}")
         logger.info("Loaded all extensions.")
 
-        # Sync commands to the specific guild only
+        # Sync commands to the specific guild and globally
         await self.sync_commands(guild)
+
+        # Sync global commands (for DM-enabled commands)
+        try:
+            global_synced = await self.tree.sync()
+            logger.info(f"Synced {len(global_synced)} global commands.")
+        except Exception as e:
+            logger.error(f"Error syncing global commands: {e}")
 
     async def on_guild_join(self, guild):
         """Handle bot joining a new guild."""
@@ -211,7 +224,7 @@ class MyBot(commands.Bot):
 
     async def sync_commands(self, guild):
         """Sync commands for a specific guild."""
-        guild_details = await self.fetch_guild(GUILD_ID)
+        guild_details = await self.fetch_guild(int(GUILD_ID))
         try:
             synced = await self.tree.sync(guild=guild)
             self.synced_guilds.add(guild.id)
@@ -239,7 +252,8 @@ class MyBot(commands.Bot):
 
     async def on_ready(self):
         """Event fired when the bot is ready."""
-        logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
+        if self.user:
+            logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
         logger.info(f"Bot is ready and connected to Discord!")
         logger.debug("Debug test message - checking if debug logs are visible")
 
@@ -253,6 +267,23 @@ async def sync(ctx):
         await ctx.send(f"Synced {len(synced)} commands to this guild.")
     except Exception as e:
         logger.error(f"Error during manual sync: {e}")
+        await ctx.send(f"An error occurred: {e}")
+
+
+@commands.command(
+    name="syncglobal", help="Manually sync global slash commands (works in DMs)."
+)
+@commands.is_owner()
+async def syncglobal(ctx):
+    """Manually sync global slash commands."""
+    try:
+        synced = await ctx.bot.tree.sync()
+        await ctx.send(
+            f"Synced {len(synced)} global commands. May take up to 1 hour to appear in DMs."
+        )
+        logger.info(f"Synced {len(synced)} global commands.")
+    except Exception as e:
+        logger.error(f"Error during global sync: {e}")
         await ctx.send(f"An error occurred: {e}")
 
 
@@ -289,6 +320,7 @@ if __name__ == "__main__":
 
     # Add commands to the bot
     bot.add_command(sync)
+    bot.add_command(syncglobal)
     bot.add_command(list_cogs)
     bot.add_command(list_guilds)
     bot.add_command(list_commands)
