@@ -7,8 +7,6 @@ config/settings.py
 *.log
 logs/bot.log
 /files
-
 *.pdf
-
 /tools
 /config/images

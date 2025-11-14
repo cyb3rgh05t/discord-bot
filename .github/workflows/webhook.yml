@@ -15,9 +15,9 @@ jobs:
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           color: "2105893"
-          username: "Discord BOT Release Changelog"
+          username: "StreamNet BOT Releases"
           avatar_url: "https://github.com/cyb3rgh05t/discord-bot/blob/main/images/webhook.png?raw=true"
-          content: "<@408885990971670531> New Discord BOT release published!"
+          content: "<@408885990971670531> New bot release published!"
           footer_title: "GitHub Changelog"
           footer_icon_url: "https://github.com/cyb3rgh05t/discord-bot/blob/main/images/github-webhook.png?raw=true"
           footer_timestamp: true
