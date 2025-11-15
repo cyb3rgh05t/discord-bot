@@ -21,6 +21,34 @@ A feature-rich Discord bot written in Python with support for ticketing, Plex in
 - 🛠️ **Moderation Tools** - Comprehensive server management commands
 - 📝 **Custom Logos & Embeds** - Branded channel setup and server customization
 - 🤖 **Slash & Prefix Commands** - Modern slash commands with legacy prefix support
+- 🌐 **Web Dashboard** - Comprehensive web interface for bot management and monitoring
+
+## Web Dashboard
+
+The bot includes a modern, mobile-responsive web dashboard with the following features:
+
+### Dashboard Features
+
+- **Real-time Bot Monitoring** - Live bot status, uptime, and system statistics with auto-refresh
+- **Ticket Management** - View, search, filter, and manage support tickets
+- **Database Browser** - Explore and query SQLite databases with hierarchical navigation
+- **Invite Tracking** - Monitor server invites and usage analytics
+- **Settings Management** - Configure bot settings through an intuitive interface
+- **Service Status** - Monitor Plex and other integrated services
+- **About Page** - Bot information, version tracking, and system details
+
+### Web UI Features
+
+- 🎨 **Dark Theme** - Modern dark interface optimized for readability
+- 📱 **Mobile Responsive** - Fully functional on desktop, tablet, and mobile devices
+- 🔄 **Auto Version Checking** - Automatic GitHub release version comparison
+- 🔍 **Advanced Search** - Filter and search across all data views
+- 📊 **Live Updates** - Real-time dashboard updates without page refresh
+- 🗃️ **Database Tools** - Query executor and schema viewer for database management
+
+### Accessing the Web Dashboard
+
+The dashboard is accessible at `http://your-server:5000` once the bot is running. The web interface runs alongside the Discord bot automatically.
 
 ## Requirements
 
@@ -182,9 +210,20 @@ The bot will post donation notifications to the configured channel with:
 The bot includes full Docker support with:
 
 - Multi-stage builds for efficiency
-- Python 3.12 slim base image
+- Python 3.14 slim base image
 - Automatic restart policies
 - Volume mounts for persistent data
+- Integrated web dashboard on port 5000
+
+### Docker Environment
+
+The Docker container includes:
+
+- Discord bot functionality
+- Web dashboard server
+- Database persistence
+- Automatic version tracking
+- Log file management
 
 ```bash
 # Build and run
@@ -195,6 +234,22 @@ docker-compose logs -f
 
 # Stop bot
 docker-compose down
+
+# Access web dashboard
+# Navigate to http://localhost:5000 in your browser
+```
+
+### Port Configuration
+
+- **Port 5000** - Web Dashboard (HTTP)
+- **Port 3033** - Ko-fi Webhook (if enabled)
+
+Make sure these ports are exposed in your `docker-compose.yml`:
+
+```yaml
+ports:
+  - "5000:5000" # Web Dashboard
+  - "3033:3033" # Ko-fi Webhook (optional)
 ```
 
 ## Logging
@@ -221,6 +276,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For issues, questions, or contributions, please open an issue on GitHub.
+
+##
 
 <div align="center">
 

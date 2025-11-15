@@ -3,6 +3,8 @@ import sys
 import discord
 import os
 import logging
+import threading
+from datetime import datetime
 from discord.ext import commands
 from config.settings import (
     BOT_TOKEN,
@@ -25,6 +27,20 @@ from config.settings import (
     ADMIN_USER_ID,
 )
 from cogs.helpers.logger import logger  # Import the pre-configured logger
+
+# Web UI imports (only if enabled)
+try:
+    from config.settings import WEB_ENABLED, WEB_HOST, WEB_PORT, WEB_DEBUG
+
+    if WEB_ENABLED:
+        from web.app import app, set_bot_instance
+
+        WEB_UI_AVAILABLE = True
+    else:
+        WEB_UI_AVAILABLE = False
+except ImportError:
+    WEB_UI_AVAILABLE = False
+    logger.warning("Web UI dependencies not found. Web interface disabled.")
 
 # Global channel map that will be populated with channel IDs and names
 channel_map = {}
@@ -61,6 +77,7 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix=COMMAND_PREFIX, intents=intents)
 
         self.synced_guilds = set()  # Track synced guilds
+        self.start_time = None  # Track bot start time
 
     async def get_channel_name(self, guild, channel_id, is_category=False):
         """Get channel or category name from ID and store in global map."""
@@ -252,6 +269,13 @@ class MyBot(commands.Bot):
 
     async def on_ready(self):
         """Event fired when the bot is ready."""
+        # Record start time on first ready event
+        if self.start_time is None:
+            self.start_time = datetime.now()
+            logger.info(
+                f"Bot start time recorded: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+
         if self.user:
             logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
         logger.info(f"Bot is ready and connected to Discord!")
@@ -307,6 +331,32 @@ async def list_cogs(ctx):
     await ctx.send(f"Loaded cogs: {', '.join(cogs)}")
 
 
+def start_web_ui(bot_instance):
+    """Start the Flask web UI in a separate thread."""
+    if WEB_UI_AVAILABLE:
+        try:
+            # Set the bot instance for the web UI
+            set_bot_instance(bot_instance)
+
+            logger.info(f"Starting Web UI on {WEB_HOST}:{WEB_PORT}")
+
+            # Run Flask in production mode with Werkzeug
+            from werkzeug.serving import run_simple
+
+            run_simple(
+                WEB_HOST,
+                WEB_PORT,
+                app,
+                use_reloader=False,
+                use_debugger=WEB_DEBUG,
+                threaded=True,
+            )
+        except Exception as e:
+            logger.error(f"Failed to start Web UI: {e}")
+    else:
+        logger.info("Web UI is disabled")
+
+
 # Main program
 if __name__ == "__main__":
     # Display ASCII logo and version
@@ -324,6 +374,12 @@ if __name__ == "__main__":
     bot.add_command(list_cogs)
     bot.add_command(list_guilds)
     bot.add_command(list_commands)
+
+    # Start Web UI in a separate thread if enabled
+    if WEB_UI_AVAILABLE and WEB_ENABLED:
+        web_thread = threading.Thread(target=start_web_ui, args=(bot,), daemon=True)
+        web_thread.start()
+        logger.info("Web UI thread started")
 
     # Run the bot
     bot.run(BOT_TOKEN)

@@ -199,6 +199,31 @@ class PlexCommands(commands.Cog):
 
         if verifyemail(email):
             if plexinviter(self.plex_server, email, self.plex_libs):
+                # Save to invites tracking database
+                try:
+                    import sqlite3
+                    from datetime import datetime, timedelta
+
+                    conn = sqlite3.connect("databases/invites.db")
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        """
+                        INSERT INTO invites (email, discord_user, status, created_at, expires_at)
+                        VALUES (?, ?, 'active', ?, ?)
+                    """,
+                        (
+                            email,
+                            str(interaction.user),
+                            datetime.now().isoformat(),
+                            (datetime.now() + timedelta(days=30)).isoformat(),
+                        ),
+                    )
+                    conn.commit()
+                    conn.close()
+                    logger.info(f"Saved invite for {email} to tracking database")
+                except Exception as e:
+                    logger.error(f"Failed to save invite to database: {e}")
+
                 await self.embedinfo(
                     interaction,
                     "<:approved:995615632961847406> Deine **Plex Mail** wurde zu **"
@@ -286,6 +311,36 @@ class PlexCommands(commands.Cog):
                             save_user_email(
                                 self.db_conn, str(after.id), email, after.name
                             )
+
+                            # Save to invites tracking database
+                            try:
+                                import sqlite3
+                                from datetime import datetime, timedelta
+
+                                conn = sqlite3.connect("databases/invites.db")
+                                cursor = conn.cursor()
+                                cursor.execute(
+                                    """
+                                    INSERT INTO invites (email, discord_user, status, created_at, expires_at)
+                                    VALUES (?, ?, 'active', ?, ?)
+                                """,
+                                    (
+                                        email,
+                                        str(after),
+                                        datetime.now().isoformat(),
+                                        (
+                                            datetime.now() + timedelta(days=30)
+                                        ).isoformat(),
+                                    ),
+                                )
+                                conn.commit()
+                                conn.close()
+                                logger.info(
+                                    f"Saved auto-role invite for {email} to tracking database"
+                                )
+                            except Exception as e:
+                                logger.error(f"Failed to save invite to database: {e}")
+
                             await asyncio.sleep(5)
 
                             # Success embed
@@ -371,6 +426,29 @@ class PlexCommands(commands.Cog):
                                     f"Could not remove Plex from user {after.name}"
                                 )
 
+                            # Update invite status in tracking database
+                            try:
+                                import sqlite3
+                                from datetime import datetime
+
+                                conn = sqlite3.connect("databases/invites.db")
+                                cursor = conn.cursor()
+                                cursor.execute(
+                                    """
+                                    UPDATE invites 
+                                    SET status = 'revoked'
+                                    WHERE discord_user = ? AND status = 'active'
+                                """,
+                                    (str(after),),
+                                )
+                                conn.commit()
+                                conn.close()
+                                logger.info(
+                                    f"Marked invite as revoked for {after} in tracking database"
+                                )
+                            except Exception as e:
+                                logger.error(f"Failed to update invite status: {e}")
+
                             embed = discord.Embed(
                                 title="👋 StreamNet Plex Zugriff entfernt",
                                 description=(
@@ -416,6 +494,27 @@ class PlexCommands(commands.Cog):
             logger.info(
                 f"Removed {member.name} from database because user left Discord server."
             )
+
+        # Update invite status in tracking database
+        try:
+            import sqlite3
+            from datetime import datetime
+
+            conn = sqlite3.connect("databases/invites.db")
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE invites 
+                SET status = 'removed'
+                WHERE discord_user = ? AND status IN ('active', 'revoked')
+            """,
+                (str(member),),
+            )
+            conn.commit()
+            conn.close()
+            logger.info(f"Marked invite as removed for {member} in tracking database")
+        except Exception as e:
+            logger.error(f"Failed to update invite status on member remove: {e}")
 
     # Commands
     @app_commands.command(name="invite", description="Invite a user to Plex")

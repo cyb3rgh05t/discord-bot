@@ -49,3 +49,15 @@ KOFI_LOGO = "https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png"
 LANGUAGE = "en"  # 'en', 'de', or 'fr'
 KOFI_CUSTOM_MESSAGE = "Thanks for supporting StreamNet Club! Your donation helps keep our services running."
 KOFI_CUSTOM_FOOTER = "StreamNet Club Support"
+
+# Web UI Configuration
+WEB_ENABLED = True  # Enable/disable web UI
+WEB_HOST = "0.0.0.0"  # Host to bind to (0.0.0.0 for all interfaces)
+WEB_PORT = 5000  # Port to run web UI on
+WEB_DEBUG = False  # Flask debug mode (set to False in production)
+WEB_SECRET_KEY = "your-secret-key-change-this-in-production"  # Session secret key
+
+# Web UI Authentication (optional - can use reverse proxy auth instead)
+WEB_AUTH_ENABLED = False  # Enable/disable built-in authentication
+WEB_USERNAME = "admin"  # Admin username (if WEB_AUTH_ENABLED is True)
+WEB_PASSWORD = "changeme"  # Admin password (if WEB_AUTH_ENABLED is True)

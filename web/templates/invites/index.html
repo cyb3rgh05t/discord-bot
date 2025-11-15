@@ -1,0 +1,285 @@
+{% extends "base.html" %} {% block title %}Invites - Discord Bot Manager{%
+endblock %} {% block content %}
+<div class="invites-page">
+  <div class="page-header">
+    <h1>
+      <i class="fas fa-user-plus"></i>
+      Plex Invites
+    </h1>
+    <p class="subtitle">Manage Plex user invitations</p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Invites</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon success">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.active }}</div>
+        <div class="stat-label">Active</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon danger">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.expired }}</div>
+        <div class="stat-label">Expired</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon warning">
+        <i class="fas fa-user-slash"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.revoked }}</div>
+        <div class="stat-label">Revoked</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon secondary">
+        <i class="fas fa-user-times"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.removed }}</div>
+        <div class="stat-label">Removed</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div
+        class="stat-icon {{ 'success' if plex_stats.connected else 'warning' }}"
+      >
+        <i class="fas fa-server"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">
+          {{ plex_stats.users if plex_stats.connected else 'N/A' }}
+        </div>
+        <div class="stat-label">Plex Users</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plex Server Status -->
+  {% if plex_stats.connected %}
+  <div class="card">
+    <div class="card-header">
+      <h3>
+        <i class="fas fa-server"></i> Plex Server: {{ plex_stats.server_name }}
+      </h3>
+    </div>
+    <div class="card-body">
+      <div class="plex-info-grid">
+        <div class="plex-info-item">
+          <i class="fas fa-film"></i> <strong>Movies:</strong> {{
+          plex_stats.movies }}
+        </div>
+        <div class="plex-info-item">
+          <i class="fas fa-tv"></i> <strong>TV Shows:</strong> {{
+          plex_stats.shows }}
+        </div>
+        <div class="plex-info-item">
+          <i class="fas fa-users"></i> <strong>Users:</strong> {{
+          plex_stats.users }}
+        </div>
+        <div class="plex-info-item">
+          <i class="fas fa-code-branch"></i> <strong>Version:</strong> {{
+          plex_stats.version }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Add Invite Form -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-plus"></i> Add New Invite</h3>
+    </div>
+    <div class="card-body">
+      <form
+        method="POST"
+        action="{{ url_for('invites.add') }}"
+        class="invite-form"
+      >
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">
+              <i class="fas fa-envelope"></i> Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-control"
+              placeholder="user@example.com"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="discord_user">
+              <i class="fab fa-discord"></i> Discord Username
+            </label>
+            <input
+              type="text"
+              id="discord_user"
+              name="discord_user"
+              class="form-control"
+              placeholder="Username#1234"
+              required
+            />
+          </div>
+          <div class="form-group form-actions">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-plus"></i> Add Invite
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Invites Table -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-list"></i> All Invites</h3>
+    </div>
+    <div class="card-body">
+      {% if invites %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Discord User</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for invite in invites %}
+            <tr>
+              <td>#{{ invite.id }}</td>
+              <td>
+                <i class="fas fa-envelope"></i>
+                {{ invite.email }}
+              </td>
+              <td>
+                <i class="fab fa-discord"></i>
+                {{ invite.discord_user }}
+              </td>
+              <td>
+                {% if invite.status == 'active' %}
+                <span class="badge badge-success">
+                  <i class="fas fa-check-circle"></i> Active
+                </span>
+                {% elif invite.status == 'expired' %}
+                <span class="badge badge-secondary">
+                  <i class="fas fa-times-circle"></i> Expired
+                </span>
+                {% elif invite.status == 'revoked' %}
+                <span class="badge badge-warning">
+                  <i class="fas fa-user-slash"></i> Revoked
+                </span>
+                {% elif invite.status == 'removed' %}
+                <span class="badge badge-danger">
+                  <i class="fas fa-user-times"></i> Removed
+                </span>
+                {% else %}
+                <span class="badge badge-secondary"> {{ invite.status }} </span>
+                {% endif %}
+              </td>
+              <td>
+                {{ invite.created_at[:10] if invite.created_at else '-' }}
+              </td>
+              <td>
+                <button
+                  onclick="removeInvite({{ invite.id }})"
+                  class="btn btn-sm btn-danger"
+                  title="Remove"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-user-plus"></i>
+        <h3>No invites found</h3>
+        <p>Start by adding a new Plex invitation above.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script>
+  function removeInvite(inviteId) {
+    if (!confirm("Are you sure you want to remove this invite?")) {
+      return;
+    }
+
+    fetch(`/invites/${inviteId}/remove`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert("Error: " + data.message);
+        }
+      })
+      .catch((err) => {
+        console.error("Error removing invite:", err);
+        alert("Failed to remove invite");
+      });
+  }
+</script>
+
+<style>
+  .plex-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+
+  .plex-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+  }
+
+  .plex-info-item i {
+    color: var(--link-color);
+    width: 20px;
+  }
+
+  .plex-info-item strong {
+    margin-right: 0.25rem;
+  }
+</style>
+{% endblock %}

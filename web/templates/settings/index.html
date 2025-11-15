@@ -1,0 +1,964 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Discord Bot Manager{% endblock %}
+
+{% block extra_head %}
+<meta charset="UTF-8">
+{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <div class="page-header">
+        <h1>
+            <i class="fas fa-cog"></i>
+            Bot Settings
+        </h1>
+        <p class="subtitle">Configure your Discord bot settings</p>
+    </div>
+
+    <!-- Save Status Indicator -->
+    <div id="saveStatus" class="save-status" style="display: none;">
+        <i class="fas fa-check-circle"></i> Auto-saved
+    </div>
+
+    <form method="POST" action="{{ url_for('settings.edit') }}" class="settings-form" id="settingsForm">
+        <!-- Form Actions at Top -->
+        <div class="card form-actions-card">
+            <div class="card-body no-separator">
+                <div class="form-actions">
+                    <div class="autosave-toggle">
+                        <label class="toggle-switch-inline">
+                            <input type="checkbox" id="autoSaveToggle" checked>
+                            <span class="toggle-slider-inline"></span>
+                        </label>
+                        <span class="autosave-label">
+                            <i class="fas fa-sync-alt"></i>
+                            Auto-save <span id="autoSaveStatus">(5s after changes)</span>
+                        </span>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            <i class="fas fa-save"></i> Save Settings
+                        </button>
+                        <button type="button" class="btn btn-success" id="saveRestartBtn">
+                            <i class="fas fa-sync-alt"></i> Save & Restart Bot
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Web UI Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-globe"></i> Web UI Configuration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>Enable Web UI</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="WEB_ENABLED" 
+                                   {% if settings.WEB_ENABLED == 'True' %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <small class="form-text">{{ comments.WEB_ENABLED or 'Enable/disable web interface' }}</small>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="web_host">
+                            <i class="fas fa-network-wired"></i> Web Host
+                        </label>
+                        <input type="text" id="web_host" name="WEB_HOST" 
+                               value="{{ settings.WEB_HOST }}" class="form-control">
+                        <small class="form-text">{{ comments.WEB_HOST or 'Use 0.0.0.0 for all interfaces' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="web_port">
+                            <i class="fas fa-ethernet"></i> Web Port
+                        </label>
+                        <input type="number" id="web_port" name="WEB_PORT" 
+                               value="{{ settings.WEB_PORT }}" class="form-control">
+                        <small class="form-text">{{ comments.WEB_PORT or 'Port for web interface' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="web_secret_key">
+                            <i class="fas fa-key"></i> Secret Key
+                        </label>
+                        <input type="password" id="web_secret_key" name="WEB_SECRET_KEY" 
+                               value="{{ settings.WEB_SECRET_KEY }}" class="form-control">
+                        <small class="form-text">{{ comments.WEB_SECRET_KEY or 'Session secret key' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <span>Debug Mode</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="WEB_DEBUG" 
+                                       {% if settings.WEB_DEBUG == 'True' %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </label>
+                        <small class="form-text">{{ comments.WEB_DEBUG or 'Set to False in production' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Web Authentication -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-lock"></i> Web Authentication</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>Enable Authentication</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="WEB_AUTH_ENABLED" 
+                                   {% if settings.WEB_AUTH_ENABLED == 'True' %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                    <small class="form-text">{{ comments.WEB_AUTH_ENABLED or 'Enable/disable built-in authentication' }}</small>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="web_username">
+                            <i class="fas fa-user"></i> Web Username
+                        </label>
+                        <input type="text" id="web_username" name="WEB_USERNAME" 
+                               value="{{ settings.WEB_USERNAME }}" class="form-control">
+                        <small class="form-text">{{ comments.WEB_USERNAME or 'Admin username' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="web_password">
+                            <i class="fas fa-lock"></i> Web Password
+                        </label>
+                        <input type="password" id="web_password" name="WEB_PASSWORD" 
+                               value="{{ settings.WEB_PASSWORD }}" class="form-control">
+                        <small class="form-text">{{ comments.WEB_PASSWORD or 'Admin password' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bot Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-robot"></i> Bot Configuration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="bot_token">
+                            <i class="fas fa-key"></i> Bot Token
+                        </label>
+                        <input type="password" id="bot_token" name="BOT_TOKEN" 
+                               value="{{ settings.BOT_TOKEN }}" class="form-control" required>
+                        <small class="form-text">Your Discord bot authentication token</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="command_prefix">
+                            <i class="fas fa-terminal"></i> Command Prefix
+                        </label>
+                        <input type="text" id="command_prefix" name="COMMAND_PREFIX" 
+                               value="{{ settings.COMMAND_PREFIX }}" class="form-control" required>
+                        <small class="form-text">Prefix for bot commands (e.g., !)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guild_id">
+                            <i class="fas fa-server"></i> Guild ID
+                        </label>
+                        <input type="text" id="guild_id" name="GUILD_ID" 
+                               value="{{ settings.GUILD_ID }}" class="form-control" required>
+                        <small class="form-text">Your Discord server ID</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guild_name">
+                            <i class="fas fa-tag"></i> Guild Name
+                        </label>
+                        <input type="text" id="guild_name" name="GUILD_NAME" 
+                               value="{{ settings.GUILD_NAME }}" class="form-control" required>
+                        <small class="form-text">Your Discord server name</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="admin_user_id">
+                            <i class="fas fa-user-shield"></i> Admin User ID
+                        </label>
+                        <input type="text" id="admin_user_id" name="ADMIN_USER_ID" 
+                               value="{{ settings.ADMIN_USER_ID }}" class="form-control">
+                        <small class="form-text">{{ comments.ADMIN_USER_ID or 'Discord user ID for admin notifications' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="database_path">
+                            <i class="fas fa-database"></i> Database Path
+                        </label>
+                        <input type="text" id="database_path" name="DATABASE_PATH" 
+                               value="{{ settings.DATABASE_PATH }}" class="form-control" required>
+                        <small class="form-text">{{ comments.DATABASE_PATH or 'Path to database directory' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="live_ticket">
+                            <i class="fas fa-ticket-alt"></i> Live Ticket Line
+                        </label>
+                        <input type="text" id="live_ticket" name="LIVE_TICKET" 
+                               value="{{ settings.LIVE_TICKET }}" class="form-control">
+                        <small class="form-text">Live ticket line identifier</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Channels Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-hashtag"></i> Channel Configuration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="welcome_channel">
+                            <i class="fas fa-door-open"></i> Welcome Channel ID
+                        </label>
+                        <input type="text" id="welcome_channel" name="WELCOME_CHANNEL_ID" 
+                               value="{{ settings.WELCOME_CHANNEL_ID }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="system_channel">
+                            <i class="fas fa-cogs"></i> System Channel ID
+                        </label>
+                        <input type="text" id="system_channel" name="SYSTEM_CHANNEL_ID" 
+                               value="{{ settings.SYSTEM_CHANNEL_ID }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rules_channel">
+                            <i class="fas fa-gavel"></i> Rules Channel ID
+                        </label>
+                        <input type="text" id="rules_channel" name="RULES_CHANNEL_ID" 
+                               value="{{ settings.RULES_CHANNEL_ID }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ticket_category">
+                            <i class="fas fa-ticket-alt"></i> Ticket Category ID
+                        </label>
+                        <input type="text" id="ticket_category" name="TICKET_CATEGORY_ID" 
+                               value="{{ settings.TICKET_CATEGORY_ID }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_channel">
+                            <i class="fas fa-coffee"></i> Ko-fi Channel ID
+                        </label>
+                        <input type="text" id="kofi_channel" name="KOFI_CHANNEL_ID" 
+                               value="{{ settings.KOFI_CHANNEL_ID }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plex_ticket_category">
+                            <i class="fas fa-film"></i> Plex Ticket Category ID
+                        </label>
+                        <input type="text" id="plex_ticket_category" name="PLEX_TICKET_CATEGORY_ID" 
+                               value="{{ settings.PLEX_TICKET_CATEGORY_ID }}" class="form-control">
+                        <small class="form-text">{{ comments.PLEX_TICKET_CATEGORY_ID or 'Plex ticket category ID' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tv_ticket_category">
+                            <i class="fas fa-tv"></i> TV Ticket Category ID
+                        </label>
+                        <input type="text" id="tv_ticket_category" name="TV_TICKET_CATEGORY_ID" 
+                               value="{{ settings.TV_TICKET_CATEGORY_ID }}" class="form-control">
+                        <small class="form-text">{{ comments.TV_TICKET_CATEGORY_ID or 'TV ticket category ID' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="default_staff_role">
+                            <i class="fas fa-user-tie"></i> Default Staff Role
+                        </label>
+                        <input type="text" id="default_staff_role" name="DEFAULT_STAFF_ROLE" 
+                               value="{{ settings.DEFAULT_STAFF_ROLE }}" class="form-control">
+                        <small class="form-text">{{ comments.DEFAULT_STAFF_ROLE or 'Default staff role name' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roles Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-shield-alt"></i> Role Configuration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="verified_role">
+                            <i class="fas fa-check-circle"></i> Verified Role
+                        </label>
+                        <input type="text" id="verified_role" name="VERIFIED_ROLE" 
+                               value="{{ settings.VERIFIED_ROLE }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="member_role">
+                            <i class="fas fa-user"></i> Member Role
+                        </label>
+                        <input type="text" id="member_role" name="MEMBER_ROLE" 
+                               value="{{ settings.MEMBER_ROLE }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="staff_role">
+                            <i class="fas fa-user-shield"></i> Staff Role
+                        </label>
+                        <input type="text" id="staff_role" name="STAFF_ROLE" 
+                               value="{{ settings.STAFF_ROLE }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="unverified_role">
+                            <i class="fas fa-user-clock"></i> Unverified Role
+                        </label>
+                        <input type="text" id="unverified_role" name="UNVERIFIED_ROLE" 
+                               value="{{ settings.UNVERIFIED_ROLE }}" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plex Integration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-film"></i> Plex Integration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span>Enable Plex Integration</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="PLEX_ENABLED" 
+                                   {% if settings.PLEX_ENABLED == 'True' %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="plex_server">
+                            <i class="fas fa-server"></i> Plex Server Name
+                        </label>
+                        <input type="text" id="plex_server" name="PLEX_SERVER_NAME" 
+                               value="{{ settings.PLEX_SERVER_NAME }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plex_base_url">
+                            <i class="fas fa-link"></i> Plex Base URL
+                        </label>
+                        <input type="text" id="plex_base_url" name="PLEX_BASE_URL" 
+                               value="{{ settings.PLEX_BASE_URL }}" class="form-control">
+                        <small class="form-text">E.g., https://plex.example.com</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plex_token">
+                            <i class="fas fa-key"></i> Plex Token
+                        </label>
+                        <input type="password" id="plex_token" name="PLEX_TOKEN" 
+                               value="{{ settings.PLEX_TOKEN }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plex_user">
+                            <i class="fas fa-user"></i> Plex Username
+                        </label>
+                        <input type="text" id="plex_user" name="PLEX_USER" 
+                               value="{{ settings.PLEX_USER }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plex_pass">
+                            <i class="fas fa-lock"></i> Plex Password
+                        </label>
+                        <input type="password" id="plex_pass" name="PLEX_PASS" 
+                               value="{{ settings.PLEX_PASS }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="plex_roles">
+                            <i class="fas fa-users"></i> Plex Roles
+                        </label>
+                        <input type="text" id="plex_roles" name="PLEX_ROLES" 
+                               value="{{ settings.PLEX_ROLES }}" class="form-control">
+                        <small class="form-text">Comma-separated role names</small>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="plex_libs">
+                            <i class="fas fa-book"></i> Plex Libraries
+                        </label>
+                        <textarea id="plex_libs" name="PLEX_LIBS" 
+                                  class="form-control" rows="3">{{ settings.PLEX_LIBS }}</textarea>
+                        <small class="form-text">Comma-separated library names or "all"</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ko-fi Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-coffee"></i> Ko-fi Configuration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="kofi_webhook_port">
+                            <i class="fas fa-network-wired"></i> Ko-fi Webhook Port
+                        </label>
+                        <input type="number" id="kofi_webhook_port" name="KOFI_WEBHOOK_PORT" 
+                               value="{{ settings.KOFI_WEBHOOK_PORT }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_verification_token">
+                            <i class="fas fa-shield-alt"></i> Ko-fi Verification Token
+                        </label>
+                        <input type="password" id="kofi_verification_token" name="KOFI_VERIFICATION_TOKEN" 
+                               value="{{ settings.KOFI_VERIFICATION_TOKEN }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_name">
+                            <i class="fas fa-signature"></i> Ko-fi Name
+                        </label>
+                        <input type="text" id="kofi_name" name="KOFI_NAME" 
+                               value="{{ settings.KOFI_NAME }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_logo">
+                            <i class="fas fa-image"></i> Ko-fi Logo URL
+                        </label>
+                        <input type="text" id="kofi_logo" name="KOFI_LOGO" 
+                               value="{{ settings.KOFI_LOGO }}" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_language">
+                            <i class="fas fa-language"></i> Ko-fi Language
+                        </label>
+                        <select id="kofi_language" name="KOFI_LANGUAGE" class="form-control">
+                            <option value="en" {% if settings.KOFI_LANGUAGE == 'en' %}selected{% endif %}>English</option>
+                            <option value="de" {% if settings.KOFI_LANGUAGE == 'de' %}selected{% endif %}>German</option>
+                            <option value="fr" {% if settings.KOFI_LANGUAGE == 'fr' %}selected{% endif %}>French</option>
+                        </select>
+                        <small class="form-text">{{ comments.KOFI_LANGUAGE or 'Language for Ko-fi messages' }}</small>
+                    </div>
+                </div>
+
+                <!-- Custom Messages by Language -->
+                <div class="form-section">
+                    <h4><i class="fas fa-comments"></i> Custom Messages (Multi-Language)</h4>
+                    
+                    <div class="form-group">
+                        <label for="kofi_custom_message_en">
+                            <i class="fas fa-comment"></i> Custom Message (English)
+                        </label>
+                        <textarea id="kofi_custom_message_en" name="KOFI_CUSTOM_MESSAGE_EN" 
+                                  class="form-control" rows="2">{{ settings.KOFI_CUSTOM_MESSAGE_EN }}</textarea>
+                        <small class="form-text">{{ comments.KOFI_CUSTOM_MESSAGE_EN or 'Custom donation message in English' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_custom_message_de">
+                            <i class="fas fa-comment"></i> Custom Message (German)
+                        </label>
+                        <textarea id="kofi_custom_message_de" name="KOFI_CUSTOM_MESSAGE_DE" 
+                                  class="form-control" rows="2">{{ settings.KOFI_CUSTOM_MESSAGE_DE }}</textarea>
+                        <small class="form-text">{{ comments.KOFI_CUSTOM_MESSAGE_DE or 'Custom donation message in German' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_custom_message_fr">
+                            <i class="fas fa-comment"></i> Custom Message (French)
+                        </label>
+                        <textarea id="kofi_custom_message_fr" name="KOFI_CUSTOM_MESSAGE_FR" 
+                                  class="form-control" rows="2">{{ settings.KOFI_CUSTOM_MESSAGE_FR }}</textarea>
+                        <small class="form-text">{{ comments.KOFI_CUSTOM_MESSAGE_FR or 'Custom donation message in French' }}</small>
+                    </div>
+                </div>
+
+                <!-- Custom Footers by Language -->
+                <div class="form-section">
+                    <h4><i class="fas fa-align-center"></i> Custom Footers (Multi-Language)</h4>
+                    
+                    <div class="form-group">
+                        <label for="kofi_custom_footer_en">
+                            <i class="fas fa-text-height"></i> Custom Footer (English)
+                        </label>
+                        <input type="text" id="kofi_custom_footer_en" name="KOFI_CUSTOM_FOOTER_EN" 
+                               value="{{ settings.KOFI_CUSTOM_FOOTER_EN }}" class="form-control">
+                        <small class="form-text">{{ comments.KOFI_CUSTOM_FOOTER_EN or 'Footer text in English' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_custom_footer_de">
+                            <i class="fas fa-text-height"></i> Custom Footer (German)
+                        </label>
+                        <input type="text" id="kofi_custom_footer_de" name="KOFI_CUSTOM_FOOTER_DE" 
+                               value="{{ settings.KOFI_CUSTOM_FOOTER_DE }}" class="form-control">
+                        <small class="form-text">{{ comments.KOFI_CUSTOM_FOOTER_DE or 'Footer text in German' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kofi_custom_footer_fr">
+                            <i class="fas fa-text-height"></i> Custom Footer (French)
+                        </label>
+                        <input type="text" id="kofi_custom_footer_fr" name="KOFI_CUSTOM_FOOTER_FR" 
+                               value="{{ settings.KOFI_CUSTOM_FOOTER_FR }}" class="form-control">
+                        <small class="form-text">{{ comments.KOFI_CUSTOM_FOOTER_FR or 'Footer text in French' }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logging Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-file-alt"></i> Logging Configuration</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="logging_level">
+                            <i class="fas fa-level-up-alt"></i> Logging Level
+                        </label>
+                        <select id="logging_level" name="LOGGING_LEVEL" class="form-control">
+                            <option value="DEBUG" {% if settings.LOGGING_LEVEL == 'DEBUG' %}selected{% endif %}>DEBUG</option>
+                            <option value="INFO" {% if settings.LOGGING_LEVEL == 'INFO' %}selected{% endif %}>INFO</option>
+                            <option value="WARNING" {% if settings.LOGGING_LEVEL == 'WARNING' %}selected{% endif %}>WARNING</option>
+                            <option value="ERROR" {% if settings.LOGGING_LEVEL == 'ERROR' %}selected{% endif %}>ERROR</option>
+                            <option value="CRITICAL" {% if settings.LOGGING_LEVEL == 'CRITICAL' %}selected{% endif %}>CRITICAL</option>
+                        </select>
+                        <small class="form-text">{{ comments.LOGGING_LEVEL or 'Logging verbosity level' }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="log_file">
+                            <i class="fas fa-file"></i> Log File Path
+                        </label>
+                        <input type="text" id="log_file" name="LOG_FILE" 
+                               value="{{ settings.LOG_FILE }}" class="form-control">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let autoSaveTimeout;
+let formChanged = false;
+let autoSaveEnabled = true;
+
+// Track form changes
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('settingsForm');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    const autoSaveToggle = document.getElementById('autoSaveToggle');
+    
+    // Auto-save toggle handler
+    autoSaveToggle.addEventListener('change', function() {
+        autoSaveEnabled = this.checked;
+        const statusEl = document.getElementById('autoSaveStatus');
+        if (autoSaveEnabled) {
+            statusEl.textContent = '(5s after changes)';
+            statusEl.style.color = 'var(--text-muted)';
+        } else {
+            statusEl.textContent = '(disabled)';
+            statusEl.style.color = 'var(--danger-color)';
+        }
+        // Clear any pending auto-save
+        clearTimeout(autoSaveTimeout);
+    });
+    
+    inputs.forEach(input => {
+        // Skip the autosave toggle itself
+        if (input.id === 'autoSaveToggle') return;
+        
+        input.addEventListener('change', function() {
+            formChanged = true;
+            clearTimeout(autoSaveTimeout);
+            
+            // Auto-save after 5 seconds if enabled
+            if (autoSaveEnabled) {
+                autoSaveTimeout = setTimeout(() => {
+                    autoSaveSettings();
+                }, 5000);
+            }
+        });
+    });
+
+    // Save & Restart button
+    document.getElementById('saveRestartBtn').addEventListener('click', function() {
+        const btn = this;
+        const originalHTML = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving & Restarting...';
+        btn.disabled = true;
+        
+        // Save settings first
+        const formData = new FormData(form);
+        
+        fetch('{{ url_for("settings.edit") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(() => {
+            // Trigger bot restart
+            return fetch('{{ url_for("settings.restart_bot") }}', {
+                method: 'POST'
+            });
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSaveStatus('Settings saved and bot restarting...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            } else {
+                showSaveStatus('Error: ' + data.message, 'error');
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showSaveStatus('Error restarting bot', 'error');
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        });
+    });
+});
+
+function autoSaveSettings() {
+    if (!formChanged) return;
+    
+    const form = document.getElementById('settingsForm');
+    const formData = new FormData(form);
+    
+    fetch('{{ url_for("settings.edit") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(() => {
+        showSaveStatus('Auto-saved', 'success');
+        formChanged = false;
+    })
+    .catch(err => {
+        console.error('Auto-save error:', err);
+        showSaveStatus('Auto-save failed', 'error');
+    });
+}
+
+function showSaveStatus(message, type) {
+    const statusEl = document.getElementById('saveStatus');
+    statusEl.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+    statusEl.className = `save-status save-status-${type}`;
+    statusEl.style.display = 'block';
+    
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 3000);
+}
+</script>
+
+<style>
+.form-actions-card {
+    position: sticky;
+    top: 70px;
+    z-index: 100;
+    margin-bottom: 1.5rem;
+    background: var(--card-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: none !important;
+    border-top: none !important;
+}
+
+.form-actions-card .card-body {
+    padding: 1.5rem;
+    border: none !important;
+}
+
+.form-actions-card .card-body.no-separator {
+    border-top: none !important;
+    border-bottom: none !important;
+}
+
+.form-actions-card .card-body::before,
+.form-actions-card .card-body::after {
+    display: none !important;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    flex: 1;
+}
+
+.autosave-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+}
+
+.autosave-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.toggle-switch-inline {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch-inline input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider-inline {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #555;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.toggle-slider-inline:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.toggle-switch-inline input:checked + .toggle-slider-inline {
+    background-color: var(--success-color);
+}
+
+.toggle-switch-inline input:checked + .toggle-slider-inline:before {
+    transform: translateX(20px);
+}
+
+.auto-save-indicator {
+    margin-top: 0.75rem;
+    padding-top: 0;
+    border-top: none;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: right;
+}
+
+.save-status {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.save-status-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.save-status-error {
+    background: var(--danger-color);
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.form-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+/* Toggle Switch Styles */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+
+.toggle-label > span {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #444;
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: var(--success-color);
+}
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 1px var(--success-color);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.form-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-section h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+@media (max-width: 768px) {
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .button-group {
+        width: 100%;
+    }
+    
+    .autosave-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

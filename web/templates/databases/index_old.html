@@ -1,0 +1,287 @@
+{% extends "base.html" %} {% block title %}Databases - Discord Bot Manager{%
+endblock %} {% block content %}
+<div class="databases-page">
+  <div class="page-header">
+    <h1><i class="fas fa-database"></i> Database Browser</h1>
+    <p class="subtitle">Explore your bot databases, tables, and schemas</p>
+  </div>
+
+  <!-- Databases Grid -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-database"></i> Available Databases</h3>
+    </div>
+    <div class="card-body">
+      <div id="databasesContainer">
+        <!-- Databases will be loaded here -->
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i> Loading databases...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Query Console -->
+  <div class="card">
+    <div class="card-header">
+      <div class="header-content">
+        <h3><i class="fas fa-terminal"></i> Query Console</h3>
+        <span class="badge badge-warning"
+          ><i class="fas fa-lock"></i> Read-only</span
+        >
+      </div>
+    </div>
+    <div class="card-body">
+      <form id="queryForm" onsubmit="executeQuery(event)">
+        <div class="form-group">
+          <label for="sqlQuery"> <i class="fas fa-code"></i> SQL Query </label>
+          <textarea
+            id="sqlQuery"
+            name="query"
+            class="form-control code-input"
+            rows="4"
+            placeholder="SELECT * FROM table_name LIMIT 10;"
+          ></textarea>
+          <small class="form-text">
+            <i class="fas fa-info-circle"></i>
+            Only SELECT queries are allowed for safety
+          </small>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-play"></i> Execute Query
+        </button>
+      </form>
+
+      <div id="queryResults" class="query-results" style="display: none">
+        <h4><i class="fas fa-table"></i> Results:</h4>
+        <div id="resultsContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block extra_scripts %}
+<script>
+  // Database structure storage
+  let databaseStructure = {};
+
+  // Load databases on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    loadDatabases();
+  });
+
+  async function loadDatabases() {
+    const container = document.getElementById('databasesContainer');
+
+    try {
+      // Get list of tables (we'll group them by database)
+      const tables = {{ tables | tojson }};
+
+      // Group tables by database
+      const databases = {};
+      tables.forEach(table => {
+        if (!databases[table.database]) {
+          databases[table.database] = [];
+        }
+        databases[table.database].push(table.name);
+      });
+
+      if (Object.keys(databases).length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-database"></i>
+            <h3>No databases found</h3>
+            <p>No database files were found in the databases directory.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Create database cards
+      let html = '<div class="databases-grid">';
+
+      for (const [dbName, tableList] of Object.entries(databases)) {
+        html += `
+          <div class="database-card" data-db="${dbName}">
+            <div class="database-header" onclick="toggleDatabase('${dbName}')">
+              <div class="database-info">
+                <i class="fas fa-database"></i>
+                <h4>${dbName}.db</h4>
+                <span class="table-count">${tableList.length} table${tableList.length !== 1 ? 's' : ''}</span>
+              </div>
+              <i class="fas fa-chevron-down expand-icon"></i>
+            </div>
+            <div class="database-content" id="db-${dbName}" style="display: none;">
+              <div class="tables-list">
+                ${tableList.map(table => `
+                  <div class="table-item" data-table="${table}">
+                    <div class="table-header" onclick="toggleTable('${dbName}', '${table}')">
+                      <div class="table-info">
+                        <i class="fas fa-table"></i>
+                        <span>${table}</span>
+                      </div>
+                      <i class="fas fa-chevron-down expand-icon"></i>
+                    </div>
+                    <div class="table-content" id="table-${dbName}-${table}" style="display: none;">
+                      <div class="loading-columns">
+                        <i class="fas fa-spinner fa-spin"></i> Loading columns...
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
+
+    } catch (error) {
+      console.error('Error loading databases:', error);
+      container.innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Error loading databases</h3>
+          <p>${error.message}</p>
+        </div>
+      `;
+    }
+  }
+
+  function toggleDatabase(dbName) {
+    const content = document.getElementById(`db-${dbName}`);
+    const card = document.querySelector(`[data-db="${dbName}"]`);
+    const icon = card.querySelector('.database-header .expand-icon');
+
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      icon.style.transform = 'rotate(180deg)';
+    } else {
+      content.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  async function toggleTable(dbName, tableName) {
+    const content = document.getElementById(`table-${dbName}-${tableName}`);
+    const item = document.querySelector(`[data-table="${tableName}"]`);
+    const icon = item.querySelector('.table-header .expand-icon');
+
+    if (content.style.display === 'none') {
+      // Load columns if not already loaded
+      if (content.innerHTML.includes('Loading columns')) {
+        await loadTableColumns(dbName, tableName, content);
+      }
+      content.style.display = 'block';
+      icon.style.transform = 'rotate(180deg)';
+    } else {
+      content.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  async function loadTableColumns(dbName, tableName, container) {
+    try {
+      // Fetch table schema
+      const response = await fetch(`/databases/schema/${dbName}/${tableName}`);
+      const data = await response.json();
+
+      if (data.success && data.columns) {
+        let html = '<div class="columns-list">';
+        data.columns.forEach(col => {
+          html += `
+            <div class="column-item">
+              <i class="fas fa-columns"></i>
+              <div class="column-info">
+                <span class="column-name">${col.name}</span>
+                <span class="column-type">${col.type}</span>
+              </div>
+              ${col.pk ? '<span class="badge badge-primary">PK</span>' : ''}
+              ${col.notnull ? '<span class="badge badge-info">NOT NULL</span>' : ''}
+            </div>
+          `;
+        });
+        html += '</div>';
+
+        html += `
+          <div class="table-actions">
+            <a href="/databases/table/${tableName}" class="btn btn-sm btn-primary">
+              <i class="fas fa-eye"></i> View Data
+            </a>
+          </div>
+        `;
+
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = '<p class="error-text">Failed to load columns</p>';
+      }
+    } catch (error) {
+      console.error('Error loading columns:', error);
+      container.innerHTML = '<p class="error-text">Error loading columns</p>';
+    }
+  }
+
+  function executeQuery(event) {
+    event.preventDefault();
+
+    const query = document.getElementById("sqlQuery").value;
+    const resultsDiv = document.getElementById("queryResults");
+    const resultsContent = document.getElementById("resultsContent");
+
+    // Show loading
+    resultsDiv.style.display = "block";
+    resultsContent.innerHTML =
+      '<p class="loading"><i class="fas fa-spinner fa-spin"></i> Executing query...</p>';
+
+    fetch("/databases/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ query: query }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          if (data.results.length === 0) {
+            resultsContent.innerHTML =
+              '<p class="no-results"><i class="fas fa-info-circle"></i> No results found.</p>';
+          } else {
+            // Display results as table
+            let html =
+              '<div class="table-responsive"><table class="data-table"><tbody>';
+            data.results.forEach((row) => {
+              html += "<tr>";
+              row.forEach((cell) => {
+                html += `<td>${
+                  cell !== null ? cell : '<span class="null-value">NULL</span>'
+                }</td>`;
+              });
+              html += "</tr>";
+            });
+            html += "</tbody></table></div>";
+            resultsContent.innerHTML = html;
+          }
+        } else {
+          resultsContent.innerHTML = `
+            <div class="error-message">
+              <i class="fas fa-exclamation-circle"></i>
+              <strong>Error:</strong> ${data.message}
+            </div>
+          `;
+        }
+      })
+      .catch((err) => {
+        console.error("Query error:", err);
+        resultsContent.innerHTML = `
+          <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            <strong>Error:</strong> Failed to execute query
+          </div>
+        `;
+      });
+  }
+</script>
+{% endblock %}

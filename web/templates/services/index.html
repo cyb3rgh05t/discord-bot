@@ -1,0 +1,172 @@
+{% extends "base.html" %} {% block title %}Services - Discord Bot Manager{%
+endblock %} {% block content %}
+<div class="services-page">
+  <div class="page-header">
+    <h1>
+      <i class="fas fa-server"></i>
+      Service Monitor
+    </h1>
+    <p class="subtitle">Monitor system resources and service health</p>
+  </div>
+
+  <!-- Services Status -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-tasks"></i> Services</h3>
+      <button
+        class="btn btn-sm btn-outline"
+        id="refreshBtn"
+        onclick="refreshStatus()"
+      >
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="services-grid">
+        {% for service in services %}
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas {{ service.icon }}"></i>
+          </div>
+          <div class="service-info">
+            <h4>{{ service.name }}</h4>
+            <div class="service-status {{ service.status }}">
+              <span class="status-dot"></span>
+              <span>{{ service.status|capitalize }}</span>
+            </div>
+            {% if service.uptime != 'N/A' %}
+            <p class="service-uptime">
+              <i class="fas fa-clock"></i> {{ service.uptime }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- System Resources -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-microchip"></i> System Resources</h3>
+    </div>
+    <div class="card-body">
+      <div class="resource-grid">
+        <!-- CPU -->
+        <div class="resource-item">
+          <div class="resource-icon">
+            <i class="fas fa-microchip"></i>
+          </div>
+          <div class="resource-info">
+            <h4>CPU Usage</h4>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                style="width: {{ resources.cpu.percent }}%"
+                data-percent="{{ resources.cpu.percent }}"
+              ></div>
+            </div>
+            <p class="resource-stats">
+              <span class="stat-value"
+                >{{ "%.1f"|format(resources.cpu.percent) }}%</span
+              >
+              <span class="stat-label">{{ resources.cpu.cores }} cores</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Memory -->
+        <div class="resource-item">
+          <div class="resource-icon">
+            <i class="fas fa-memory"></i>
+          </div>
+          <div class="resource-info">
+            <h4>Memory Usage</h4>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                style="width: {{ resources.memory.percent }}%"
+                data-percent="{{ resources.memory.percent }}"
+              ></div>
+            </div>
+            <p class="resource-stats">
+              <span class="stat-value"
+                >{{ "%.1f"|format(resources.memory.percent) }}%</span
+              >
+              <span class="stat-label"
+                >{{ "%.2f"|format(resources.memory.used) }} / {{
+                "%.2f"|format(resources.memory.total) }} GB</span
+              >
+            </p>
+          </div>
+        </div>
+
+        <!-- Disk -->
+        <div class="resource-item">
+          <div class="resource-icon">
+            <i class="fas fa-hdd"></i>
+          </div>
+          <div class="resource-info">
+            <h4>Disk Usage</h4>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                style="width: {{ resources.disk.percent }}%"
+                data-percent="{{ resources.disk.percent }}"
+              ></div>
+            </div>
+            <p class="resource-stats">
+              <span class="stat-value"
+                >{{ "%.1f"|format(resources.disk.percent) }}%</span
+              >
+              <span class="stat-label"
+                >{{ "%.2f"|format(resources.disk.used) }} / {{
+                "%.2f"|format(resources.disk.total) }} GB</span
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script>
+  function refreshStatus() {
+    const btn = document.getElementById("refreshBtn");
+    const icon = btn.querySelector(".fa-sync-alt");
+
+    // Add spinning animation
+    icon.classList.add("fa-spin");
+    btn.disabled = true;
+
+    fetch("/services/api/status")
+      .then((response) => response.json())
+      .then((data) => {
+        window.location.reload();
+      })
+      .catch((err) => {
+        console.error("Error refreshing status:", err);
+        icon.classList.remove("fa-spin");
+        btn.disabled = false;
+        alert("Failed to refresh status");
+      });
+  }
+
+  // Auto-refresh every 60 seconds
+  setInterval(refreshStatus, 60000);
+
+  // Update progress bar colors based on percentage
+  document.querySelectorAll(".progress-fill").forEach((bar) => {
+    const percent = parseFloat(bar.dataset.percent);
+    if (percent > 90) {
+      bar.classList.add("danger");
+    } else if (percent > 70) {
+      bar.classList.add("warning");
+    } else {
+      bar.classList.add("success");
+    }
+  });
+</script>
+{% endblock %}

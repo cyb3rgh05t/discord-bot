@@ -11,6 +11,9 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy version file for version tracking
+COPY version.txt ./
+
 # Copy the rest of your application code
 COPY . .
 
