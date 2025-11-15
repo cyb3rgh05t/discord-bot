@@ -3,6 +3,8 @@ import sys
 import discord
 import os
 import logging
+import threading
+from datetime import datetime
 from discord.ext import commands
 from config.settings import (
     BOT_TOKEN,
@@ -20,10 +22,33 @@ from config.settings import (
     VERIFIED_ROLE,
     MEMBER_ROLE,
     STAFF_ROLE,
+    ANNOUNCEMENT_ROLE,
     DATABASE_PATH,
     KOFI_CHANNEL_ID,
+    ADMIN_USER_ID,
 )
 from cogs.helpers.logger import logger  # Import the pre-configured logger
+
+# Initialize databases
+from web.init_databases import (
+    init_invites_db,
+    init_ticket_system_db,
+    init_plex_clients_db,
+)
+
+# Web UI imports (only if enabled)
+try:
+    from config.settings import WEB_ENABLED, WEB_HOST, WEB_PORT, WEB_DEBUG
+
+    if WEB_ENABLED:
+        from web.app import app, set_bot_instance
+
+        WEB_UI_AVAILABLE = True
+    else:
+        WEB_UI_AVAILABLE = False
+except ImportError:
+    WEB_UI_AVAILABLE = False
+    logger.warning("Web UI dependencies not found. Web interface disabled.")
 
 # Global channel map that will be populated with channel IDs and names
 channel_map = {}
@@ -60,6 +85,7 @@ class MyBot(commands.Bot):
         super().__init__(command_prefix=COMMAND_PREFIX, intents=intents)
 
         self.synced_guilds = set()  # Track synced guilds
+        self.start_time = None  # Track bot start time
 
     async def get_channel_name(self, guild, channel_id, is_category=False):
         """Get channel or category name from ID and store in global map."""
@@ -84,7 +110,15 @@ class MyBot(commands.Bot):
             else:
                 # For regular channels
                 channel = await self.fetch_channel(channel_id)
-                if channel:
+                if channel and isinstance(
+                    channel,
+                    (
+                        discord.TextChannel,
+                        discord.VoiceChannel,
+                        discord.StageChannel,
+                        discord.ForumChannel,
+                    ),
+                ):
                     # Store in global map
                     channel_map[channel_id] = f"{channel.name}"
                     return f"{channel.name}"
@@ -99,10 +133,6 @@ class MyBot(commands.Bot):
 
     async def setup_hook(self):
         """Setup hook for initializing bot operations."""
-        # Clear global commands to prevent Discord from auto-registering them
-        self.tree.clear_commands(guild=None)
-        logger.info("Cleared all global commands.")
-
         # Test debug logging
         logger.debug(
             "Setup hook initialized - if you see this, debug logging is working!"
@@ -112,7 +142,7 @@ class MyBot(commands.Bot):
 
         # Verify guild exists
         try:
-            guild_details = await self.fetch_guild(GUILD_ID)
+            guild_details = await self.fetch_guild(int(GUILD_ID))
             logger.info(f"Found Guild '{guild_details.name}' (ID: {guild_details.id}).")
 
             # Get channel and category names
@@ -145,6 +175,7 @@ class MyBot(commands.Bot):
                 f"  → Bot Token: {'[REDACTED]' if BOT_TOKEN else 'NOT SET - REQUIRED'}"
             )
             logger.info(f"  → Database Path: '/{DATABASE_PATH}'")
+            logger.info(f"  → Admin User ID: '{ADMIN_USER_ID}'")
             logger.info("Discord Channel Configuration:")
             logger.info(f"  → System Channel ID: '{SYSTEM_CHANNEL_ID}'")
             logger.info(f"  → System Channel Name:'{system_channel_name}'")
@@ -162,6 +193,7 @@ class MyBot(commands.Bot):
             logger.info(f"  → Verified Role: '{VERIFIED_ROLE}'")
             logger.info(f"  → Member Role: '{MEMBER_ROLE}'")
             logger.info(f"  → Staff Role: '{STAFF_ROLE}'")
+            logger.info(f"  → Announcement Role: '{ANNOUNCEMENT_ROLE}'")
             print("---------------------------------------------")
 
         except discord.NotFound:
@@ -195,8 +227,15 @@ class MyBot(commands.Bot):
                         logger.error(f"Failed to load cog {cog_path}: {e}")
         logger.info("Loaded all extensions.")
 
-        # Sync commands to the specific guild only
-        await self.sync_commands(guild)
+        # Sync commands globally (for DM-enabled commands like /plex-walkthrough)
+        try:
+            global_synced = await self.tree.sync()
+            logger.info(f"Synced {len(global_synced)} global commands.")
+        except Exception as e:
+            logger.error(f"Error syncing global commands: {e}")
+
+        # Note: We only sync globally to avoid duplicates
+        # Commands will be available both in guilds and DMs
 
     async def on_guild_join(self, guild):
         """Handle bot joining a new guild."""
@@ -211,7 +250,7 @@ class MyBot(commands.Bot):
 
     async def sync_commands(self, guild):
         """Sync commands for a specific guild."""
-        guild_details = await self.fetch_guild(GUILD_ID)
+        guild_details = await self.fetch_guild(int(GUILD_ID))
         try:
             synced = await self.tree.sync(guild=guild)
             self.synced_guilds.add(guild.id)
@@ -239,7 +278,15 @@ class MyBot(commands.Bot):
 
     async def on_ready(self):
         """Event fired when the bot is ready."""
-        logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
+        # Record start time on first ready event
+        if self.start_time is None:
+            self.start_time = datetime.now()
+            logger.info(
+                f"Bot start time recorded: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+
+        if self.user:
+            logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
         logger.info(f"Bot is ready and connected to Discord!")
         logger.debug("Debug test message - checking if debug logs are visible")
 
@@ -253,6 +300,42 @@ async def sync(ctx):
         await ctx.send(f"Synced {len(synced)} commands to this guild.")
     except Exception as e:
         logger.error(f"Error during manual sync: {e}")
+        await ctx.send(f"An error occurred: {e}")
+
+
+@commands.command(
+    name="syncglobal", help="Manually sync global slash commands (works in DMs)."
+)
+@commands.is_owner()
+async def syncglobal(ctx):
+    """Manually sync global slash commands."""
+    try:
+        synced = await ctx.bot.tree.sync()
+        await ctx.send(
+            f"Synced {len(synced)} global commands. May take up to 1 hour to appear in DMs."
+        )
+        logger.info(f"Synced {len(synced)} global commands.")
+    except Exception as e:
+        logger.error(f"Error during global sync: {e}")
+        await ctx.send(f"An error occurred: {e}")
+
+
+@commands.command(
+    name="clearguild", help="Clear all guild-specific commands to remove duplicates."
+)
+@commands.is_owner()
+async def clearguild(ctx):
+    """Clear all guild-specific slash commands."""
+    try:
+        guild = discord.Object(id=ctx.guild.id)
+        ctx.bot.tree.clear_commands(guild=guild)
+        await ctx.bot.tree.sync(guild=guild)
+        await ctx.send(
+            f"Cleared all guild-specific commands from this guild. Global commands remain active."
+        )
+        logger.info(f"Cleared guild-specific commands from guild {ctx.guild.id}.")
+    except Exception as e:
+        logger.error(f"Error clearing guild commands: {e}")
         await ctx.send(f"An error occurred: {e}")
 
 
@@ -276,6 +359,37 @@ async def list_cogs(ctx):
     await ctx.send(f"Loaded cogs: {', '.join(cogs)}")
 
 
+def start_web_ui(bot_instance):
+    """Start the Flask web UI in a separate thread."""
+    if WEB_UI_AVAILABLE:
+        try:
+            # Set the bot instance for the web UI
+            set_bot_instance(bot_instance)
+
+            logger.info(f"Starting Web UI on {WEB_HOST}:{WEB_PORT}")
+
+            # Run Flask in production mode with Werkzeug
+            from werkzeug.serving import run_simple
+            import logging as werkzeug_logging
+
+            # Suppress Werkzeug logs
+            werkzeug_log = werkzeug_logging.getLogger("werkzeug")
+            werkzeug_log.setLevel(werkzeug_logging.ERROR)
+
+            run_simple(
+                WEB_HOST,
+                WEB_PORT,
+                app,
+                use_reloader=False,
+                use_debugger=WEB_DEBUG,
+                threaded=True,
+            )
+        except Exception as e:
+            logger.error(f"Failed to start Web UI: {e}")
+    else:
+        logger.info("Web UI is disabled")
+
+
 # Main program
 if __name__ == "__main__":
     # Display ASCII logo and version
@@ -284,14 +398,36 @@ if __name__ == "__main__":
     logger.info(f"Starting Discord Bot...")
     logger.info(f"Version {version}")
 
+    # Initialize databases
+    logger.info("Initializing databases...")
+    os.makedirs(DATABASE_PATH, exist_ok=True)
+    try:
+        msg1 = init_invites_db()
+        logger.info(f"  - {msg1}")
+        msg2 = init_ticket_system_db()
+        logger.info(f"  - {msg2}")
+        msg3 = init_plex_clients_db()
+        logger.info(f"  - {msg3}")
+        logger.info("Database initialization completed")
+    except Exception as e:
+        logger.error(f"Failed to initialize databases: {e}")
+
     # Create bot instance
     bot = MyBot()
 
     # Add commands to the bot
     bot.add_command(sync)
+    bot.add_command(syncglobal)
+    bot.add_command(clearguild)
     bot.add_command(list_cogs)
     bot.add_command(list_guilds)
     bot.add_command(list_commands)
+
+    # Start Web UI in a separate thread if enabled
+    if WEB_UI_AVAILABLE and WEB_ENABLED:
+        web_thread = threading.Thread(target=start_web_ui, args=(bot,), daemon=True)
+        web_thread.start()
+        logger.info("Web UI thread started")
 
     # Run the bot
     bot.run(BOT_TOKEN)

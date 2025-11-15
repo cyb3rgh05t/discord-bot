@@ -228,10 +228,10 @@ class SystemInfo(commands.Cog):
         return cpu_info
 
     def get_memory_usage(self):
-        """Retrieve memory usage in MB."""
+        """Retrieve memory usage in GB."""
         try:
             memory = psutil.virtual_memory()
-            return memory.used / (1024 * 1024), memory.total / (1024 * 1024)
+            return memory.used / (1024**3), memory.total / (1024**3)
         except Exception as e:
             logger.error(f"Error getting memory usage: {e}")
             return 0, 1  # Return dummy values to avoid division by zero
@@ -451,7 +451,7 @@ class SystemInfo(commands.Cog):
             embed.add_field(
                 name="Memory Usage",
                 value=f"\n<:icon_reply:993231553083736135> {memory_emoji} `{memory_bar}` **{memory_percent:.1f}%**\n"
-                f"<:icon_reply:993231553083736135> Used: {format_size(memory_used)} / Total: {format_size(memory_total)}\n",
+                f"<:icon_reply:993231553083736135> RAM: {memory_used/1024:.1f}GB/{memory_total/1024:.1f}GB\n",
                 inline=False,
             )
             embed.add_field(
@@ -607,7 +607,7 @@ class SystemInfo(commands.Cog):
             memory_used, memory_total = self.get_memory_usage()
             cpu_usage = self.get_cpu_usage()
             self.status_array = [
-                f"RAM: {memory_used:.1f}MB/{memory_total:.1f}MB",
+                f"RAM: {memory_used:.1f}GB/{memory_total:.1f}GB",
                 f"CPU: {cpu_usage:.1f}%",
                 "StreamNet Server",
             ]

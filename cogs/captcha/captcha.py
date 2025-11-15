@@ -5,7 +5,13 @@ import random
 import string
 import os
 import logging
-from config.settings import GUILD_ID, UNVERIFIED_ROLE, VERIFIED_ROLE
+from config.settings import (
+    GUILD_ID,
+    UNVERIFIED_ROLE,
+    VERIFIED_ROLE,
+    MEMBER_ROLE,
+    ANNOUNCEMENT_ROLE,
+)
 from cogs.helpers.logger import logger
 
 
@@ -133,11 +139,41 @@ class CaptchaSystem(commands.Cog):
             member = guild.get_member(message.author.id)
             unverified_role = discord.utils.get(guild.roles, name=UNVERIFIED_ROLE)
             verified_role = discord.utils.get(guild.roles, name=VERIFIED_ROLE)
+            member_role = discord.utils.get(guild.roles, name=MEMBER_ROLE)
+            announcement_role = discord.utils.get(guild.roles, name=ANNOUNCEMENT_ROLE)
+
             if member:
+                # Remove unverified role
                 if unverified_role:
                     await member.remove_roles(unverified_role)
+                    logger.info(f"Removed '{UNVERIFIED_ROLE}' role from {member.name}")
+
+                # Add verified role
                 if verified_role:
                     await member.add_roles(verified_role)
+                    logger.info(f"Added '{VERIFIED_ROLE}' role to {member.name}")
+                else:
+                    logger.warning(
+                        f"'{VERIFIED_ROLE}' role not found in guild {guild.name}"
+                    )
+
+                # Add member role
+                if member_role:
+                    await member.add_roles(member_role)
+                    logger.info(f"Added '{MEMBER_ROLE}' role to {member.name}")
+                else:
+                    logger.warning(
+                        f"'{MEMBER_ROLE}' role not found in guild {guild.name}"
+                    )
+
+                # Add announcement role
+                if announcement_role:
+                    await member.add_roles(announcement_role)
+                    logger.info(f"Added '{ANNOUNCEMENT_ROLE}' role to {member.name}")
+                else:
+                    logger.warning(
+                        f"'{ANNOUNCEMENT_ROLE}' role not found in guild {guild.name}"
+                    )
         else:
             # Incorrect CAPTCHA
             user_data["attempts"] += 1

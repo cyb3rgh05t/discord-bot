@@ -15,6 +15,7 @@ services:
     security_opt:
       - "${SECURITYOPS}:${SECURITYOPSSET}"
     ports:
+      - "5000:5000"
       - "3033:3033"
     volumes:
       - "${APPFOLDER}/discord-bot/config:/app/config:rw"
@@ -25,6 +26,24 @@ services:
     labels:
       - "dockupdater.enable=true"
       - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.enable=true"
+      # Web UI Router
+      - "traefik.http.routers.bot-rtr.entrypoints=https"
+      - "traefik.http.routers.bot-rtr.rule=Host(`bot.${DOMAIN}`)"
+      - "traefik.http.routers.bot-rtr.priority=1"
+      - "traefik.http.routers.bot-rtr.tls=true"
+      - "traefik.http.routers.bot-rtr.tls.certresolver=dns-cloudflare"
+      - "traefik.http.routers.bot-rtr.middlewares=chain-authelia@file"
+      - "traefik.http.routers.bot-rtr.service=bot-svc"
+      - "traefik.http.services.bot-svc.loadbalancer.server.port=5000"
+      # Webhook Router (no auth)
+      - "traefik.http.routers.bot-webhook-rtr.entrypoints=https"
+      - "traefik.http.routers.bot-webhook-rtr.rule=Host(`bot.${DOMAIN}`) && PathPrefix(`/webhook`)"
+      - "traefik.http.routers.bot-webhook-rtr.priority=2"
+      - "traefik.http.routers.bot-webhook-rtr.tls=true"
+      - "traefik.http.routers.bot-webhook-rtr.tls.certresolver=dns-cloudflare"
+      - "traefik.http.routers.bot-webhook-rtr.service=bot-webhook-svc"
+      - "traefik.http.services.bot-webhook-svc.loadbalancer.server.port=3033"
 networks:
   proxy:
     driver: bridge

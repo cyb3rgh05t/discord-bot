@@ -1,0 +1,213 @@
+{% extends "base.html" %} {% block title %}Dashboard - Discord Bot Manager{%
+endblock %} {% block content %}
+<div class="dashboard">
+  <div class="page-header">
+    <h1>
+      <i class="fas fa-tachometer-alt"></i>
+      Dashboard
+    </h1>
+    <p class="subtitle">Overview of your Discord bot status and statistics</p>
+  </div>
+
+  <!-- Bot Status Cards -->
+  <div class="card-grid">
+    <!-- Bot Status Card -->
+    <div class="card status-card">
+      <div class="card-header">
+        <h3><i class="fas fa-robot"></i> Bot Status</h3>
+      </div>
+      <div class="card-body">
+        <div class="status-info">
+          <div class="status-indicator">
+            <span
+              class="status-dot {% if bot_status.online %}online{% else %}offline{% endif %}"
+            ></span>
+            <h2
+              class="{% if bot_status.online %}status-online{% else %}status-offline{% endif %}"
+            >
+              {% if bot_status.online %}Online{% else %}Offline{% endif %}
+            </h2>
+          </div>
+          <div class="stats-row">
+            <div class="stat-item">
+              <span class="stat-label">Latency</span>
+              <span class="stat-value">{{ bot_status.latency }}ms</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Uptime</span>
+              <span class="stat-value">{{ bot_status.uptime }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guilds Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-server"></i> Guilds</h3>
+      </div>
+      <div class="card-body">
+        <div class="metric">
+          <div class="metric-value">{{ bot_status.guilds }}</div>
+          <div class="metric-label">Total Servers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-users"></i> Users</h3>
+      </div>
+      <div class="card-body">
+        <div class="metric">
+          <div class="metric-value">{{ bot_status.users }}</div>
+          <div class="metric-label">Total Members</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commands Card -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-terminal"></i> Commands</h3>
+      </div>
+      <div class="card-body">
+        <div class="metric">
+          <div class="metric-value">{{ bot_stats.commands }}</div>
+          <div class="metric-label">Registered Commands</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Stats -->
+  <div class="stats-grid">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-hashtag"></i> Channels</h3>
+      </div>
+      <div class="card-body">
+        <div class="metric-inline">
+          <i class="fas fa-hashtag metric-icon"></i>
+          <span class="metric-value">{{ bot_stats.channels }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-shield-alt"></i> Roles</h3>
+      </div>
+      <div class="card-body">
+        <div class="metric-inline">
+          <i class="fas fa-shield-alt metric-icon"></i>
+          <span class="metric-value">{{ bot_stats.roles }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+    </div>
+    <div class="card-body">
+      <div class="action-buttons">
+        <a href="{{ url_for('settings.index') }}" class="btn btn-primary">
+          <i class="fas fa-cog"></i> Edit Settings
+        </a>
+        <a href="{{ url_for('tickets.index') }}" class="btn btn-secondary">
+          <i class="fas fa-ticket-alt"></i> View Tickets
+        </a>
+        <a href="{{ url_for('invites.index') }}" class="btn btn-secondary">
+          <i class="fas fa-user-plus"></i> Manage Invites
+        </a>
+        <a href="{{ url_for('databases.index') }}" class="btn btn-secondary">
+          <i class="fas fa-database"></i> Browse Databases
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script>
+  // Auto-update dashboard every 30 seconds
+  setInterval(() => {
+    fetch("/api/bot-status")
+      .then((res) => res.json())
+      .then((data) => {
+        // Update bot status
+        const statusDots = document.querySelectorAll(".status-dot");
+        const statusTexts = document.querySelectorAll(".status-card h2");
+        const latencyElement = document.querySelector(
+          ".stats-row .stat-item:first-child .stat-value"
+        );
+        const uptimeElement = document.querySelector(
+          ".stats-row .stat-item:last-child .stat-value"
+        );
+
+        statusDots.forEach((dot) => {
+          if (data.online) {
+            dot.classList.add("online");
+            dot.classList.remove("offline");
+          } else {
+            dot.classList.add("offline");
+            dot.classList.remove("online");
+          }
+        });
+
+        statusTexts.forEach((text) => {
+          text.textContent = data.online ? "Online" : "Offline";
+          if (data.online) {
+            text.classList.add("status-online");
+            text.classList.remove("status-offline");
+          } else {
+            text.classList.add("status-offline");
+            text.classList.remove("status-online");
+          }
+        });
+
+        if (latencyElement) {
+          latencyElement.textContent = `${data.latency}ms`;
+        }
+
+        if (uptimeElement) {
+          uptimeElement.textContent = data.uptime;
+        }
+
+        // Fetch and update stats
+        return fetch("/api/bot-stats");
+      })
+      .then((res) => res.json())
+      .then((stats) => {
+        // Update guild count
+        const guildElement = document.querySelector(
+          ".card:nth-child(2) .card-number"
+        );
+        if (guildElement) {
+          guildElement.textContent = stats.guild_count;
+        }
+
+        // Update member count
+        const memberElement = document.querySelector(
+          ".card:nth-child(3) .card-number"
+        );
+        if (memberElement) {
+          memberElement.textContent = stats.user_count;
+        }
+
+        // Update channels count
+        const channelElement = document.querySelector(
+          ".card:nth-child(4) .card-number"
+        );
+        if (channelElement) {
+          channelElement.textContent = stats.channel_count;
+        }
+      })
+      .catch((err) => console.error("Error fetching dashboard data:", err));
+  }, 30000); // Update every 30 seconds
+</script>
+{% endblock %}

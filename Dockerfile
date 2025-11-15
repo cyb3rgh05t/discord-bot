@@ -1,5 +1,5 @@
 # Use official Python image as a base image
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 LABEL maintainer=cyb3rgh05t
 LABEL org.opencontainers.image.source=https://github.com/cyb3rgh05t/discord-bot
@@ -10,6 +10,9 @@ WORKDIR /app
 # Copy the requirements file and install dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy version file for version tracking
+COPY version.txt ./
 
 # Copy the rest of your application code
 COPY . .

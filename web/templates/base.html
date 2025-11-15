@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Discord Bot Manager{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/favicon.png') }}"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/favicon.png') }}"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dark-theme.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/custom.css') }}"
+    />
+
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <!-- Top Navbar -->
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-left">
+          <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <a href="{{ url_for('dashboard.index') }}" class="navbar-brand">
+            <i class="fas fa-robot"></i>
+            <span>Discord Bot Manager</span>
+          </a>
+          <div class="bot-status-indicator">
+            <span
+              class="status-dot {% if bot_status and bot_status.online %}online{% else %}offline{% endif %}"
+            ></span>
+            <span class="status-text">
+              {% if bot_status and bot_status.online %} Online {% else %}
+              Offline {% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <div class="navbar-item">
+            <i class="fas fa-clock"></i>
+            <span id="currentTime"></span>
+          </div>
+
+          {% if config.WEB_AUTH_ENABLED %}
+          <div class="navbar-item dropdown">
+            <button class="user-menu-toggle">
+              <i class="fas fa-user-circle"></i>
+              <span
+                >{{ current_user.username if current_user.is_authenticated else
+                'User' }}</span
+              >
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-menu">
+              <a href="{{ url_for('auth.logout') }}" class="dropdown-item">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-content">
+        <nav class="sidebar-nav">
+          <a
+            href="{{ url_for('dashboard.index') }}"
+            class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}"
+          >
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+
+          <a
+            href="{{ url_for('services.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('services') %}active{% endif %}"
+          >
+            <i class="fas fa-server"></i>
+            <span>Services</span>
+          </a>
+
+          <a
+            href="{{ url_for('tickets.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('tickets') %}active{% endif %}"
+          >
+            <i class="fas fa-ticket-alt"></i>
+            <span>Tickets</span>
+          </a>
+
+          <a
+            href="{{ url_for('invites.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('invites') %}active{% endif %}"
+          >
+            <i class="fas fa-user-plus"></i>
+            <span>Invites</span>
+          </a>
+
+          <a
+            href="{{ url_for('databases.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('databases') %}active{% endif %}"
+          >
+            <i class="fas fa-database"></i>
+            <span>Databases</span>
+          </a>
+
+          <div class="nav-divider"></div>
+
+          <a
+            href="{{ url_for('settings.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('settings') %}active{% endif %}"
+          >
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+          </a>
+
+          <a
+            href="{{ url_for('about.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('about') %}active{% endif %}"
+          >
+            <i class="fas fa-info-circle"></i>
+            <span>About</span>
+          </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+          <div class="version-info" id="versionContainer">
+            <i class="fas fa-code-branch"></i>
+            <span
+              >Version:
+              <span id="botVersion">{{ version or 'unknown' }}</span></span
+            >
+            <span
+              id="versionBadge"
+              class="badge badge-info ms-2"
+              style="display: none"
+            >
+              <i class="fas fa-spinner fa-spin"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <div class="content-wrapper">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %} {% if
+        messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">
+              <i class="fas fa-times"></i>
+            </button>
+            <i
+              class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"
+            ></i>
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %} {% endwith %}
+
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>

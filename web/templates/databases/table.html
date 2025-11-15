@@ -1,0 +1,319 @@
+{% extends "base.html" %} {% block title %}{{ table_name }} - Database Browser{%
+endblock %} {% block content %}
+<div class="database-table-page">
+  <div class="page-header">
+    <div>
+      <h1>
+        <i class="fas fa-table"></i>
+        {{ table_name }}
+      </h1>
+      <p class="subtitle">
+        Database: {{ data.database }}.db | Total rows: {{ data.total }}
+      </p>
+    </div>
+    <div class="header-actions">
+      <a href="{{ url_for('databases.index') }}" class="btn btn-outline">
+        <i class="fas fa-arrow-left"></i> Back to Databases
+      </a>
+    </div>
+  </div>
+
+  <!-- Table Data -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-table"></i> Table Data</h3>
+      <div class="pagination-info">
+        Page {{ data.page }} | {{ data.per_page }} rows per page
+      </div>
+    </div>
+    <div class="card-body">
+      {% if data.rows %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              {% for column in data.columns %}
+              <th>{{ column }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in data.rows %}
+            <tr>
+              {% for value in row %}
+              <td>{{ value if value is not none else '-' }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if data.total > data.per_page %}
+      <div class="pagination">
+        {% set total_pages = (data.total / data.per_page) | round(0, 'ceil') |
+        int %} {% if data.page > 1 %}
+        <a
+          href="{{ url_for('databases.view_table', table_name=table_name, page=data.page-1) }}"
+          class="page-link"
+        >
+          <i class="fas fa-chevron-left"></i> Previous
+        </a>
+        {% endif %}
+
+        <span class="page-info">
+          Page {{ data.page }} of {{ total_pages }}
+        </span>
+
+        {% if data.page < total_pages %}
+        <a
+          href="{{ url_for('databases.view_table', table_name=table_name, page=data.page+1) }}"
+          class="page-link"
+        >
+          Next <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+      </div>
+      {% endif %} {% else %}
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>No data</h3>
+        <p>This table is empty.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Table Schema -->
+  <div class="card">
+    <div class="card-header" onclick="toggleSchema()" style="cursor: pointer">
+      <h3><i class="fas fa-columns"></i> Table Schema</h3>
+      <i class="fas fa-chevron-down expand-icon" id="schema-icon"></i>
+    </div>
+    <div class="card-body" id="schema-content" style="display: none">
+      <div class="schema-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Column</th>
+              <th>Type</th>
+              <th>Not Null</th>
+              <th>Default</th>
+              <th>Primary Key</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for column in schema %}
+            <tr>
+              <td><strong>{{ column[1] }}</strong></td>
+              <td><span class="type-badge">{{ column[2] }}</span></td>
+              <td>
+                {% if column[3] %}
+                <i class="fas fa-check text-success"></i>
+                {% else %}
+                <i class="fas fa-times text-muted"></i>
+                {% endif %}
+              </td>
+              <td>{{ column[4] if column[4] else '-' }}</td>
+              <td>
+                {% if column[5] %}
+                <i class="fas fa-key text-warning"></i>
+                {% else %}
+                <i class="fas fa-times text-muted"></i>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleSchema() {
+    const content = document.getElementById("schema-content");
+    const icon = document.getElementById("schema-icon");
+
+    if (content.style.display === "none") {
+      content.style.display = "block";
+      icon.style.transform = "rotate(180deg)";
+    } else {
+      content.style.display = "none";
+      icon.style.transform = "rotate(0deg)";
+    }
+  }
+</script>
+
+<style>
+  .database-table-page {
+    padding: 2rem;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1rem;
+  }
+
+  .page-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .btn-outline {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .expand-icon {
+    transition: transform 0.3s ease;
+    color: var(--text-muted);
+  }
+
+  .schema-table {
+    overflow-x: auto;
+  }
+
+  .type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: "Courier New", monospace;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .data-table thead {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .data-table th {
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .page-link {
+    padding: 0.5rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: var(--link-color);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .page-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--link-hover-color);
+  }
+
+  .page-info {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .pagination-info {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .text-success {
+    color: #28a745;
+  }
+
+  .text-warning {
+    color: #ffc107;
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+    }
+
+    .header-actions {
+      width: 100%;
+    }
+
+    .btn-outline {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
