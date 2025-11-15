@@ -83,7 +83,7 @@ class TicketCreation(commands.Cog):
             # This is the TV test line button
             logger.debug("Processing create_ticket button (test line)")
             table_prefix = "tv"
-            ticket_type = "test-line"
+            ticket_type = "TEST-LINE"
 
             # Continue with ticket creation using the TV system
             await self.create_ticket(interaction, table_prefix, ticket_type)
