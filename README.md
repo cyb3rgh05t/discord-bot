@@ -1,8 +1,8 @@
+<div align="center">
+
 # Discord Bot
 
 A feature-rich Discord bot written in Python with support for ticketing, Plex integration, Ko-fi webhooks, and moderation tools.
-
-<div align="center">
 
 ![GitHub release](https://img.shields.io/github/v/release/cyb3rgh05t/discord-bot?style=for-the-badge)
 ![GitHub stars](https://img.shields.io/github/stars/cyb3rgh05t/discord-bot?style=for-the-badge)
@@ -10,18 +10,22 @@ A feature-rich Discord bot written in Python with support for ticketing, Plex in
 ![GitHub issues](https://img.shields.io/github/issues/cyb3rgh05t/discord-bot?style=for-the-badge)
 ![GitHub license](https://img.shields.io/github/license/cyb3rgh05t/discord-bot?style=for-the-badge)
 
+**[API Reference & Commands Documentation](API_REFERENCE.md)** | **[Changelog](CHANGELOG.md)** | **[License](LICENSE)**
+
 </div>
+
+---
 
 ## Features
 
-- 🎫 **Ticket System** - Automated support tickets for Plex and TV services
-- 🎬 **Plex Integration** - Automatic user management and library sharing
-- 💰 **Ko-fi Webhooks** - Real-time donation notifications with multi-language support
-- 🔐 **Captcha Verification** - Secure member verification system
-- 🛠️ **Moderation Tools** - Comprehensive server management commands
-- 📝 **Custom Logos & Embeds** - Branded channel setup and server customization
-- 🤖 **Slash & Prefix Commands** - Modern slash commands with legacy prefix support
-- 🌐 **Web Dashboard** - Comprehensive web interface for bot management and monitoring
+- **Ticket System** - Automated support tickets for Plex and TV services
+- **Plex Integration** - Automatic user management and library sharing
+- **Ko-fi Webhooks** - Real-time donation notifications with multi-language support
+- **Captcha Verification** - Secure member verification system
+- **Moderation Tools** - Comprehensive server management commands
+- **Custom Logos & Embeds** - Branded channel setup and server customization
+- **Slash & Prefix Commands** - Modern slash commands with legacy prefix support
+- **Web Dashboard** - Comprehensive web interface for bot management and monitoring
 
 ## Web Dashboard
 
@@ -39,12 +43,12 @@ The bot includes a modern, mobile-responsive web dashboard with the following fe
 
 ### Web UI Features
 
-- 🎨 **Dark Theme** - Modern dark interface optimized for readability
-- 📱 **Mobile Responsive** - Fully functional on desktop, tablet, and mobile devices
-- 🔄 **Auto Version Checking** - Automatic GitHub release version comparison
-- 🔍 **Advanced Search** - Filter and search across all data views
-- 📊 **Live Updates** - Real-time dashboard updates without page refresh
-- 🗃️ **Database Tools** - Query executor and schema viewer for database management
+- **Dark Theme** - Modern dark interface optimized for readability
+- **Mobile Responsive** - Fully functional on desktop, tablet, and mobile devices
+- **Auto Version Checking** - Automatic GitHub release version comparison
+- **Advanced Search** - Filter and search across all data views
+- **Live Updates** - Real-time dashboard updates without page refresh
+- **Database Tools** - Query executor and schema viewer for database management
 
 ### Accessing the Web Dashboard
 
@@ -281,9 +285,9 @@ For issues, questions, or contributions, please open an issue on GitHub.
 
 <div align="center">
 
-**Created with ❤️ by [cyb3rgh05t](https://github.com/cyb3rgh05t) for the Community**
+**Created by [cyb3rgh05t](https://github.com/cyb3rgh05t) for the Community**
 
-If you find this project useful, please consider giving it a ⭐!
+If you find this project useful, please consider giving it a star!
 
 [Report Bug](https://github.com/cyb3rgh05t/discord-bot/issues) · [Request Feature](https://github.com/cyb3rgh05t/discord-bot/issues) · [Documentation](https://cyb3rgh05t.github.io/discord-bot/)
 

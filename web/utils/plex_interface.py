@@ -97,9 +97,21 @@ def get_plex_stats():
             elif section.type == "show":
                 shows += section.totalSize
 
-        # Get user count
-        account = plex.myPlexAccount()
-        users = len(account.users())
+        # Get user count from invites database with status 'active'
+        import sqlite3
+        from config.settings import DATABASE_PATH
+
+        users = 0
+        try:
+            conn = sqlite3.connect(os.path.join(DATABASE_PATH, "invites.db"))
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM invites WHERE status = 'active'")
+            result = cursor.fetchone()
+            users = result[0] if result else 0
+            conn.close()
+        except Exception as db_error:
+            print(f"Error getting user count from database: {db_error}")
+            users = 0
 
         return {
             "connected": True,

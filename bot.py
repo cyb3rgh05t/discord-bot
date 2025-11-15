@@ -370,6 +370,11 @@ def start_web_ui(bot_instance):
 
             # Run Flask in production mode with Werkzeug
             from werkzeug.serving import run_simple
+            import logging as werkzeug_logging
+
+            # Suppress Werkzeug logs
+            werkzeug_log = werkzeug_logging.getLogger("werkzeug")
+            werkzeug_log.setLevel(werkzeug_logging.ERROR)
 
             run_simple(
                 WEB_HOST,
@@ -397,10 +402,13 @@ if __name__ == "__main__":
     logger.info("Initializing databases...")
     os.makedirs(DATABASE_PATH, exist_ok=True)
     try:
-        init_invites_db()
-        init_ticket_system_db()
-        init_plex_clients_db()
-        logger.info("✓ All databases initialized successfully")
+        msg1 = init_invites_db()
+        logger.info(f"  - {msg1}")
+        msg2 = init_ticket_system_db()
+        logger.info(f"  - {msg2}")
+        msg3 = init_plex_clients_db()
+        logger.info(f"  - {msg3}")
+        logger.info("Database initialization completed")
     except Exception as e:
         logger.error(f"Failed to initialize databases: {e}")
 

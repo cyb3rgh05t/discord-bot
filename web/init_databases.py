@@ -34,7 +34,7 @@ def init_invites_db():
 
     conn.commit()
     conn.close()
-    print("✓ Invites database initialized")
+    return "Invites database initialized"
 
 
 def init_ticket_system_db():
@@ -119,7 +119,7 @@ def init_ticket_system_db():
 
     conn.commit()
     conn.close()
-    print("✓ Ticket system database initialized")
+    return "Ticket system database initialized"
 
 
 def init_plex_clients_db():
@@ -144,7 +144,7 @@ def init_plex_clients_db():
 
     conn.commit()
     conn.close()
-    print("✓ Plex clients database initialized")
+    return "Plex clients database initialized"
 
 
 if __name__ == "__main__":

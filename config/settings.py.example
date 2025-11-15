@@ -26,6 +26,7 @@ UNVERIFIED_ROLE = "unverified"
 VERIFIED_ROLE = "verified"
 MEMBER_ROLE = "member"
 STAFF_ROLE = "staff"
+ANNOUNCEMENT_ROLE = "announcements"
 
 WELCOME_CHANNEL_ID = 0000000000000000
 SYSTEM_CHANNEL_ID = 0000000000000000000
@@ -47,8 +48,16 @@ KOFI_CHANNEL_ID = 0000000000000000000
 KOFI_NAME = ""
 KOFI_LOGO = "https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png"
 LANGUAGE = "en"  # 'en', 'de', or 'fr'
-KOFI_CUSTOM_MESSAGE = "Thanks for supporting StreamNet Club! Your donation helps keep our services running."
-KOFI_CUSTOM_FOOTER = "StreamNet Club Support"
+
+# Ko-fi Custom Messages (Language-specific)
+KOFI_CUSTOM_MESSAGE_EN = "Thanks for supporting us! Your donation helps keep our services running."
+KOFI_CUSTOM_MESSAGE_DE = "Vielen Dank für deine Unterstützung! Deine Spende hilft uns weiter."
+KOFI_CUSTOM_MESSAGE_FR = "Merci pour votre soutien! Votre don nous aide à maintenir nos services."
+
+# Ko-fi Custom Footers (Language-specific)
+KOFI_CUSTOM_FOOTER_EN = "Support"
+KOFI_CUSTOM_FOOTER_DE = "Support"
+KOFI_CUSTOM_FOOTER_FR = "Support"
 
 # Web UI Configuration
 WEB_ENABLED = True  # Enable/disable web UI
