@@ -337,6 +337,15 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="announcement_role">
+                            <i class="fas fa-bullhorn"></i> Announcement Role
+                        </label>
+                        <input type="text" id="announcement_role" name="ANNOUNCEMENT_ROLE" 
+                               value="{{ settings.ANNOUNCEMENT_ROLE }}" class="form-control">
+                        <small class="form-text">{{ comments.ANNOUNCEMENT_ROLE or 'Role for receiving announcements (auto-assigned on verification)' }}</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="unverified_role">
                             <i class="fas fa-user-clock"></i> Unverified Role
                         </label>

@@ -22,11 +22,19 @@ from config.settings import (
     VERIFIED_ROLE,
     MEMBER_ROLE,
     STAFF_ROLE,
+    ANNOUNCEMENT_ROLE,
     DATABASE_PATH,
     KOFI_CHANNEL_ID,
     ADMIN_USER_ID,
 )
 from cogs.helpers.logger import logger  # Import the pre-configured logger
+
+# Initialize databases
+from web.init_databases import (
+    init_invites_db,
+    init_ticket_system_db,
+    init_plex_clients_db,
+)
 
 # Web UI imports (only if enabled)
 try:
@@ -185,6 +193,7 @@ class MyBot(commands.Bot):
             logger.info(f"  → Verified Role: '{VERIFIED_ROLE}'")
             logger.info(f"  → Member Role: '{MEMBER_ROLE}'")
             logger.info(f"  → Staff Role: '{STAFF_ROLE}'")
+            logger.info(f"  → Announcement Role: '{ANNOUNCEMENT_ROLE}'")
             print("---------------------------------------------")
 
         except discord.NotFound:
@@ -383,6 +392,17 @@ if __name__ == "__main__":
     logger.info("\n" + ASCII_LOGO)
     logger.info(f"Starting Discord Bot...")
     logger.info(f"Version {version}")
+
+    # Initialize databases
+    logger.info("Initializing databases...")
+    os.makedirs(DATABASE_PATH, exist_ok=True)
+    try:
+        init_invites_db()
+        init_ticket_system_db()
+        init_plex_clients_db()
+        logger.info("✓ All databases initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize databases: {e}")
 
     # Create bot instance
     bot = MyBot()
