@@ -17,8 +17,6 @@ ADMIN_USER_ID = "000000000000000000"  # Discord user ID for admin notifications
 
 DATABASE_PATH = "databases"
 
-LIVE_TICKET = "test-line"
-
 LOGGING_LEVEL = "DEBUG"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_FILE = "logs/bot.log"
 

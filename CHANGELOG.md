@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.2] - 2025-11-15
+
+### Added
+
+- Automatic database initialization on bot startup
+  - Invites database (invites.db)
+  - Ticket system database (ticket_system.db)
+  - Plex clients database (plex_clients.db)
+- ANNOUNCEMENT_ROLE setting for auto-assignment during verification
+- Multi-role assignment on CAPTCHA verification
+  - Verified role
+  - Member role
+  - Announcement role (new)
+- Improved database initialization logging (no emojis, cleaner output)
+
+### Changed
+
+- Plex user count now sourced from invites database (active status) instead of Plex API friends list
+- Database initialization moved to centralized bot startup process
+- Test ticket line identifier changed from lowercase to uppercase (test-line → TEST-LINE)
+- GitHub Actions workflow updated for better branch handling
+  - Main branch: version tags + latest tag
+  - Dev/other branches: branch name tags only
+  - Improved caching strategy for faster builds
+- Suppressed Werkzeug development server logs for cleaner console output
+
+### Removed
+
+- LIVE_TICKET setting (unused/obsolete)
+- PLEX_TICKET_CATEGORY_ID setting (replaced by database configuration)
+- TV_TICKET_CATEGORY_ID setting (replaced by database configuration)
+- DEFAULT_STAFF_ROLE setting (replaced by database configuration)
+- All emojis from README.md for cleaner professional appearance
+
+### Fixed
+
+- Database initialization now ensures all tables exist before bot operations
+- Settings example file updated to match current configuration structure
+
+### Documentation
+
+- Updated README.md with centered documentation links
+- Added prominent API Reference, Changelog, and License links at top of README
+- Improved professional appearance without emoji clutter
+
 ## [4.0.1] - 2025-11-15
 
 ### Added
