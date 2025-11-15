@@ -36,12 +36,25 @@ def get_bot_stats():
     bot = get_bot_instance()
 
     if not bot:
-        return {"commands": 0, "channels": 0, "roles": 0}
+        return {
+            "uptime": "N/A",
+            "latency": "N/A",
+            "guild_count": 0,
+            "user_count": 0,
+            "commands": 0,
+            "channels": 0,
+            "roles": 0,
+        }
 
     total_channels = sum(len(g.channels) for g in bot.guilds) if bot else 0
     total_roles = sum(len(g.roles) for g in bot.guilds) if bot else 0
+    total_users = sum(g.member_count for g in bot.guilds) if bot else 0
 
     return {
+        "uptime": calculate_uptime(bot),
+        "latency": f"{round(bot.latency * 1000, 2)}ms" if bot else "N/A",
+        "guild_count": len(bot.guilds) if bot else 0,
+        "user_count": total_users,
         "commands": len(bot.commands) if bot else 0,
         "channels": total_channels,
         "roles": total_roles,

@@ -218,15 +218,15 @@ class MyBot(commands.Bot):
                         logger.error(f"Failed to load cog {cog_path}: {e}")
         logger.info("Loaded all extensions.")
 
-        # Sync commands to the specific guild and globally
-        await self.sync_commands(guild)
-
-        # Sync global commands (for DM-enabled commands)
+        # Sync commands globally (for DM-enabled commands like /plex-walkthrough)
         try:
             global_synced = await self.tree.sync()
             logger.info(f"Synced {len(global_synced)} global commands.")
         except Exception as e:
             logger.error(f"Error syncing global commands: {e}")
+
+        # Note: We only sync globally to avoid duplicates
+        # Commands will be available both in guilds and DMs
 
     async def on_guild_join(self, guild):
         """Handle bot joining a new guild."""
@@ -311,6 +311,25 @@ async def syncglobal(ctx):
         await ctx.send(f"An error occurred: {e}")
 
 
+@commands.command(
+    name="clearguild", help="Clear all guild-specific commands to remove duplicates."
+)
+@commands.is_owner()
+async def clearguild(ctx):
+    """Clear all guild-specific slash commands."""
+    try:
+        guild = discord.Object(id=ctx.guild.id)
+        ctx.bot.tree.clear_commands(guild=guild)
+        await ctx.bot.tree.sync(guild=guild)
+        await ctx.send(
+            f"Cleared all guild-specific commands from this guild. Global commands remain active."
+        )
+        logger.info(f"Cleared guild-specific commands from guild {ctx.guild.id}.")
+    except Exception as e:
+        logger.error(f"Error clearing guild commands: {e}")
+        await ctx.send(f"An error occurred: {e}")
+
+
 @commands.command(name="list_guilds", help="List all guilds the bot is in.")
 async def list_guilds(ctx):
     """List all guilds the bot is in."""
@@ -371,6 +390,7 @@ if __name__ == "__main__":
     # Add commands to the bot
     bot.add_command(sync)
     bot.add_command(syncglobal)
+    bot.add_command(clearguild)
     bot.add_command(list_cogs)
     bot.add_command(list_guilds)
     bot.add_command(list_commands)
