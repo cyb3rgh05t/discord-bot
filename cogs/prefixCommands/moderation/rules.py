@@ -8,7 +8,6 @@ from config.settings import (
     MEMBER_ROLE,
     RULES_CHANNEL_ID,
     WELCOME_CHANNEL_ID,
-    DATABASE_PATH,
 )
 from cogs.helpers.logger import logger
 
@@ -18,7 +17,7 @@ class RulesAcceptButton(commands.Cog):
         self.bot = bot
 
         # Ensure the `databases` folder exists
-        db_folder = DATABASE_PATH
+        db_folder = "databases"
         os.makedirs(db_folder, exist_ok=True)
 
         # Path to the database file

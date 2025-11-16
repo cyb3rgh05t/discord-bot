@@ -6,7 +6,6 @@ import asyncio
 import io
 from discord.utils import get
 import chat_exporter
-from config.settings import DATABASE_PATH
 from cogs.helpers.logger import logger
 
 
@@ -15,7 +14,7 @@ class TicketManagement(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.db_path = f"{DATABASE_PATH}/ticket_system.db"
+        self.db_path = "databases/ticket_system.db"
 
     async def fetch_ticket_setup(self, guild_id, table_prefix):
         """Fetch ticket setup data for a guild."""

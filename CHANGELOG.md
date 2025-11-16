@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2025-11-15
+
+### Changed
+
+- Simplified database path configuration by hardcoding "databases" directory
+  - Removed DATABASE_PATH setting from settings.py and settings.py.example
+  - Hardcoded database path across all modules for consistency
+  - Updated 8 files: web utilities, database initialization, and ticket system
+  - Eliminates configuration complexity while maintaining standard project structure
+
 ## [4.0.3] - 2025-11-15
 
 ### Fixed

@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import sqlite3
-from config.settings import GUILD_ID, DATABASE_PATH
+from config.settings import GUILD_ID
 from cogs.helpers.logger import logger
 from cogs.slashCommands.tickets.base_ticket_setup import BaseTicketSetup
 
@@ -12,7 +12,7 @@ class PlexTicketSetup(BaseTicketSetup):
 
     def __init__(self, bot):
         super().__init__(
-            bot=bot, db_path=f"{DATABASE_PATH}/ticket_system.db", table_prefix="plex"
+            bot=bot, db_path="databases/ticket_system.db", table_prefix="plex"
         )
 
     @app_commands.command(

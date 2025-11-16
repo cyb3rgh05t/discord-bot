@@ -10,12 +10,10 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from config.settings import DATABASE_PATH
-
 
 def init_invites_db():
     """Initialize invites database"""
-    db_path = os.path.join(DATABASE_PATH, "invites.db")
+    db_path = os.path.join("databases", "invites.db")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -39,7 +37,7 @@ def init_invites_db():
 
 def init_ticket_system_db():
     """Initialize ticket system database"""
-    db_path = os.path.join(DATABASE_PATH, "ticket_system.db")
+    db_path = os.path.join("databases", "ticket_system.db")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -124,7 +122,7 @@ def init_ticket_system_db():
 
 def init_plex_clients_db():
     """Initialize plex clients database"""
-    db_path = os.path.join(DATABASE_PATH, "plex_clients.db")
+    db_path = os.path.join("databases", "plex_clients.db")
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -149,10 +147,10 @@ def init_plex_clients_db():
 
 if __name__ == "__main__":
     print("Initializing databases...")
-    print(f"Database path: {DATABASE_PATH}")
+    print("Database path: databases")
 
     # Create databases directory if it doesn't exist
-    os.makedirs(DATABASE_PATH, exist_ok=True)
+    os.makedirs("databases", exist_ok=True)
 
     init_invites_db()
     init_ticket_system_db()

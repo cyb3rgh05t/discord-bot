@@ -99,11 +99,10 @@ def get_plex_stats():
 
         # Get user count from invites database with status 'active'
         import sqlite3
-        from config.settings import DATABASE_PATH
 
         users = 0
         try:
-            conn = sqlite3.connect(os.path.join(DATABASE_PATH, "invites.db"))
+            conn = sqlite3.connect(os.path.join("databases", "invites.db"))
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM invites WHERE status = 'active'")
             result = cursor.fetchone()

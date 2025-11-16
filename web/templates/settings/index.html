@@ -204,16 +204,7 @@
                         </label>
                         <input type="text" id="admin_user_id" name="ADMIN_USER_ID" 
                                value="{{ settings.ADMIN_USER_ID }}" class="form-control">
-                        <small class="form-text">{{ comments.ADMIN_USER_ID or 'Discord user ID for admin notifications' }}</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="database_path">
-                            <i class="fas fa-database"></i> Database Path
-                        </label>
-                        <input type="text" id="database_path" name="DATABASE_PATH" 
-                               value="{{ settings.DATABASE_PATH }}" class="form-control" required>
-                        <small class="form-text">{{ comments.DATABASE_PATH or 'Path to database directory' }}</small>
+                        <small class="form-text">Discord user ID for receiving admin notifications and alerts. Right-click your profile and select "Copy User ID" (Developer Mode must be enabled)</small>
                     </div>
                 </div>
             </div>
@@ -232,6 +223,7 @@
                         </label>
                         <input type="text" id="welcome_channel" name="WELCOME_CHANNEL_ID" 
                                value="{{ settings.WELCOME_CHANNEL_ID }}" class="form-control">
+                        <small class="form-text">Channel where new member welcome messages are sent. Right-click the channel and select "Copy Channel ID"</small>
                     </div>
 
                     <div class="form-group">
@@ -240,6 +232,7 @@
                         </label>
                         <input type="text" id="system_channel" name="SYSTEM_CHANNEL_ID" 
                                value="{{ settings.SYSTEM_CHANNEL_ID }}" class="form-control">
+                        <small class="form-text">Channel for system notifications, logs, and bot status messages</small>
                     </div>
 
                     <div class="form-group">
@@ -248,6 +241,7 @@
                         </label>
                         <input type="text" id="rules_channel" name="RULES_CHANNEL_ID" 
                                value="{{ settings.RULES_CHANNEL_ID }}" class="form-control">
+                        <small class="form-text">Channel containing your server rules. Used for reference in verification messages</small>
                     </div>
 
                     <div class="form-group">
@@ -256,6 +250,7 @@
                         </label>
                         <input type="text" id="ticket_category" name="TICKET_CATEGORY_ID" 
                                value="{{ settings.TICKET_CATEGORY_ID }}" class="form-control">
+                        <small class="form-text">Discord category ID where general tickets will be created. Right-click the category and select "Copy Category ID"</small>
                     </div>
 
                     <div class="form-group">
@@ -264,33 +259,7 @@
                         </label>
                         <input type="text" id="kofi_channel" name="KOFI_CHANNEL_ID" 
                                value="{{ settings.KOFI_CHANNEL_ID }}" class="form-control">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="plex_ticket_category">
-                            <i class="fas fa-film"></i> Plex Ticket Category ID
-                        </label>
-                        <input type="text" id="plex_ticket_category" name="PLEX_TICKET_CATEGORY_ID" 
-                               value="{{ settings.PLEX_TICKET_CATEGORY_ID }}" class="form-control">
-                        <small class="form-text">{{ comments.PLEX_TICKET_CATEGORY_ID or 'Plex ticket category ID' }}</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="tv_ticket_category">
-                            <i class="fas fa-tv"></i> TV Ticket Category ID
-                        </label>
-                        <input type="text" id="tv_ticket_category" name="TV_TICKET_CATEGORY_ID" 
-                               value="{{ settings.TV_TICKET_CATEGORY_ID }}" class="form-control">
-                        <small class="form-text">{{ comments.TV_TICKET_CATEGORY_ID or 'TV ticket category ID' }}</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="default_staff_role">
-                            <i class="fas fa-user-tie"></i> Default Staff Role
-                        </label>
-                        <input type="text" id="default_staff_role" name="DEFAULT_STAFF_ROLE" 
-                               value="{{ settings.DEFAULT_STAFF_ROLE }}" class="form-control">
-                        <small class="form-text">{{ comments.DEFAULT_STAFF_ROLE or 'Default staff role name' }}</small>
+                        <small class="form-text">Channel where Ko-fi donation notifications will be posted. Right-click the channel and select "Copy Channel ID"</small>
                     </div>
                 </div>
             </div>
@@ -309,6 +278,7 @@
                         </label>
                         <input type="text" id="verified_role" name="VERIFIED_ROLE" 
                                value="{{ settings.VERIFIED_ROLE }}" class="form-control">
+                        <small class="form-text">Role name assigned to users after completing CAPTCHA verification</small>
                     </div>
 
                     <div class="form-group">
@@ -317,6 +287,7 @@
                         </label>
                         <input type="text" id="member_role" name="MEMBER_ROLE" 
                                value="{{ settings.MEMBER_ROLE }}" class="form-control">
+                        <small class="form-text">Role name for general members. Auto-assigned during verification and used for Plex invites</small>
                     </div>
 
                     <div class="form-group">
@@ -325,6 +296,7 @@
                         </label>
                         <input type="text" id="staff_role" name="STAFF_ROLE" 
                                value="{{ settings.STAFF_ROLE }}" class="form-control">
+                        <small class="form-text">Role name for staff members. Used for ticket system access and moderation features</small>
                     </div>
 
                     <div class="form-group">
@@ -333,7 +305,7 @@
                         </label>
                         <input type="text" id="announcement_role" name="ANNOUNCEMENT_ROLE" 
                                value="{{ settings.ANNOUNCEMENT_ROLE }}" class="form-control">
-                        <small class="form-text">{{ comments.ANNOUNCEMENT_ROLE or 'Role for receiving announcements (auto-assigned on verification)' }}</small>
+                        <small class="form-text">Role name for announcement pings. Auto-assigned during verification for server updates</small>
                     </div>
 
                     <div class="form-group">
@@ -342,6 +314,7 @@
                         </label>
                         <input type="text" id="unverified_role" name="UNVERIFIED_ROLE" 
                                value="{{ settings.UNVERIFIED_ROLE }}" class="form-control">
+                        <small class="form-text">Role name for new members before verification. Removed after completing CAPTCHA</small>
                     </div>
                 </div>
             </div>
@@ -371,6 +344,7 @@
                         </label>
                         <input type="text" id="plex_server" name="PLEX_SERVER_NAME" 
                                value="{{ settings.PLEX_SERVER_NAME }}" class="form-control">
+                        <small class="form-text">The name of your Plex Media Server (must match exactly as shown in Plex)</small>
                     </div>
 
                     <div class="form-group">
@@ -379,7 +353,7 @@
                         </label>
                         <input type="text" id="plex_base_url" name="PLEX_BASE_URL" 
                                value="{{ settings.PLEX_BASE_URL }}" class="form-control">
-                        <small class="form-text">E.g., https://plex.example.com</small>
+                        <small class="form-text">Your Plex server URL (e.g., https://plex.example.com or http://192.168.1.100:32400)</small>
                     </div>
 
                     <div class="form-group">
@@ -388,6 +362,7 @@
                         </label>
                         <input type="password" id="plex_token" name="PLEX_TOKEN" 
                                value="{{ settings.PLEX_TOKEN }}" class="form-control">
+                        <small class="form-text">Your Plex authentication token. Preferred method over username/password. Find it at Settings → Account → X-Plex-Token</small>
                     </div>
 
                     <div class="form-group">
@@ -396,6 +371,7 @@
                         </label>
                         <input type="text" id="plex_user" name="PLEX_USER" 
                                value="{{ settings.PLEX_USER }}" class="form-control">
+                        <small class="form-text">Alternative to token authentication. Your Plex account username/email</small>
                     </div>
 
                     <div class="form-group">
@@ -404,6 +380,7 @@
                         </label>
                         <input type="password" id="plex_pass" name="PLEX_PASS" 
                                value="{{ settings.PLEX_PASS }}" class="form-control">
+                        <small class="form-text">Alternative to token authentication. Your Plex account password</small>
                     </div>
 
                     <div class="form-group">
@@ -412,7 +389,7 @@
                         </label>
                         <input type="text" id="plex_roles" name="PLEX_ROLES" 
                                value="{{ settings.PLEX_ROLES }}" class="form-control">
-                        <small class="form-text">Comma-separated role names</small>
+                        <small class="form-text">Comma-separated Discord role names that trigger automatic Plex invites (e.g., "member,vip,premium")</small>
                     </div>
 
                     <div class="form-group full-width">
@@ -421,7 +398,7 @@
                         </label>
                         <textarea id="plex_libs" name="PLEX_LIBS" 
                                   class="form-control" rows="3">{{ settings.PLEX_LIBS }}</textarea>
-                        <small class="form-text">Comma-separated library names or "all"</small>
+                        <small class="form-text">Comma-separated library names to share with invited users, or use "all" to share all libraries (e.g., "Movies,TV Shows,Music")</small>
                     </div>
                 </div>
             </div>
@@ -440,6 +417,7 @@
                         </label>
                         <input type="number" id="kofi_webhook_port" name="KOFI_WEBHOOK_PORT" 
                                value="{{ settings.KOFI_WEBHOOK_PORT }}" class="form-control">
+                        <small class="form-text">Port for Ko-fi webhook listener (default: 3033). Ensure this matches your reverse proxy configuration</small>
                     </div>
 
                     <div class="form-group">
@@ -448,6 +426,7 @@
                         </label>
                         <input type="password" id="kofi_verification_token" name="KOFI_VERIFICATION_TOKEN" 
                                value="{{ settings.KOFI_VERIFICATION_TOKEN }}" class="form-control">
+                        <small class="form-text">Verification token from your Ko-fi webhook settings. Used to validate incoming donations</small>
                     </div>
 
                     <div class="form-group">
@@ -456,6 +435,7 @@
                         </label>
                         <input type="text" id="kofi_name" name="KOFI_NAME" 
                                value="{{ settings.KOFI_NAME }}" class="form-control">
+                        <small class="form-text">Your Ko-fi username or display name. Shown in donation notification embeds</small>
                     </div>
 
                     <div class="form-group">
@@ -464,6 +444,7 @@
                         </label>
                         <input type="text" id="kofi_logo" name="KOFI_LOGO" 
                                value="{{ settings.KOFI_LOGO }}" class="form-control">
+                        <small class="form-text">URL to Ko-fi logo image. Used as thumbnail in donation notifications</small>
                     </div>
 
                     <div class="form-group">
@@ -475,7 +456,7 @@
                             <option value="de" {% if settings.KOFI_LANGUAGE == 'de' %}selected{% endif %}>German</option>
                             <option value="fr" {% if settings.KOFI_LANGUAGE == 'fr' %}selected{% endif %}>French</option>
                         </select>
-                        <small class="form-text">{{ comments.KOFI_LANGUAGE or 'Language for Ko-fi messages' }}</small>
+                        <small class="form-text">Language for Ko-fi donation notification messages</small>
                     </div>
                 </div>
 
@@ -489,7 +470,7 @@
                         </label>
                         <textarea id="kofi_custom_message_en" name="KOFI_CUSTOM_MESSAGE_EN" 
                                   class="form-control" rows="2">{{ settings.KOFI_CUSTOM_MESSAGE_EN }}</textarea>
-                        <small class="form-text">{{ comments.KOFI_CUSTOM_MESSAGE_EN or 'Custom donation message in English' }}</small>
+                        <small class="form-text">Custom thank-you message shown in English donation notifications</small>
                     </div>
 
                     <div class="form-group">
@@ -498,7 +479,7 @@
                         </label>
                         <textarea id="kofi_custom_message_de" name="KOFI_CUSTOM_MESSAGE_DE" 
                                   class="form-control" rows="2">{{ settings.KOFI_CUSTOM_MESSAGE_DE }}</textarea>
-                        <small class="form-text">{{ comments.KOFI_CUSTOM_MESSAGE_DE or 'Custom donation message in German' }}</small>
+                        <small class="form-text">Custom thank-you message shown in German donation notifications</small>
                     </div>
 
                     <div class="form-group">
@@ -507,7 +488,7 @@
                         </label>
                         <textarea id="kofi_custom_message_fr" name="KOFI_CUSTOM_MESSAGE_FR" 
                                   class="form-control" rows="2">{{ settings.KOFI_CUSTOM_MESSAGE_FR }}</textarea>
-                        <small class="form-text">{{ comments.KOFI_CUSTOM_MESSAGE_FR or 'Custom donation message in French' }}</small>
+                        <small class="form-text">Custom thank-you message shown in French donation notifications</small>
                     </div>
                 </div>
 
@@ -521,7 +502,7 @@
                         </label>
                         <input type="text" id="kofi_custom_footer_en" name="KOFI_CUSTOM_FOOTER_EN" 
                                value="{{ settings.KOFI_CUSTOM_FOOTER_EN }}" class="form-control">
-                        <small class="form-text">{{ comments.KOFI_CUSTOM_FOOTER_EN or 'Footer text in English' }}</small>
+                        <small class="form-text">Footer text shown in English donation notification embeds</small>
                     </div>
 
                     <div class="form-group">
@@ -530,7 +511,7 @@
                         </label>
                         <input type="text" id="kofi_custom_footer_de" name="KOFI_CUSTOM_FOOTER_DE" 
                                value="{{ settings.KOFI_CUSTOM_FOOTER_DE }}" class="form-control">
-                        <small class="form-text">{{ comments.KOFI_CUSTOM_FOOTER_DE or 'Footer text in German' }}</small>
+                        <small class="form-text">Footer text shown in German donation notification embeds</small>
                     </div>
 
                     <div class="form-group">
@@ -539,7 +520,7 @@
                         </label>
                         <input type="text" id="kofi_custom_footer_fr" name="KOFI_CUSTOM_FOOTER_FR" 
                                value="{{ settings.KOFI_CUSTOM_FOOTER_FR }}" class="form-control">
-                        <small class="form-text">{{ comments.KOFI_CUSTOM_FOOTER_FR or 'Footer text in French' }}</small>
+                        <small class="form-text">Footer text shown in French donation notification embeds</small>
                     </div>
                 </div>
             </div>
@@ -563,7 +544,7 @@
                             <option value="ERROR" {% if settings.LOGGING_LEVEL == 'ERROR' %}selected{% endif %}>ERROR</option>
                             <option value="CRITICAL" {% if settings.LOGGING_LEVEL == 'CRITICAL' %}selected{% endif %}>CRITICAL</option>
                         </select>
-                        <small class="form-text">{{ comments.LOGGING_LEVEL or 'Logging verbosity level' }}</small>
+                        <small class="form-text">Log verbosity level. Use DEBUG for troubleshooting, INFO for production, WARNING/ERROR for minimal logging</small>
                     </div>
 
                     <div class="form-group">
@@ -572,6 +553,7 @@
                         </label>
                         <input type="text" id="log_file" name="LOG_FILE" 
                                value="{{ settings.LOG_FILE }}" class="form-control">
+                        <small class="form-text">Path where bot logs are saved. Relative to bot directory (e.g., logs/bot.log)</small>
                     </div>
                 </div>
             </div>

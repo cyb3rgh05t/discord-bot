@@ -85,9 +85,7 @@ def get_bot_uptime():
 def check_database():
     """Check if database is accessible"""
     try:
-        from config.settings import DATABASE_PATH
-
-        return os.path.exists(DATABASE_PATH)
+        return os.path.exists("databases")
     except:
         return False
 

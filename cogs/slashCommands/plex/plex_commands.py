@@ -190,7 +190,12 @@ class PlexCommands(commands.Cog):
 
     async def add_to_plex(self, email, interaction):
         """Add a user to Plex"""
+        logger.info(
+            f"[PLEX] User {interaction.user} ({interaction.user.id}) requested to add email: {email}"
+        )
+
         if not self.plex_configured or not self.use_plex:
+            logger.warning(f"[PLEX] Invite rejected - Plex not configured or disabled")
             await self.embederror(
                 interaction,
                 "<:rejected:995614671128244224> Plex integration is not configured or disabled.",
@@ -198,6 +203,7 @@ class PlexCommands(commands.Cog):
             return False
 
         if verifyemail(email):
+            logger.debug(f"[PLEX] Email validation passed for: {email}")
             if plexinviter(self.plex_server, email, self.plex_libs):
                 # Save to invites tracking database
                 try:
@@ -220,10 +226,13 @@ class PlexCommands(commands.Cog):
                     )
                     conn.commit()
                     conn.close()
-                    logger.info(f"Saved invite for {email} to tracking database")
+                    logger.info(f"[PLEX] Saved invite for {email} to tracking database")
                 except Exception as e:
-                    logger.error(f"Failed to save invite to database: {e}")
+                    logger.error(f"[PLEX] Failed to save invite to database: {e}")
 
+                logger.info(
+                    f"[PLEX] SUCCESS: Completed invite for {email} by user {interaction.user}"
+                )
                 await self.embedinfo(
                     interaction,
                     "<:approved:995615632961847406> Deine **Plex Mail** wurde zu **"
@@ -232,12 +241,16 @@ class PlexCommands(commands.Cog):
                 )
                 return True
             else:
+                logger.error(
+                    f"[PLEX] FAILED: Could not invite {email} - plexinviter returned False"
+                )
                 await self.embederror(
                     interaction,
                     "<:rejected:995614671128244224> Es gab einen Fehler beim Hinzufügen dieser Email-Adresse. Bitte überprüfe die Logs für mehr Informationen.",
                 )
                 return False
         else:
+            logger.warning(f"[PLEX] Invalid email address provided: {email}")
             await self.embederror(
                 interaction, "<:rejected:995614671128244224> Ungültige Email-Adresse."
             )
@@ -245,7 +258,12 @@ class PlexCommands(commands.Cog):
 
     async def remove_from_plex(self, email, interaction):
         """Remove a user from Plex"""
+        logger.info(
+            f"[PLEX] User {interaction.user} ({interaction.user.id}) requested to remove email: {email}"
+        )
+
         if not self.plex_configured or not self.use_plex:
+            logger.warning(f"[PLEX] Removal rejected - Plex not configured or disabled")
             await self.embederror(
                 interaction,
                 "<:rejected:995614671128244224> Plex integration is not configured or disabled.",
@@ -253,7 +271,11 @@ class PlexCommands(commands.Cog):
             return False
 
         if verifyemail(email):
+            logger.debug(f"[PLEX] Email validation passed for: {email}")
             if plexremove(self.plex_server, email):
+                logger.info(
+                    f"[PLEX] SUCCESS: Completed removal of {email} by user {interaction.user}"
+                )
                 await self.embedinfo(
                     interaction,
                     "<:approved:995615632961847406> Diese Email-Adresse wurde von **"
@@ -262,6 +284,9 @@ class PlexCommands(commands.Cog):
                 )
                 return True
             else:
+                logger.error(
+                    f"[PLEX] FAILED: Could not remove {email} - plexremove returned False"
+                )
                 await self.embederror(
                     interaction,
                     "<:rejected:995614671128244224> Es gab einen Fehler beim Entfernen dieser Email-Adresse. Bitte überprüfe die Logs für mehr Informationen.",

@@ -12,8 +12,24 @@ def plexinviter(plex, plexname, plex_libs):
     Invite a user to the Plex server
     """
     try:
+        logger.info(f"[PLEX INVITE] Starting invite process for: {plexname}")
+
+        # Resolve library sections
         if plex_libs[0] == "all":
             plex_libs = plex.library.sections()
+            lib_names = [lib.title for lib in plex_libs]
+            logger.info(
+                f"[PLEX INVITE] Sharing ALL libraries with {plexname}: {', '.join(lib_names)}"
+            )
+        else:
+            lib_names = [
+                lib if isinstance(lib, str) else lib.title for lib in plex_libs
+            ]
+            logger.info(
+                f"[PLEX INVITE] Sharing selected libraries with {plexname}: {', '.join(lib_names)}"
+            )
+
+        # Send the invitation
         plex.myPlexAccount().inviteFriend(
             user=plexname,
             server=plex,
@@ -25,10 +41,13 @@ def plexinviter(plex, plexname, plex_libs):
             filterTelevision=None,
             filterMusic=None,
         )
-        logger.info(f"{plexname} has been added to Plex")
+
+        logger.info(
+            f"[PLEX INVITE] SUCCESS: Successfully invited {plexname} to Plex server"
+        )
         return True
     except Exception as e:
-        logger.error(f"Error adding {plexname} to Plex: {e}")
+        logger.error(f"[PLEX INVITE] FAILED: Could not invite {plexname} to Plex: {e}")
         return False
 
 
@@ -40,10 +59,12 @@ def plexremove(plex, plexname):
         plexname: Email or username to remove
     """
     try:
+        logger.info(f"[PLEX REMOVE] Starting removal process for: {plexname}")
         account = plex.myPlexAccount()
 
         # Get all friends to find the correct one
         friends = account.users()
+        logger.debug(f"[PLEX REMOVE] Found {len(friends)} users on Plex server")
 
         # Try to find the user by email or username
         user_to_remove = None
@@ -61,22 +82,28 @@ def plexremove(plex, plexname):
                 user_to_remove = (
                     friend.username if hasattr(friend, "username") else friend.email
                 )
+                logger.debug(f"[PLEX REMOVE] Found matching user: {user_to_remove}")
                 break
 
         if user_to_remove:
             account.removeFriend(user=user_to_remove)
             logger.info(
-                f"{user_to_remove} (searched as {plexname}) has been removed from Plex"
+                f"[PLEX REMOVE] SUCCESS: Removed {user_to_remove} (searched as {plexname}) from Plex"
             )
             return True
         else:
             # If not found, try the direct removal (backwards compatibility)
+            logger.debug(
+                f"[PLEX REMOVE] User not found in friends list, attempting direct removal"
+            )
             account.removeFriend(user=plexname)
-            logger.info(f"{plexname} has been removed from Plex")
+            logger.info(f"[PLEX REMOVE] SUCCESS: Removed {plexname} from Plex")
             return True
 
     except Exception as e:
-        logger.error(f"Error removing {plexname} from Plex: {e}")
+        logger.error(
+            f"[PLEX REMOVE] FAILED: Could not remove {plexname} from Plex: {e}"
+        )
         return False
 
 
@@ -139,6 +166,7 @@ def save_user_email(conn, user_id, email, username=None):
     """Save a user's email to the database"""
     if user_id and email:
         try:
+            logger.debug(f"[PLEX DB] Saving user to database: {user_id} -> {email}")
             conn.execute(
                 f"""
                 INSERT OR REPLACE INTO clients(discord_username, email)
@@ -149,13 +177,15 @@ def save_user_email(conn, user_id, email, username=None):
 
             # Use username in logs if provided
             display_name = username or user_id
-            logger.info(f"User {display_name} added to database with email {email}")
+            logger.info(
+                f"[PLEX DB] SUCCESS: User {display_name} added to database with email {email}"
+            )
             return True
         except Exception as e:
-            logger.error(f"Error saving user to database: {e}")
+            logger.error(f"[PLEX DB] FAILED: Could not save user to database: {e}")
             return False
     else:
-        logger.warning("Username and email cannot be empty")
+        logger.warning("[PLEX DB] Username and email cannot be empty")
         return False
 
 
@@ -163,6 +193,7 @@ def get_user_email(conn, username):
     """Get a user's email from the database"""
     if username:
         try:
+            logger.debug(f"[PLEX DB] Looking up email for user: {username}")
             cursor = conn.execute(
                 'SELECT discord_username, email from clients where discord_username="{}";'.format(
                     username
@@ -172,14 +203,16 @@ def get_user_email(conn, username):
             for row in cursor:
                 email = row[1]
             if email:
+                logger.debug(f"[PLEX DB] Found email for {username}: {email}")
                 return email
             else:
+                logger.debug(f"[PLEX DB] No email found for user: {username}")
                 return None
         except Exception as e:
-            logger.error(f"Error getting user email: {e}")
+            logger.error(f"[PLEX DB] FAILED: Could not get user email: {e}")
             return None
     else:
-        logger.warning("Username cannot be empty")
+        logger.warning("[PLEX DB] Username cannot be empty")
         return None
 
 
@@ -187,17 +220,20 @@ def remove_email(conn, username):
     """Set a user's email to null in the database"""
     if username:
         try:
+            logger.debug(f"[PLEX DB] Removing email from user: {username}")
             conn.execute(
                 f"UPDATE clients SET email = null WHERE discord_username = '{username}'"
             )
             conn.commit()
-            logger.info(f"Email removed from user {username} in database")
+            logger.info(
+                f"[PLEX DB] SUCCESS: Email removed from user {username} in database"
+            )
             return True
         except Exception as e:
-            logger.error(f"Error removing email: {e}")
+            logger.error(f"[PLEX DB] FAILED: Could not remove email: {e}")
             return False
     else:
-        logger.warning("Username cannot be empty")
+        logger.warning("[PLEX DB] Username cannot be empty")
         return False
 
 
@@ -205,17 +241,18 @@ def delete_user(conn, username):
     """Delete a user from the database"""
     if username:
         try:
+            logger.debug(f"[PLEX DB] Deleting user from database: {username}")
             conn.execute(
                 'DELETE from clients where discord_username="{}";'.format(username)
             )
             conn.commit()
-            logger.info(f"User {username} deleted from database")
+            logger.info(f"[PLEX DB] SUCCESS: User {username} deleted from database")
             return True
         except Exception as e:
-            logger.error(f"Error deleting user: {e}")
+            logger.error(f"[PLEX DB] FAILED: Could not delete user: {e}")
             return False
     else:
-        logger.warning("Username cannot be empty")
+        logger.warning("[PLEX DB] Username cannot be empty")
         return False
 
 

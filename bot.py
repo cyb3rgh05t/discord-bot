@@ -23,11 +23,16 @@ from config.settings import (
     MEMBER_ROLE,
     STAFF_ROLE,
     ANNOUNCEMENT_ROLE,
-    DATABASE_PATH,
     KOFI_CHANNEL_ID,
     ADMIN_USER_ID,
 )
 from cogs.helpers.logger import logger  # Import the pre-configured logger
+
+# Suppress Discord.py debug logging (must be done before Discord initializes)
+logging.getLogger("discord").setLevel(logging.WARNING)
+logging.getLogger("discord.gateway").setLevel(logging.WARNING)
+logging.getLogger("discord.http").setLevel(logging.WARNING)
+logging.getLogger("discord.client").setLevel(logging.WARNING)
 
 # Initialize databases
 from web.init_databases import (
@@ -174,7 +179,6 @@ class MyBot(commands.Bot):
             logger.info(
                 f"  → Bot Token: {'[REDACTED]' if BOT_TOKEN else 'NOT SET - REQUIRED'}"
             )
-            logger.info(f"  → Database Path: '/{DATABASE_PATH}'")
             logger.info(f"  → Admin User ID: '{ADMIN_USER_ID}'")
             logger.info("Discord Channel Configuration:")
             logger.info(f"  → System Channel ID: '{SYSTEM_CHANNEL_ID}'")
@@ -372,7 +376,7 @@ def start_web_ui(bot_instance):
             from werkzeug.serving import run_simple
             import logging as werkzeug_logging
 
-            # Suppress Werkzeug logs
+            # Suppress Werkzeug HTTP request logs
             werkzeug_log = werkzeug_logging.getLogger("werkzeug")
             werkzeug_log.setLevel(werkzeug_logging.ERROR)
 
@@ -400,7 +404,7 @@ if __name__ == "__main__":
 
     # Initialize databases
     logger.info("Initializing databases...")
-    os.makedirs(DATABASE_PATH, exist_ok=True)
+    os.makedirs("databases", exist_ok=True)
     try:
         msg1 = init_invites_db()
         logger.info(f"  - {msg1}")

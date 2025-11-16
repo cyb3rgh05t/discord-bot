@@ -7,6 +7,7 @@ from flask import Flask, render_template, redirect, url_for
 from flask_login import LoginManager
 import os
 import sys
+import logging
 
 # Add parent directory to path to import bot config
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -17,12 +18,33 @@ from config.settings import (
     WEB_HOST,
     WEB_AUTH_ENABLED,
     WEB_SECRET_KEY,
-    WEB_DEBUG,
+    WEB_VERBOSE_LOGGING,
 )
 
 # Initialize Flask app
 app = Flask(__name__)
 app.config["SECRET_KEY"] = WEB_SECRET_KEY
+
+# Configure Flask logging to write to logs/web.log
+log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "web.log")
+
+file_handler = logging.FileHandler(log_file)
+formatter = logging.Formatter(
+    "[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+)
+file_handler.setFormatter(formatter)
+
+# Set log level based on WEB_VERBOSE_LOGGING
+if WEB_VERBOSE_LOGGING:
+    file_handler.setLevel(logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)
+else:
+    file_handler.setLevel(logging.INFO)
+    app.logger.setLevel(logging.INFO)
+
+app.logger.addHandler(file_handler)
 
 # Initialize Login Manager
 login_manager = LoginManager()
@@ -58,6 +80,7 @@ from web.views.databases import databases_bp
 from web.views.services import services_bp
 from web.views.api import api_bp
 from web.views.about import about_bp
+from web.views.members import members_bp
 
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(settings_bp)
@@ -67,6 +90,7 @@ app.register_blueprint(databases_bp)
 app.register_blueprint(services_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(about_bp)
+app.register_blueprint(members_bp)
 
 # Register auth blueprint if enabled
 if WEB_AUTH_ENABLED:
