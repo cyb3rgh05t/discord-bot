@@ -43,7 +43,7 @@ from web.init_databases import (
 
 # Web UI imports (only if enabled)
 try:
-    from config.settings import WEB_ENABLED, WEB_HOST, WEB_PORT, WEB_DEBUG
+    from config.settings import WEB_ENABLED, WEB_HOST, WEB_PORT, WEB_VERBOSE_LOGGING
 
     if WEB_ENABLED:
         from web.app import app, set_bot_instance
@@ -51,9 +51,9 @@ try:
         WEB_UI_AVAILABLE = True
     else:
         WEB_UI_AVAILABLE = False
-except ImportError:
+except ImportError as e:
     WEB_UI_AVAILABLE = False
-    logger.warning("Web UI dependencies not found. Web interface disabled.")
+    logger.warning(f"Web UI dependencies not found. Web interface disabled. Error: {e}")
 
 # Global channel map that will be populated with channel IDs and names
 channel_map = {}
@@ -385,7 +385,7 @@ def start_web_ui(bot_instance):
                 WEB_PORT,
                 app,
                 use_reloader=False,
-                use_debugger=WEB_DEBUG,
+                use_debugger=WEB_VERBOSE_LOGGING,
                 threaded=True,
             )
         except Exception as e:

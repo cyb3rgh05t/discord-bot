@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2025-11-16
+
+### Fixed
+
+- Web UI startup failure
+  - Fixed `WEB_DEBUG` import error in `bot.py` (setting was renamed to `WEB_VERBOSE_LOGGING`)
+  - Corrected import statement and usage in Flask's `run_simple()` debugger parameter
+  - Web UI now starts correctly on bot launch
+- Members management role removal functionality
+  - Fixed `remove_role_from_member()` function logic (was adding roles instead of removing)
+  - Corrected role check condition to verify member has the role before removal
+  - Fixed success message to show "Removed" instead of "Added"
+  - Renamed internal async function from `add_role_async()` to `remove_role_async()`
+  - Added missing `current_app` import for logging
+- GitHub webhook avatar URLs
+  - Fixed incorrect URL path using `${{ github.repository }}` variable
+  - Corrected both `avatar_url` and `footer_icon_url` to use hardcoded repository path
+- Code cleanup
+  - Removed unused `concurrent.futures` imports from role management functions
+
 ## [4.1.0] - 2025-11-16
 
 ### Added
