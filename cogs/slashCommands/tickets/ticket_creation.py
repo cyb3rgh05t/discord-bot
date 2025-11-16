@@ -4,7 +4,7 @@ from discord import ui
 import sqlite3
 import random
 import logging
-from config.settings import DATABASE_PATH, STAFF_ROLE, TICKET_CATEGORY_ID
+from config.settings import STAFF_ROLE, TICKET_CATEGORY_ID
 from cogs.helpers.logger import logger
 
 
@@ -13,7 +13,7 @@ class TicketCreation(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.db_path = f"{DATABASE_PATH}/ticket_system.db"
+        self.db_path = "databases/ticket_system.db"
 
     async def fetch_ticket_setup(self, guild_id, table_prefix):
         """Fetch ticket setup data for the guild."""

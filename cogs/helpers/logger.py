@@ -46,6 +46,10 @@ class DiscordFilter(logging.Filter):
 class StreamlinedFormatter(logging.Formatter):
     """Custom formatter for consistent, readable logs with color support"""
 
+    def __init__(self, use_colors=True):
+        super().__init__()
+        self.use_colors = use_colors
+
     def format(self, record):
         """Format log records with log level after timestamp"""
         # Get the timestamp
@@ -62,15 +66,24 @@ class StreamlinedFormatter(logging.Formatter):
                 msg = (
                     f"Discord connection refreshing (reconnecting in {reconnect_time})"
                 )
-                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['BLUE'])} {self.colorize(msg, COLORS['BLUE'])}"
+                if self.use_colors:
+                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['BLUE'])} {self.colorize(msg, COLORS['BLUE'])}"
+                else:
+                    return f"[{timestamp}] [INFO] {msg}"
 
             if "WebSocket closed" in record.getMessage():
                 code = "1000" if "1000" in record.getMessage() else "unknown"
                 msg = f"Discord connection reset (code: {code})"
-                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['CYAN'])} {self.colorize(msg, COLORS['CYAN'])}"
+                if self.use_colors:
+                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['CYAN'])} {self.colorize(msg, COLORS['CYAN'])}"
+                else:
+                    return f"[{timestamp}] [INFO] {msg}"
 
             if "logging in using static token" in record.getMessage():
-                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize('Discord bot logging in', COLORS['GREEN'])}"
+                if self.use_colors:
+                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize('Discord bot logging in', COLORS['GREEN'])}"
+                else:
+                    return f"[{timestamp}] [INFO] Discord bot logging in"
 
             if (
                 "Shard ID" in record.getMessage()
@@ -87,7 +100,10 @@ class StreamlinedFormatter(logging.Formatter):
                 else:
                     session_short = "unknown"
                 msg = f"Discord connection established (Session: {session_short})"
-                return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize(msg, COLORS['GREEN'])}"
+                if self.use_colors:
+                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize(msg, COLORS['GREEN'])}"
+                else:
+                    return f"[{timestamp}] [INFO] {msg}"
 
             # Filter out other Discord messages that we don't care about
             important_patterns = [
@@ -118,7 +134,10 @@ class StreamlinedFormatter(logging.Formatter):
             level_color = COLORS["BLUE"]
 
         # Format log message with level after timestamp
-        log_msg = f"[{timestamp}] {self.colorize(f'[{record.levelname}]', level_color)} {self.colorize(record.getMessage(), level_color)}"
+        if self.use_colors:
+            log_msg = f"[{timestamp}] {self.colorize(f'[{record.levelname}]', level_color)} {self.colorize(record.getMessage(), level_color)}"
+        else:
+            log_msg = f"[{timestamp}] [{record.levelname}] {record.getMessage()}"
 
         # Add traceback info for exceptions, formatted nicely
         if record.exc_info:
@@ -173,8 +192,17 @@ def setup_logging(log_file=None, log_level=None):
     # Create logs directory if it doesn't exist
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
 
+    # Delete old log file if it exists to start fresh on every bot restart
+    if os.path.exists(log_file):
+        try:
+            os.remove(log_file)
+            print(f"Deleted old log file: {log_file}")
+        except Exception as e:
+            print(f"Could not delete old log file: {e}")
+
     # Create the formatter
-    formatter = StreamlinedFormatter()
+    console_formatter = StreamlinedFormatter(use_colors=True)
+    file_formatter = StreamlinedFormatter(use_colors=False)
 
     # Configure Discord-specific loggers first
     # This must be done before configuring root logger
@@ -193,27 +221,27 @@ def setup_logging(log_file=None, log_level=None):
 
         # Add our handlers directly to discord loggers
         discord_handler = logging.StreamHandler()
-        discord_handler.setFormatter(formatter)
+        discord_handler.setFormatter(console_formatter)
         discord_handler.setLevel(log_level)  # Use the configured log level
         discord_logger.addHandler(discord_handler)
 
-        # Also log discord messages to file
+        # Also log discord messages to file (without colors)
         discord_file_handler = logging.FileHandler(log_file, encoding="utf-8")
-        discord_file_handler.setFormatter(formatter)
+        discord_file_handler.setFormatter(file_formatter)
         discord_file_handler.setLevel(log_level)  # Use the configured log level
         discord_logger.addHandler(discord_file_handler)
 
     # Create console handler for non-discord logs
     console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(console_formatter)
     console_handler.addFilter(
         DiscordFilter()
     )  # Block all discord.* logs from root logger
     console_handler.setLevel(log_level)  # Explicitly set handler level
 
-    # Create file handler
+    # Create file handler (without colors)
     file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setFormatter(formatter)
+    file_handler.setFormatter(file_formatter)
     file_handler.addFilter(DiscordFilter())  # Block all discord.* logs from root logger
     file_handler.setLevel(log_level)  # Explicitly set handler level
 

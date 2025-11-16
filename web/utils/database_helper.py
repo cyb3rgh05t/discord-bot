@@ -10,12 +10,10 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from config.settings import DATABASE_PATH
-
 
 def get_db_connection(db_name="invites"):
     """Get database connection"""
-    db_path = os.path.join(DATABASE_PATH, f"{db_name}.db")
+    db_path = os.path.join("databases", f"{db_name}.db")
     return sqlite3.connect(db_path)
 
 
@@ -50,8 +48,8 @@ def get_database_tables():
     tables = []
 
     # Check each database file
-    if os.path.exists(DATABASE_PATH):
-        for db_file in os.listdir(DATABASE_PATH):
+    if os.path.exists("databases"):
+        for db_file in os.listdir("databases"):
             if db_file.endswith(".db"):
                 db_name = db_file[:-3]
                 try:

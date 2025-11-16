@@ -122,6 +122,14 @@
           </a>
 
           <a
+            href="{{ url_for('members.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('members') %}active{% endif %}"
+          >
+            <i class="fas fa-users"></i>
+            <span>Members</span>
+          </a>
+
+          <a
             href="{{ url_for('databases.index') }}"
             class="nav-item {% if request.endpoint and request.endpoint.startswith('databases') %}active{% endif %}"
           >

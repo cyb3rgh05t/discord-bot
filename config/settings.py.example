@@ -15,8 +15,6 @@ GUILD_NAME = "YourGuildName"
 COMMAND_PREFIX = "!"
 ADMIN_USER_ID = "000000000000000000"  # Discord user ID for admin notifications
 
-DATABASE_PATH = "databases"
-
 LOGGING_LEVEL = "DEBUG"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_FILE = "logs/bot.log"
 
@@ -61,7 +59,7 @@ KOFI_CUSTOM_FOOTER_FR = "Support"
 WEB_ENABLED = True  # Enable/disable web UI
 WEB_HOST = "0.0.0.0"  # Host to bind to (0.0.0.0 for all interfaces)
 WEB_PORT = 5000  # Port to run web UI on
-WEB_DEBUG = False  # Flask debug mode (set to False in production)
+WEB_VERBOSE_LOGGING = False  # Enable detailed debug logging (set to True for debugging)
 WEB_SECRET_KEY = "your-secret-key-change-this-in-production"  # Session secret key
 
 # Web UI Authentication (optional - can use reverse proxy auth instead)
