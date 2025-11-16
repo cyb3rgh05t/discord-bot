@@ -243,7 +243,6 @@ def add_role_to_member(user_id, role_id):
     try:
         from config.settings import GUILD_ID
         import asyncio
-        import concurrent.futures
 
         guild = bot.get_guild(int(GUILD_ID))
         if not guild:
@@ -297,7 +296,7 @@ def remove_role_from_member(user_id, role_id):
     try:
         from config.settings import GUILD_ID
         import asyncio
-        import concurrent.futures
+        from flask import current_app
 
         guild = bot.get_guild(int(GUILD_ID))
         if not guild:
@@ -308,8 +307,7 @@ def remove_role_from_member(user_id, role_id):
             return {"success": False, "error": "Role not found"}
 
         # Fetch member asynchronously (not from cache)
-        async def add_role_async():
-            from flask import current_app
+        async def remove_role_async():
             from config.settings import WEB_VERBOSE_LOGGING
 
             try:
@@ -323,15 +321,15 @@ def remove_role_from_member(user_id, role_id):
                 if not member:
                     return {"success": False, "error": "Member not found"}
 
-                # Check if member already has the role
-                if role in member.roles:
-                    return {"success": False, "error": "Member already has this role"}
+                # Check if member does not have the role
+                if role not in member.roles:
+                    return {"success": False, "error": "Member does not have this role"}
 
-                # Add the role
-                await member.add_roles(role)
+                # Remove the role
+                await member.remove_roles(role)
                 return {
                     "success": True,
-                    "message": f"Added {role.name} to {member.name}",
+                    "message": f"Removed {role.name} from {member.name}",
                 }
             except Exception as e:
                 return {"success": False, "error": str(e)}
