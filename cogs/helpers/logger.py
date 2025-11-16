@@ -129,9 +129,9 @@ class StreamlinedFormatter(logging.Formatter):
         elif record.levelno >= logging.WARNING:
             level_color = COLORS["YELLOW"]
         elif record.levelno >= logging.INFO:
-            level_color = COLORS["GREEN"]
-        elif record.levelno >= logging.DEBUG:
             level_color = COLORS["BLUE"]
+        elif record.levelno >= logging.DEBUG:
+            level_color = COLORS["GREEN"]
 
         # Format log message with level after timestamp
         if self.use_colors:
