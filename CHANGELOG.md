@@ -5,7 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.1.0] - 2025-11-15
+## [4.1.0] - 2025-11-16
+
+### Added
+
+- Comprehensive Plex operation logging system
+  - User tracking: Logs Discord username and ID for all Plex invite/remove requests
+  - Email validation logging with detailed pass/fail indicators
+  - Library sharing details: Shows which Plex libraries are shared during invites
+  - Database operation tracking: Logs all save, retrieve, update, and delete operations
+  - Process flow logging: Tracks each step of invite and removal workflows
+  - Standardized log prefixes: [PLEX], [PLEX INVITE], [PLEX REMOVE], [PLEX DB]
+  - SUCCESS/FAILED indicators for quick log scanning and troubleshooting
+  - Configuration validation logging with warnings for missing Plex setup
 
 ### Changed
 
@@ -14,6 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Hardcoded database path across all modules for consistency
   - Updated 8 files: web utilities, database initialization, and ticket system
   - Eliminates configuration complexity while maintaining standard project structure
+
+### Fixed
+
+- Log file formatting with ANSI color codes
+  - Implemented dual formatter system for logging
+  - Console output: Colorful formatting with ANSI codes for easy visual scanning
+  - File output: Clean plain text without ANSI codes for parsing and archival
+  - StreamlinedFormatter now accepts use_colors parameter (True for console, False for file)
+  - Separate formatters applied to console handlers and file handlers
+  - Log files now readable and parseable without color code clutter
 
 ## [4.0.3] - 2025-11-15
 
