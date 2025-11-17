@@ -205,14 +205,14 @@ Manager{% endblock %} {% block content %}
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          alert("Ticket closed successfully");
-          window.location.reload();
+          showNotification("Ticket closed successfully", "success");
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          alert("Error: " + data.message);
+          showNotification("Error: " + data.message, "error");
         }
       })
       .catch((error) => {
-        alert("Error closing ticket: " + error);
+        showNotification("Error closing ticket: " + error, "error");
       });
   }
 </script>

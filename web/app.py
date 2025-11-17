@@ -81,6 +81,8 @@ from web.views.services import services_bp
 from web.views.api import api_bp
 from web.views.about import about_bp
 from web.views.members import members_bp
+from web.views.commands import commands_bp
+from web.views.guild_stats import guild_stats_bp
 
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(settings_bp)
@@ -91,6 +93,8 @@ app.register_blueprint(services_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(about_bp)
 app.register_blueprint(members_bp)
+app.register_blueprint(commands_bp)
+app.register_blueprint(guild_stats_bp)
 
 # Register auth blueprint if enabled
 if WEB_AUTH_ENABLED:

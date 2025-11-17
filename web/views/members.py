@@ -20,15 +20,29 @@ members_bp = Blueprint("members", __name__, url_prefix="/members")
 @auth_required
 def index():
     """Members and roles management page"""
+    # Get pagination parameters
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+
     members = get_guild_members()
     roles = get_guild_roles()
 
+    # Calculate pagination for members
+    total_members = len(members)
+    total_pages = (total_members + per_page - 1) // per_page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_members = members[start_idx:end_idx]
+
     return render_template(
         "members/index.html",
-        members=members,
+        members=paginated_members,
         roles=roles,
-        total_members=len(members),
+        total_members=total_members,
         total_roles=len(roles),
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages,
     )
 
 

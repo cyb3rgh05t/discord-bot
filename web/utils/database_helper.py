@@ -19,10 +19,12 @@ def get_db_connection(db_name="invites"):
 
 def find_table_database(table_name):
     """Find which database contains the specified table"""
-    if not os.path.exists(DATABASE_PATH):
+    database_path = "databases"
+
+    if not os.path.exists(database_path):
         return None
 
-    for db_file in os.listdir(DATABASE_PATH):
+    for db_file in os.listdir(database_path):
         if db_file.endswith(".db"):
             db_name = db_file[:-3]
             try:
@@ -426,18 +428,38 @@ def add_invite(email, discord_user):
 
 
 def remove_invite(invite_id):
-    """Remove an invite"""
+    """Remove an invite and return the invite data"""
     try:
         conn = get_db_connection("invites")
         cursor = conn.cursor()
 
+        # Get invite data before deletion
+        cursor.execute(
+            "SELECT id, email, discord_user, status FROM invites WHERE id = ?",
+            (invite_id,),
+        )
+        invite_data = cursor.fetchone()
+
+        if not invite_data:
+            conn.close()
+            return None
+
+        # Convert to dict
+        invite = {
+            "id": invite_data[0],
+            "email": invite_data[1],
+            "discord_user": invite_data[2],
+            "status": invite_data[3],
+        }
+
+        # Delete the invite
         cursor.execute("DELETE FROM invites WHERE id = ?", (invite_id,))
 
         conn.commit()
         conn.close()
-        return True
+        return invite
     except Exception as e:
-        return False
+        return None
 
 
 def get_invite_stats():

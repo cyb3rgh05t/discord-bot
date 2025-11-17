@@ -6,6 +6,37 @@ endblock %} {% block content %}
     <p class="subtitle">Explore your bot databases and tables</p>
   </div>
 
+  <!-- Statistics Cards -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon total-databases">
+        <i class="fas fa-database"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.databases }}</div>
+        <div class="stat-label">Databases</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon total-tables">
+        <i class="fas fa-table"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.tables }}</div>
+        <div class="stat-label">Tables</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon total-records">
+        <i class="fas fa-list-ol"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ "{:,}".format(stats.records) }}</div>
+        <div class="stat-label">Total Records</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Databases Grid -->
   <div class="card">
     <div class="card-header">
@@ -217,4 +248,63 @@ endblock %} {% block content %}
       });
   }
 </script>
+
+<style>
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .stat-icon.total-databases {
+    background: #667eea;
+  }
+
+  .stat-icon.total-tables {
+    background: #38ef7d;
+  }
+
+  .stat-icon.total-records {
+    background: #faa61a;
+  }
+
+  .stat-info {
+    flex: 1;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1;
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+</style>
 {% endblock %}

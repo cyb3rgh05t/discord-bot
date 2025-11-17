@@ -150,7 +150,7 @@ endblock %} {% block content %}
         console.error("Error refreshing status:", err);
         icon.classList.remove("fa-spin");
         btn.disabled = false;
-        alert("Failed to refresh status");
+        showNotification("Failed to refresh status", "error");
       });
   }
 
@@ -169,4 +169,49 @@ endblock %} {% block content %}
     }
   });
 </script>
+
+<style>
+  /* Service and resource icon gradients */
+  .service-icon,
+  .resource-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  /* Different colors for each service */
+  .service-card:nth-child(1) .service-icon {
+    background: #667eea; /* Discord Bot - Purple */
+  }
+
+  .service-card:nth-child(2) .service-icon {
+    background: #38ef7d; /* Database - Green */
+  }
+
+  .service-card:nth-child(3) .service-icon {
+    background: #faa61a; /* Plex Integration - Orange */
+  }
+
+  .service-card:nth-child(4) .service-icon {
+    background: #00d4ff; /* Ko-fi Webhook - Cyan */
+  }
+
+  /* Different colors for each resource type */
+  .resource-item:nth-child(1) .resource-icon {
+    background: #667eea;
+  }
+
+  .resource-item:nth-child(2) .resource-icon {
+    background: #38ef7d;
+  }
+
+  .resource-item:nth-child(3) .resource-icon {
+    background: #f5576c;
+  }
+</style>
 {% endblock %}

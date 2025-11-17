@@ -1,0 +1,356 @@
+{% extends "base.html" %} {% block title %}Commands - Discord Bot Manager{%
+endblock %} {% block content %}
+<div class="commands-page">
+  <div class="page-header">
+    <h1>
+      <i class="fas fa-terminal"></i>
+      Bot Commands
+    </h1>
+    <p class="subtitle">View all available slash and prefix commands</p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon total-commands">
+        <i class="fas fa-list"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Commands</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon slash-commands">
+        <i class="fas fa-slash"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.slash }}</div>
+        <div class="stat-label">Slash Commands</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon prefix-commands">
+        <i class="fas fa-at"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.prefix }}</div>
+        <div class="stat-label">Prefix Commands</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-button active" data-tab="slash">
+      <i class="fas fa-slash"></i> Slash Commands
+    </button>
+    <button class="tab-button" data-tab="prefix">
+      <i class="fas fa-at"></i> Prefix Commands
+    </button>
+  </div>
+
+  <!-- Slash Commands Tab -->
+  <div class="tab-content active" id="slash-tab">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-slash"></i> Slash Commands ({{ stats.slash }})</h3>
+      </div>
+      <div class="card-body">
+        {% if slash_commands %}
+        <div class="commands-grid">
+          {% for cmd in slash_commands %}
+          <div class="command-card">
+            <div class="command-header">
+              <span class="command-name">
+                <i class="fas fa-slash"></i> {{ cmd.name }}
+              </span>
+              <span class="command-type-badge slash">Slash</span>
+            </div>
+            <div class="command-description">{{ cmd.description }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <i class="fas fa-slash"></i>
+          <h3>No slash commands found</h3>
+          <p>The bot doesn't have any slash commands registered.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Prefix Commands Tab -->
+  <div class="tab-content" id="prefix-tab">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-at"></i> Prefix Commands ({{ stats.prefix }})</h3>
+      </div>
+      <div class="card-body">
+        {% if prefix_commands %}
+        <div class="commands-grid">
+          {% for cmd in prefix_commands %}
+          <div class="command-card">
+            <div class="command-header">
+              <span class="command-name">
+                <i class="fas fa-at"></i> {{ cmd.name }}
+              </span>
+              <span class="command-type-badge prefix">Prefix</span>
+            </div>
+            <div class="command-description">{{ cmd.description }}</div>
+            {% if cmd.aliases %}
+            <div class="command-aliases">
+              <strong>Aliases:</strong>
+              {% for alias in cmd.aliases %}
+              <span class="alias-badge">{{ alias }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <i class="fas fa-at"></i>
+          <h3>No prefix commands found</h3>
+          <p>The bot doesn't have any prefix commands registered.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+  // Tab switching
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tabName = button.getAttribute("data-tab");
+
+      // Update active button
+      document
+        .querySelectorAll(".tab-button")
+        .forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      // Update active content
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((content) => content.classList.remove("active"));
+      document.getElementById(tabName + "-tab").classList.add("active");
+    });
+  });
+</script>
+
+<style>
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+
+  .stat-icon.total-commands {
+    background: #667eea;
+  }
+
+  .stat-icon.slash-commands {
+    background: #38ef7d;
+  }
+
+  .stat-icon.prefix-commands {
+    background: #faa61a;
+  }
+
+  .stat-info {
+    flex: 1;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1;
+  }
+
+  .stat-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.5rem;
+    overflow-x: auto;
+  }
+
+  .tab-button {
+    background: transparent;
+    border: none;
+    padding: 0.875rem 2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .tab-button i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+  }
+
+  .tab-button:hover {
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .tab-button:hover i {
+    transform: scale(1.1);
+  }
+
+  .tab-button.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    border: 1px solid var(--link-color);
+  }
+
+  .tab-button.active i {
+    color: var(--text-color);
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .commands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1rem;
+  }
+
+  .command-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s;
+  }
+
+  .command-card:hover {
+    border-color: var(--link-color);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .command-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .command-name {
+    font-family: "Courier New", monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--link-color);
+  }
+
+  .command-name i {
+    font-size: 0.9rem;
+    margin-right: 0.25rem;
+  }
+
+  .command-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .command-type-badge.slash {
+    background: rgba(56, 239, 125, 0.2);
+    color: #38ef7d;
+    border: 1px solid rgba(56, 239, 125, 0.3);
+  }
+
+  .command-type-badge.prefix {
+    background: rgba(250, 166, 26, 0.2);
+    color: #faa61a;
+    border: 1px solid rgba(250, 166, 26, 0.3);
+  }
+
+  .command-description {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .command-aliases {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+  }
+
+  .command-aliases strong {
+    color: var(--text-color);
+    margin-right: 0.5rem;
+  }
+
+  .alias-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    background: rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 4px;
+    color: #667eea;
+    font-family: "Courier New", monospace;
+    font-size: 0.8rem;
+    margin-right: 0.25rem;
+    margin-top: 0.25rem;
+  }
+</style>
+{% endblock %} {% endblock %}
