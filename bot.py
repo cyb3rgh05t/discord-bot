@@ -87,6 +87,7 @@ class MyBot(commands.Bot):
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True
+        intents.presences = True
         super().__init__(command_prefix=COMMAND_PREFIX, intents=intents)
 
         self.synced_guilds = set()  # Track synced guilds
