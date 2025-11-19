@@ -145,4 +145,4 @@ def internal_error(error):
 
 if __name__ == "__main__":
     # For standalone testing
-    app.run(host=WEB_HOST, port=WEB_PORT, debug=WEB_DEBUG)
+    app.run(host=WEB_HOST, port=WEB_PORT, debug=WEB_VERBOSE_LOGGING)
