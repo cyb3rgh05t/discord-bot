@@ -23,9 +23,20 @@ def index():
     # Get pagination parameters
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
+    search = request.args.get("search", "", type=str)
 
     members = get_guild_members()
     roles = get_guild_roles()
+
+    # Filter by search if provided
+    if search:
+        search_lower = search.lower()
+        members = [
+            m
+            for m in members
+            if search_lower in m.get("name", "").lower()
+            or search_lower in str(m.get("id", "")).lower()
+        ]
 
     # Calculate pagination for members
     total_members = len(members)
@@ -43,6 +54,7 @@ def index():
         page=page,
         per_page=per_page,
         total_pages=total_pages,
+        search=search,
     )
 
 

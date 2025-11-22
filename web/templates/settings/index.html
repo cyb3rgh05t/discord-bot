@@ -17,7 +17,7 @@
     </div>
 
     <!-- Save Status Indicator -->
-    <div id="saveStatus" class="save-status" style="display: none;">
+    <div id="saveStatus" class="save-status d-none">
         <i class="fas fa-check-circle"></i> Auto-saved
     </div>
 
@@ -616,31 +616,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch('{{ url_for("settings.edit") }}', {
             method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: formData
-        })
-        .then(response => response.text())
-        .then(() => {
-            // Trigger bot restart
-            return fetch('{{ url_for("settings.restart_bot") }}', {
-                method: 'POST'
-            });
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showSaveStatus('Settings saved and bot restarting...', 'success');
+                showNotification(data.message, 'success');
+                // Trigger bot restart
+                return fetch('{{ url_for("settings.restart_bot") }}', {
+                    method: 'POST'
+                });
+            } else {
+                throw new Error(data.message || 'Failed to save settings');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Bot restarting...', 'success');
                 setTimeout(() => {
                     window.location.reload();
                 }, 3000);
             } else {
-                showSaveStatus('Error: ' + data.message, 'error');
+                showNotification('Error: ' + data.message, 'error');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showSaveStatus('Error restarting bot', 'error');
+            showNotification(err.message || 'Error saving settings', 'error');
             btn.innerHTML = originalHTML;
             btn.disabled = false;
         });
@@ -655,12 +663,19 @@ function autoSaveSettings() {
     
     fetch('{{ url_for("settings.edit") }}', {
         method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
         body: formData
     })
-    .then(response => response.text())
-    .then(() => {
-        showSaveStatus('Auto-saved', 'success');
-        formChanged = false;
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSaveStatus('Auto-saved', 'success');
+            formChanged = false;
+        } else {
+            showSaveStatus(data.message || 'Auto-save failed', 'error');
+        }
     })
     .catch(err => {
         console.error('Auto-save error:', err);

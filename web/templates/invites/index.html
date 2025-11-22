@@ -1,5 +1,14 @@
 {% extends "base.html" %} {% block title %}Invites - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/invites.css') }}"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/utilities.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="invites-page">
   <div class="page-header">
     <h1>
@@ -115,7 +124,7 @@ endblock %} {% block content %}
             <i class="fas fa-code-branch"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-value" style="font-size: 1rem">
+            <div class="stat-value stat-value-small">
               {{ plex_stats.version }}
             </div>
             <div class="stat-label">Version</div>
@@ -136,6 +145,7 @@ endblock %} {% block content %}
         method="POST"
         action="{{ url_for('invites.add') }}"
         class="invite-form"
+        id="addInviteForm"
       >
         <div class="form-row">
           <div class="form-group">
@@ -166,11 +176,7 @@ endblock %} {% block content %}
           </div>
           <div class="form-group form-actions">
             <label>&nbsp;</label>
-            <button
-              style="margin-bottom: 4px"
-              type="submit"
-              class="btn btn-primary"
-            >
+            <button type="submit" class="btn btn-primary">
               <i class="fas fa-plus"></i> Add Invite
             </button>
           </div>
@@ -183,7 +189,7 @@ endblock %} {% block content %}
   <div class="card">
     <div class="card-header">
       <h3><i class="fas fa-list"></i> All Invites ({{ total_invites }})</h3>
-      <div style="display: flex; gap: 1rem; align-items: center">
+      <div class="flex-row">
         <div class="search-box">
           <i class="fas fa-search"></i>
           <input
@@ -323,6 +329,39 @@ endblock %} {% block content %}
 </div>
 {% endblock %} {% block extra_scripts %}
 <script>
+  // Handle add invite form submission
+  document
+    .getElementById("addInviteForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+
+      fetch(this.action, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            showNotification(data.message, "success");
+            // Reset form
+            this.reset();
+            // Reload page after short delay to show updated list
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            showNotification(data.message || "Failed to add invite", "error");
+          }
+        })
+        .catch((err) => {
+          console.error("Error adding invite:", err);
+          showNotification("Failed to add invite", "error");
+        });
+    });
+
   function handleSearch(event) {
     if (event.key === "Enter") {
       const search = event.target.value;
@@ -356,176 +395,4 @@ endblock %} {% block content %}
       });
   }
 </script>
-
-<style>
-  .search-box {
-    position: relative;
-    max-width: 400px;
-  }
-
-  .search-box i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-  }
-
-  .search-box input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.5rem;
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--text-color);
-  }
-
-  .pagination-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-top: 1px solid #30363d;
-  }
-
-  .pagination-info {
-    color: #8b949e;
-    font-size: 0.875rem;
-  }
-
-  .pagination {
-    display: flex;
-    gap: 0.25rem;
-    align-items: center;
-  }
-
-  .pagination .disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  .card-footer {
-    background: #0d1117;
-    border-radius: 0 0 6px 6px;
-  }
-
-  .plex-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-  }
-
-  .plex-info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.95rem;
-  }
-
-  .plex-info-item i {
-    color: var(--link-color);
-    width: 20px;
-  }
-
-  .plex-info-item strong {
-    margin-right: 0.25rem;
-  }
-
-  /* Plex Server Card */
-  .server-name {
-    color: var(--link-color);
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-  }
-
-  .stat-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .stat-content {
-    flex: 1;
-  }
-
-  .stat-value {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--text-color);
-    line-height: 1;
-  }
-
-  .stat-label {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* Stat card icon gradients */
-  .stat-card .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-  }
-
-  .stat-icon.total-invites {
-    background: #667eea;
-  }
-  .stat-icon.active-invites {
-    background: #38ef7d;
-  }
-  .stat-icon.expired-invites {
-    background: #f04747;
-  }
-  .stat-icon.revoked-invites {
-    background: #faa61a;
-  }
-  .stat-icon.removed-invites {
-    background: #f04747;
-  }
-  .stat-icon.plex-users-stat {
-    background: #38ef7d;
-  }
-  .stat-icon.plex-movies {
-    background: #e5a00d;
-  }
-  .stat-icon.plex-shows {
-    background: #9147ff;
-  }
-  .stat-icon.plex-users {
-    background: #667eea;
-  }
-  .stat-icon.plex-version {
-    background: #38ef7d;
-  }
-
-  .invite-form .form-group.form-actions {
-    border-top: none !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-
-  .invite-form .form-group.form-actions::before {
-    display: none !important;
-  }
-</style>
 {% endblock %}

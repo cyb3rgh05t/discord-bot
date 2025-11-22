@@ -21,6 +21,7 @@ def index():
     """Tickets list page"""
     status_filter = request.args.get("status", "all")
     ticket_type = request.args.get("type", "all")  # plex, tv, or all
+    search = request.args.get("search", "", type=str)
     page = request.args.get("page", 1, type=int)
     per_page = 10
 
@@ -43,6 +44,19 @@ def index():
     elif ticket_type == "tv":
         tickets = [t for t in all_tickets if t.get("ticket_type") == "tv"]
     else:
+        tickets = all_tickets
+
+    # Filter by search if provided
+    if search:
+        search_lower = search.lower()
+        tickets = [
+            t
+            for t in tickets
+            if search_lower in str(t.get("id", "")).lower()
+            or search_lower in str(t.get("user_id", "")).lower()
+            or search_lower in t.get("type", "").lower()
+            or search_lower in t.get("username", "").lower()
+        ]
         tickets = all_tickets
 
     # Calculate pagination
@@ -68,6 +82,7 @@ def index():
         tickets=paginated_tickets,
         status_filter=status_filter,
         ticket_type=ticket_type,
+        search=search,
         page=page,
         total_pages=total_pages,
         total_tickets=total_tickets,
@@ -82,6 +97,11 @@ def view(ticket_id):
     ticket = get_ticket_details(ticket_id)
 
     if not ticket:
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.is_json
+        ):
+            return jsonify({"success": False, "message": "Ticket not found"}), 404
         flash("Ticket not found", "danger")
         return redirect(url_for("tickets.index"))
 

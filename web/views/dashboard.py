@@ -62,14 +62,30 @@ def index():
     # Get ticket statistics
     ticket_stats = {"total": 0, "open": 0, "closed": 0}
     try:
-        conn = get_db_connection("tickets")
+        conn = get_db_connection("ticket_system")
         cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM tickets")
-        ticket_stats["total"] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM tickets WHERE status = 'open'")
-        ticket_stats["open"] = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM tickets WHERE status = 'closed'")
-        ticket_stats["closed"] = cursor.fetchone()[0]
+
+        # Count plex tickets
+        cursor.execute("SELECT COUNT(*) FROM plex_ticket_data")
+        plex_total = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM plex_ticket_data WHERE closed = 0")
+        plex_open = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM plex_ticket_data WHERE closed = 1")
+        plex_closed = cursor.fetchone()[0]
+
+        # Count TV tickets
+        cursor.execute("SELECT COUNT(*) FROM tv_ticket_data")
+        tv_total = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM tv_ticket_data WHERE closed = 0")
+        tv_open = cursor.fetchone()[0]
+        cursor.execute("SELECT COUNT(*) FROM tv_ticket_data WHERE closed = 1")
+        tv_closed = cursor.fetchone()[0]
+
+        # Combine totals
+        ticket_stats["total"] = plex_total + tv_total
+        ticket_stats["open"] = plex_open + tv_open
+        ticket_stats["closed"] = plex_closed + tv_closed
+
         conn.close()
     except Exception:
         pass

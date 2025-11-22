@@ -1,5 +1,10 @@
 {% extends "base.html" %} {% block title %}Databases - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/databases.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="databases-page">
   <div class="page-header">
     <h1><i class="fas fa-database"></i> Database Browser</h1>
@@ -83,7 +88,7 @@ endblock %} {% block content %}
         </button>
       </form>
 
-      <div id="queryResults" class="query-results" style="display: none">
+      <div id="queryResults" class="query-results d-none">
         <h4><i class="fas fa-table"></i> Results:</h4>
         <div id="resultsContent"></div>
       </div>
@@ -248,63 +253,4 @@ endblock %} {% block content %}
       });
   }
 </script>
-
-<style>
-  .stats-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-  }
-
-  .stat-icon.total-databases {
-    background: #667eea;
-  }
-
-  .stat-icon.total-tables {
-    background: #38ef7d;
-  }
-
-  .stat-icon.total-records {
-    background: #faa61a;
-  }
-
-  .stat-info {
-    flex: 1;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--text-color);
-    line-height: 1;
-  }
-
-  .stat-label {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-</style>
 {% endblock %}

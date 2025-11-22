@@ -71,9 +71,23 @@ def add():
         discord_user = request.form.get("discord_user")
 
         add_invite(email, discord_user)
+
+        # Check if it's an AJAX request
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.is_json
+        ):
+            return jsonify({"success": True, "message": "Invite added successfully"})
+
         flash("Invite added successfully", "success")
 
     except Exception as e:
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.is_json
+        ):
+            return jsonify({"success": False, "message": str(e)}), 400
+
         flash(f"Error adding invite: {str(e)}", "danger")
 
     return redirect(url_for("invites.index"))

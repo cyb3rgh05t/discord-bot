@@ -1,5 +1,11 @@
 {% extends "base.html" %} {% block title %}Dashboard - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
 <div class="dashboard">
   <div class="page-header">
     <h1>
@@ -784,5 +790,4 @@ endblock %} {% block content %}
       grid-template-columns: 1fr;
     }
   }
-</style>
 {% endblock %}

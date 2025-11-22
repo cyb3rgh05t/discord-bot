@@ -1,5 +1,14 @@
 {% extends "base.html" %} {% block title %}Guild Statistics - Discord Bot
-Manager{% endblock %} {% block content %}
+Manager{% endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/guild-stats.css') }}"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/utilities.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="guild-stats-page">
   <div class="page-header">
     <h1>
@@ -103,29 +112,25 @@ Manager{% endblock %} {% block content %}
                 <h5><i class="fas fa-circle"></i> Online Status</h5>
                 <div class="stat-row">
                   <span class="stat-label"
-                    ><i class="fas fa-circle" style="color: #43b581"></i>
-                    Online:</span
+                    ><i class="fas fa-circle icon-online"></i> Online:</span
                   >
                   <span class="stat-value">{{ guild.online }}</span>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label"
-                    ><i class="fas fa-circle" style="color: #faa61a"></i>
-                    Idle:</span
+                    ><i class="fas fa-circle icon-idle"></i> Idle:</span
                   >
                   <span class="stat-value">{{ guild.idle }}</span>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label"
-                    ><i class="fas fa-circle" style="color: #f04747"></i>
-                    DND:</span
+                    ><i class="fas fa-circle icon-dnd"></i> DND:</span
                   >
                   <span class="stat-value">{{ guild.dnd }}</span>
                 </div>
                 <div class="stat-row">
                   <span class="stat-label"
-                    ><i class="fas fa-circle" style="color: #747f8d"></i>
-                    Offline:</span
+                    ><i class="fas fa-circle icon-offline"></i> Offline:</span
                   >
                   <span class="stat-value">{{ guild.offline }}</span>
                 </div>
@@ -196,204 +201,4 @@ Manager{% endblock %} {% block content %}
     </div>
   </div>
 </div>
-
-{% block extra_scripts %}
-<style>
-  .stats-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-  }
-
-  .stat-icon.total-guilds {
-    background: #667eea;
-  }
-
-  .stat-icon.total-members {
-    background: #38ef7d;
-  }
-
-  .stat-icon.total-channels {
-    background: #faa61a;
-  }
-
-  .stat-icon.total-roles {
-    background: #f5576c;
-  }
-
-  .stat-info {
-    flex: 1;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--text-color);
-    line-height: 1;
-  }
-
-  .stat-label {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-
-  .guilds-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .guild-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .guild-card:hover {
-    border-color: var(--link-color);
-  }
-
-  .guild-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .guild-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .guild-icon-placeholder {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    font-size: 1.5rem;
-  }
-
-  .guild-info {
-    flex: 1;
-  }
-
-  .guild-name {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-color);
-  }
-
-  .guild-owner {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-  }
-
-  .guild-owner i {
-    color: #faa61a;
-  }
-
-  .guild-body {
-    padding: 1.5rem;
-  }
-
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .stat-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .stat-section h5 {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--link-color);
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.25rem 0;
-  }
-
-  .stat-row .stat-label {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-
-  .stat-row .stat-value {
-    font-weight: 600;
-    color: var(--text-color);
-  }
-
-  .guild-footer {
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color);
-  }
-
-  .guild-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .meta-item {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  .meta-item i {
-    color: var(--link-color);
-    margin-right: 0.25rem;
-  }
-
-  @media (max-width: 768px) {
-    .stats-row {
-      grid-template-columns: 1fr;
-    }
-  }
-</style>
-{% endblock %} {% endblock %}
+{% endblock %}

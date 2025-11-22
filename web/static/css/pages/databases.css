@@ -1,0 +1,352 @@
+/* Database Pages Styles */
+
+/* Database Index Page */
+.databases-page .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.databases-page .stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.databases-page .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.databases-page .stat-icon.total-databases {
+  background: #667eea;
+}
+
+.databases-page .stat-icon.total-tables {
+  background: #38ef7d;
+}
+
+.databases-page .stat-icon.total-records {
+  background: #faa61a;
+}
+
+.databases-page .stat-info {
+  flex: 1;
+}
+
+.databases-page .stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1;
+}
+
+.databases-page .stat-label {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.databases-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.database-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.database-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.database-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.database-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.database-info i {
+  color: var(--link-color);
+  font-size: 1.5rem;
+}
+
+.database-info h4 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.table-count {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-left: 1rem;
+}
+
+.expand-icon {
+  transition: transform 0.3s ease;
+  color: var(--text-muted);
+}
+
+.database-content {
+  border-top: 1px solid var(--border-color);
+}
+
+.tables-list {
+  padding: 0.5rem;
+}
+
+.table-item {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.table-card-clickable {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s;
+}
+
+.table-card-clickable:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-info i {
+  color: var(--link-color);
+}
+
+.view-icon {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.code-input {
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
+}
+
+.query-results {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.query-results h4 {
+  margin-bottom: 1rem;
+}
+
+.null-value {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.error-message {
+  padding: 1rem;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 6px;
+  color: #dc3545;
+}
+
+.no-results {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
+/* Database Table View Page */
+.database-table-page {
+  padding: 2rem;
+}
+
+.database-table-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.database-table-page .page-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.database-table-page .subtitle {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.database-table-page .header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.database-table-page .btn-outline {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.database-table-page .btn-outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.database-table-page .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.database-table-page .expand-icon {
+  transition: transform 0.3s ease;
+  color: var(--text-muted);
+}
+
+.database-table-page .schema-table {
+  overflow-x: auto;
+}
+
+.database-table-page .type-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-family: "Courier New", monospace;
+}
+
+.database-table-page .data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.database-table-page .data-table thead {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.database-table-page .data-table th,
+.database-table-page .data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.database-table-page .data-table th {
+  font-weight: 600;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.database-table-page .data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.database-table-page .pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.database-table-page .page-link {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.database-table-page .page-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--link-color);
+}
+
+.database-table-page .page-info {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.database-table-page .pagination-info {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.database-table-page .text-success {
+  color: #38ef7d;
+}
+
+.database-table-page .text-muted {
+  color: var(--text-muted);
+}
+
+.database-table-page .text-warning {
+  color: #faa61a;
+}
+
+.database-table-page .clickable-header {
+  cursor: pointer;
+}

@@ -1,5 +1,16 @@
 {% extends "base.html" %} {% block title %}Login - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/login.css') }}"
+/>
+<script>
+  // Add body class for login page
+  document.addEventListener("DOMContentLoaded", function () {
+    document.body.classList.add("login-page-body");
+  });
+</script>
+{% endblock %} {% block content %}
 <div class="login-page">
   <div class="login-container">
     <div class="login-card">
@@ -62,83 +73,4 @@ endblock %} {% block content %}
     </div>
   </div>
 </div>
-{% endblock %} {% block extra_head %}
-<style>
-  body {
-    background: var(--main-bg-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-  }
-
-  .navbar,
-  .sidebar {
-    display: none;
-  }
-
-  .main-content {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-  }
-
-  .login-page {
-    width: 100%;
-    max-width: 450px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .login-card {
-    background: rgba(45, 45, 45, 0.95);
-    border-radius: 8px;
-    padding: 3rem 2.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  }
-
-  .login-header {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  .login-header i {
-    font-size: 4rem;
-    color: var(--link-color);
-    margin-bottom: 1rem;
-  }
-
-  .login-header h1 {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
-    color: var(--text);
-  }
-
-  .login-header p {
-    color: var(--text-muted);
-  }
-
-  .login-form .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .login-footer {
-    text-align: center;
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-muted);
-    font-size: 0.875rem;
-  }
-
-  .btn-block {
-    width: 100%;
-    padding: 0.875rem;
-    font-size: 1rem;
-  }
-
-  .checkbox-group {
-    margin-bottom: 2rem;
-  }
-</style>
 {% endblock %}

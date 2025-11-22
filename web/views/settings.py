@@ -48,15 +48,37 @@ def edit():
         is_valid, errors = validate_settings(new_settings)
 
         if not is_valid:
+            if (
+                request.headers.get("X-Requested-With") == "XMLHttpRequest"
+                or request.is_json
+            ):
+                return jsonify({"success": False, "message": "; ".join(errors)}), 400
             for error in errors:
                 flash(error, "danger")
             return redirect(url_for("settings.index"))
 
         # Update settings
         update_settings(new_settings)
+
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.is_json
+        ):
+            return jsonify(
+                {
+                    "success": True,
+                    "message": "Settings updated successfully. Restart bot to apply changes.",
+                }
+            )
+
         flash("Settings updated successfully. Restart bot to apply changes.", "success")
 
     except Exception as e:
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.is_json
+        ):
+            return jsonify({"success": False, "message": str(e)}), 400
         flash(f"Error updating settings: {str(e)}", "danger")
 
     return redirect(url_for("settings.index"))

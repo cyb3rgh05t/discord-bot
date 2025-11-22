@@ -1,0 +1,214 @@
+/* Commands Page Styles */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.stat-icon.total-commands {
+  background: #667eea;
+}
+
+.stat-icon.slash-commands {
+  background: #38ef7d;
+}
+
+.stat-icon.prefix-commands {
+  background: #faa61a;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1;
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: 0.875rem 2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  position: relative;
+}
+
+.tab-button i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.tab-button:hover {
+  color: var(--text-color);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-button:hover i {
+  transform: scale(1.1);
+}
+
+.tab-button.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  border: 1px solid var(--link-color);
+}
+
+.tab-button.active i {
+  color: var(--text-color);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.commands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+.command-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s;
+}
+
+.command-card:hover {
+  border-color: var(--link-color);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.command-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.command-name {
+  font-family: "Courier New", monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--link-color);
+}
+
+.command-name i {
+  font-size: 0.9rem;
+  margin-right: 0.5rem;
+}
+
+.command-type-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.command-type-badge.slash {
+  background: rgba(56, 239, 125, 0.2);
+  color: #38ef7d;
+}
+
+.command-type-badge.prefix {
+  background: rgba(250, 166, 26, 0.2);
+  color: #faa61a;
+}
+
+.command-description {
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.command-aliases {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.alias-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+  font-family: "Courier New", monospace;
+  color: var(--link-color);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--text-muted);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
