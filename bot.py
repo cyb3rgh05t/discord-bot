@@ -34,27 +34,6 @@ logging.getLogger("discord.gateway").setLevel(logging.WARNING)
 logging.getLogger("discord.http").setLevel(logging.WARNING)
 logging.getLogger("discord.client").setLevel(logging.WARNING)
 
-# Initialize databases
-from web.init_databases import (
-    init_invites_db,
-    init_ticket_system_db,
-    init_plex_clients_db,
-)
-
-# Web UI imports (only if enabled)
-try:
-    from config.settings import WEB_ENABLED, WEB_HOST, WEB_PORT, WEB_VERBOSE_LOGGING
-
-    if WEB_ENABLED:
-        from web.app import app, set_bot_instance
-
-        WEB_UI_AVAILABLE = True
-    else:
-        WEB_UI_AVAILABLE = False
-except ImportError as e:
-    WEB_UI_AVAILABLE = False
-    logger.warning(f"Web UI dependencies not found. Web interface disabled. Error: {e}")
-
 # Global channel map that will be populated with channel IDs and names
 channel_map = {}
 
@@ -364,37 +343,6 @@ async def list_cogs(ctx):
     await ctx.send(f"Loaded cogs: {', '.join(cogs)}")
 
 
-def start_web_ui(bot_instance):
-    """Start the Flask web UI in a separate thread."""
-    if WEB_UI_AVAILABLE:
-        try:
-            # Set the bot instance for the web UI
-            set_bot_instance(bot_instance)
-
-            logger.info(f"Starting Web UI on {WEB_HOST}:{WEB_PORT}")
-
-            # Run Flask in production mode with Werkzeug
-            from werkzeug.serving import run_simple
-            import logging as werkzeug_logging
-
-            # Suppress Werkzeug HTTP request logs
-            werkzeug_log = werkzeug_logging.getLogger("werkzeug")
-            werkzeug_log.setLevel(werkzeug_logging.ERROR)
-
-            run_simple(
-                WEB_HOST,
-                WEB_PORT,
-                app,
-                use_reloader=False,
-                use_debugger=WEB_VERBOSE_LOGGING,
-                threaded=True,
-            )
-        except Exception as e:
-            logger.error(f"Failed to start Web UI: {e}")
-    else:
-        logger.info("Web UI is disabled")
-
-
 # Main program
 if __name__ == "__main__":
     # Display ASCII logo and version
@@ -406,6 +354,14 @@ if __name__ == "__main__":
     # Initialize databases
     logger.info("Initializing databases...")
     os.makedirs("databases", exist_ok=True)
+    
+    # Import database initialization functions
+    from cogs.helpers.database_init import (
+        init_invites_db,
+        init_ticket_system_db,
+        init_plex_clients_db,
+    )
+    
     try:
         msg1 = init_invites_db()
         logger.info(f"  - {msg1}")
@@ -427,12 +383,6 @@ if __name__ == "__main__":
     bot.add_command(list_cogs)
     bot.add_command(list_guilds)
     bot.add_command(list_commands)
-
-    # Start Web UI in a separate thread if enabled
-    if WEB_UI_AVAILABLE and WEB_ENABLED:
-        web_thread = threading.Thread(target=start_web_ui, args=(bot,), daemon=True)
-        web_thread.start()
-        logger.info("Web UI thread started")
 
     # Run the bot
     bot.run(BOT_TOKEN)

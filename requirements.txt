@@ -11,5 +11,3 @@ python-dotenv
 plexapi==4.17.1
 texttable
 requests
-flask>=3.0.0
-flask-login>=0.6.3
