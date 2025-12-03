@@ -1,0 +1,22 @@
+# Frontend development files (only copy built dist)
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/src/
+frontend/public/
+frontend/*.json
+frontend/*.config.*
+frontend/*.ts
+frontend/.gitignore
+frontend/README.md
+
+# Logs and temporary files
+*.log
+
+# Git and IDE
+.git/
+.env
+__pycache__/
+*.pyc
+.vscode/
+.idea/
