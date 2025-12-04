@@ -1,16 +1,10 @@
-# Frontend development files (only copy built dist)
+# Node modules
 node_modules/
 frontend/node_modules/
+
+# Build outputs (will be generated)
+frontend/dist/
 frontend/.next/
-frontend/src/
-frontend/public/
-frontend/tsconfig.json
-frontend/tsconfig.node.json
-frontend/vite.config.ts
-frontend/*.config.*
-frontend/*.ts
-frontend/.gitignore
-frontend/README.md
 
 # Logs and temporary files
 *.log
