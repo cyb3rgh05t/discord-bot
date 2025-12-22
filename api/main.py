@@ -3,7 +3,7 @@ FastAPI application for Discord Bot Web UI
 Modern async API to replace Flask
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse
@@ -71,7 +71,23 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/api/docs" if WEB_VERBOSE_LOGGING else None,
     redoc_url="/api/redoc" if WEB_VERBOSE_LOGGING else None,
+    redirect_slashes=False,  # Prevent issues with SPA catch-all routes
 )
+
+
+# Add logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"============ Request START ============")
+    logger.info(f"Method: {request.method}")
+    logger.info(f"URL: {request.url}")
+    logger.info(f"Path: {request.url.path}")
+    logger.info(f"Has Auth: {'authorization' in request.headers}")
+    response = await call_next(request)
+    logger.info(f"Response Status: {response.status_code}")
+    logger.info(f"============ Request END ============")
+    return response
+
 
 # CORS middleware - configure for your frontend
 app.add_middleware(
@@ -154,34 +170,26 @@ async def serve_frontend():
     )
 
 
-@app.get("/{full_path:path}")
-async def serve_spa(full_path: str):
-    """Catch-all route for SPA routing - MUST BE LAST"""
-    # Don't catch API routes (shouldn't happen if API routes are defined first)
-    if full_path.startswith("api/") or full_path.startswith("ws/"):
+# Removed catch-all route - it was interfering with API routes
+# SPA routing handled by serving index.html for non-API paths
+# If you need specific frontend routes, add them explicitly above this comment
+
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    """Custom 404 handler - serves SPA for frontend routes, returns JSON for API"""
+    # If it's an API or WebSocket request, return JSON error
+    if request.url.path.startswith("/api/") or request.url.path.startswith("/ws/"):
         return JSONResponse(
-            status_code=404, content={"error": "API endpoint not found"}
+            status_code=404, content={"error": "Not found", "path": request.url.path}
         )
 
-    # Try to serve the file if it exists
-    file_path = frontend_dist / full_path
-    if file_path.is_file():
-        return FileResponse(file_path)
-
-    # Otherwise serve index.html for SPA routing
+    # For frontend routes, serve index.html for SPA routing
     index_file = frontend_dist / "index.html"
     if index_file.exists():
         return FileResponse(index_file)
 
     return JSONResponse(status_code=404, content={"error": "Frontend not built"})
-
-
-@app.exception_handler(404)
-async def not_found_handler(request: Request, exc):
-    """Custom 404 handler"""
-    return JSONResponse(
-        status_code=404, content={"error": "Not found", "path": request.url.path}
-    )
 
 
 @app.exception_handler(500)

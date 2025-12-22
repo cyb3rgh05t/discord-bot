@@ -51,11 +51,18 @@ export default function Tickets() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchTickets();
-  }, [statusFilter, typeFilter, currentPage]);
+    if (loading) {
+      fetchTickets();
+    } else {
+      fetchTickets(false);
+    }
+  }, [statusFilter, typeFilter, currentPage, searchQuery]);
 
-  const fetchTickets = async () => {
+  const fetchTickets = async (showLoader = false) => {
     try {
+      if (showLoader) {
+        setLoading(true);
+      }
       const params = new URLSearchParams({
         status: statusFilter,
         type: typeFilter,
@@ -81,13 +88,12 @@ export default function Tickets() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchTickets();
+    fetchTickets(false);
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       setCurrentPage(1);
-      fetchTickets();
     }
   };
 
@@ -273,7 +279,6 @@ export default function Tickets() {
               onClick={handleRefresh}
               disabled={refreshing}
               className="btn btn-sm btn-outline"
-              title="Refresh"
             >
               <FontAwesomeIcon
                 icon={faSync}

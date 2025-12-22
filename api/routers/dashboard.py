@@ -100,10 +100,10 @@ def get_bot_status() -> BotStatus:
 
     # Calculate uptime
     uptime = "N/A"
-    if hasattr(bot, "start_time"):
-        from datetime import datetime
+    if hasattr(bot, "start_time") and bot.start_time is not None:
+        from datetime import datetime, timezone
 
-        delta = datetime.utcnow() - bot.start_time
+        delta = datetime.now(timezone.utc) - bot.start_time
         days = delta.days
         hours, remainder = divmod(delta.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)

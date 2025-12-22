@@ -36,10 +36,10 @@ def get_service_status() -> List[ServiceStatus]:
 
     # Discord Bot
     bot_uptime = "N/A"
-    if bot and hasattr(bot, "start_time"):
-        from datetime import datetime
+    if bot and hasattr(bot, "start_time") and bot.start_time is not None:
+        from datetime import datetime, timezone
 
-        delta = datetime.utcnow() - bot.start_time
+        delta = datetime.now(timezone.utc) - bot.start_time
         days = delta.days
         hours, remainder = divmod(delta.seconds, 3600)
         minutes, _ = divmod(remainder, 60)

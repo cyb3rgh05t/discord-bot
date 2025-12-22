@@ -278,7 +278,7 @@ async def add_invite(
 
 @router.post("/{invite_id}/remove")
 async def remove_invite(invite_id: int, current_user: User = Depends(get_current_user)):
-    """Remove an invite"""
+    """Remove an invite and revoke Plex access"""
     db_path = get_invites_db_path()
 
     if not db_path:
@@ -299,12 +299,134 @@ async def remove_invite(invite_id: int, current_user: User = Depends(get_current
             conn.close()
             return {"success": False, "message": "Invite not found"}
 
-        # Delete the invite
-        cursor.execute("DELETE FROM invites WHERE id = ?", (invite_id,))
+        invite_id_db, email, discord_user, status = invite_data
+
+        # Try to remove from Plex if the invite was active/accepted
+        plex_removed = False
+        plex_message = ""
+        notification_sent = False
+
+        if status in ["active", "accepted"]:
+            try:
+                from cogs.helpers.plex_helper import plexremove
+                from api.main import bot_instance
+                from config.settings import PLEX_SERVER_NAME
+                import discord
+                import asyncio
+
+                # Get Plex connection for removal
+                plex = get_plex_connection()
+                if plex:
+                    # Try to remove using email (primary method)
+                    result = plexremove(plex, email)
+
+                    if result:
+                        plex_removed = True
+                        plex_message = (
+                            f"User {email} removed from Plex server successfully"
+                        )
+
+                        # Try to send DM notification to the user
+                        if bot_instance and bot_instance.is_ready():
+                            try:
+
+                                async def send_removal_notification():
+                                    # Try to find the Discord user by username
+                                    guild = None
+                                    user_obj = None
+
+                                    # Search all guilds for the user
+                                    for g in bot_instance.guilds:
+                                        for member in g.members:
+                                            if (
+                                                member.name.lower()
+                                                == discord_user.lower()
+                                            ):
+                                                user_obj = member
+                                                guild = g
+                                                break
+                                        if user_obj:
+                                            break
+
+                                    if user_obj:
+                                        try:
+                                            embed = discord.Embed(
+                                                title="👋 StreamNet Plex Zugriff entfernt",
+                                                description=(
+                                                    f"**Hallo {user_obj.mention}!**\n\n"
+                                                    f"Dein Zugriff auf **{PLEX_SERVER_NAME or 'Plex Server'}** wurde entfernt.\n\n"
+                                                    f"━━━━━━━━━━━━━━━━━━━━━━\n\n"
+                                                    f"📧 Email: `{email}`\n"
+                                                    f"🎬 Server: **{PLEX_SERVER_NAME or 'Plex Server'}**\n\n"
+                                                    f"ℹ️ **Grund:**\n"
+                                                    f"• Zugriff wurde über Web UI entfernt\n"
+                                                    f"• Einladung wurde widerrufen\n\n"
+                                                    f"💡 *Bei Fragen wende dich an einen Administrator*"
+                                                ),
+                                                color=0xE5A00D,
+                                            )
+                                            embed.set_thumbnail(
+                                                url="https://cdn.discordapp.com/emojis/1033460420587049021.png"
+                                            )
+                                            embed.set_footer(
+                                                text=f"{PLEX_SERVER_NAME or 'Plex Server'} • Zugriff entfernt",
+                                                icon_url="https://cdn.discordapp.com/emojis/1310635856318562334.png",
+                                            )
+
+                                            await user_obj.send(embed=embed)
+                                            return True
+                                        except discord.Forbidden:
+                                            print(
+                                                f"[INFO] Could not send DM to {discord_user} (DMs disabled)"
+                                            )
+                                            return False
+                                    return False
+
+                                future = asyncio.run_coroutine_threadsafe(
+                                    send_removal_notification(), bot_instance.loop
+                                )
+                                notification_sent = future.result(timeout=5)
+
+                            except Exception as e:
+                                print(
+                                    f"[WARNING] Could not send removal notification: {e}"
+                                )
+                    else:
+                        plex_message = "Could not remove from Plex"
+                else:
+                    plex_message = "Plex connection unavailable"
+
+            except Exception as e:
+                print(f"Error removing from Plex: {e}")
+                import traceback
+
+                traceback.print_exc()
+                plex_message = f"Failed to remove from Plex: {str(e)}"
+
+        # Update invite status to 'revoked' (same as Discord role removal)
+        cursor.execute(
+            "UPDATE invites SET status = 'revoked' WHERE id = ?", (invite_id,)
+        )
         conn.commit()
         conn.close()
 
-        return {"success": True, "message": "Invite removed successfully"}
+        # Prepare response message
+        if plex_removed:
+            message = f"Invite revoked successfully. {plex_message}"
+            if notification_sent:
+                message += " User was notified via DM."
+            else:
+                message += " (Could not notify user - not found or DMs disabled)"
+        elif status in ["active", "accepted"]:
+            message = (
+                f"Invite revoked in database, but Plex removal failed: {plex_message}"
+            )
+        else:
+            message = (
+                f"Invite revoked successfully (status: {status}, no Plex action needed)"
+            )
+
+        return {"success": True, "message": message, "plex_removed": plex_removed}
 
     except Exception as e:
         import traceback

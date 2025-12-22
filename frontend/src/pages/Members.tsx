@@ -17,13 +17,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 interface RoleInfo {
-  id: number;
+  id: string;
   name: string;
   color: string;
 }
 
 interface MemberItem {
-  id: number;
+  id: string;
   name: string;
   display_name: string;
   avatar: string | null;
@@ -32,7 +32,7 @@ interface MemberItem {
 }
 
 interface RoleItem {
-  id: number;
+  id: string;
   name: string;
   color: string;
   position: number;
@@ -60,21 +60,28 @@ export default function Members() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [roleSearch, setRoleSearch] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<{
-    id: number;
+    id: string;
     name: string;
   } | null>(null);
   const [selectedRole, setSelectedRole] = useState("");
   const perPage = 10;
 
   useEffect(() => {
-    fetchMembers();
+    if (loading) {
+      fetchMembers();
+    } else {
+      fetchMembers(false);
+    }
   }, [page, search]);
 
-  const fetchMembers = async () => {
+  const fetchMembers = async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const params = new URLSearchParams({
         page: page.toString(),
         per_page: perPage.toString(),
@@ -88,21 +95,22 @@ export default function Members() {
       console.error("Error fetching members:", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       setPage(1);
-      fetchMembers();
     }
   };
 
   const handleRefresh = () => {
-    fetchMembers();
+    setRefreshing(true);
+    fetchMembers(false);
   };
 
-  const openAddRoleModal = (memberId: number, memberName: string) => {
+  const openAddRoleModal = (memberId: string, memberName: string) => {
     setSelectedMember({ id: memberId, name: memberName });
     setSelectedRole("");
     setShowModal(true);
@@ -121,9 +129,9 @@ export default function Members() {
     }
 
     try {
-      await api.post("/members/add_role", {
+      await api.post("/members/member/add-role", {
         user_id: selectedMember.id,
-        role_id: parseInt(selectedRole),
+        role_id: selectedRole,
       });
       alert("Role added successfully");
       closeModal();
@@ -133,13 +141,13 @@ export default function Members() {
     }
   };
 
-  const removeRole = async (memberId: number, roleId: number) => {
+  const removeRole = async (memberId: string, roleId: string) => {
     if (!confirm("Are you sure you want to remove this role?")) {
       return;
     }
 
     try {
-      await api.post("/members/remove_role", {
+      await api.post("/members/member/remove-role", {
         user_id: memberId,
         role_id: roleId,
       });
@@ -225,11 +233,17 @@ export default function Members() {
                   />
                 </div>
                 <button
-                  className="btn btn-sm btn-outline"
                   onClick={handleRefresh}
-                  title="Refresh"
+                  disabled={refreshing}
+                  className="btn btn-sm btn-outline"
                 >
-                  <FontAwesomeIcon icon={faSync} /> Refresh
+                  <FontAwesomeIcon
+                    icon={faSync}
+                    className={`w-4 h-4 inline ${
+                      refreshing ? "animate-spin" : ""
+                    }`}
+                  />{" "}
+                  Refresh
                 </button>
               </div>
             </div>

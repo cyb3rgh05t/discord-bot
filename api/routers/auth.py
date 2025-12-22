@@ -3,7 +3,7 @@ Authentication endpoints
 JWT-based authentication system
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -73,6 +73,96 @@ async def get_current_user(token: Optional[str] = Depends(oauth2_scheme)) -> Use
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except jwt.PyJWTError:
+        raise credentials_exception
+
+    if token_data.username is None:
+        raise credentials_exception
+
+    return User(username=token_data.username)
+
+
+async def get_current_user_manual(request: Request) -> User:
+    """Validate JWT token from Authorization header manually (workaround for routing issue)"""
+    # If auth is disabled, return a default user
+    if not WEB_AUTH_ENABLED:
+        return User(username="guest")
+
+    # Extract token from Authorization header manually
+    auth_header = request.headers.get("authorization")
+    if not auth_header:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Parse "Bearer <token>" format
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication header format",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = parts[1]
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except jwt.PyJWTError:
+        raise credentials_exception
+
+    if token_data.username is None:
+        raise credentials_exception
+
+    return User(username=token_data.username)
+
+
+async def verify_token_header(authorization: Optional[str] = Header(None)) -> User:
+    """Validate JWT token from Authorization header using Header dependency"""
+    # If auth is disabled, return a default user
+    if not WEB_AUTH_ENABLED:
+        return User(username="guest")
+
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Parse "Bearer <token>" format
+    parts = authorization.split()
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication header format",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = parts[1]
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

@@ -323,40 +323,34 @@ async def get_ticket_detail(
 
 @router.post("/{ticket_id}/close")
 async def close_ticket(ticket_id: int, current_user: User = Depends(get_current_user)):
-    """Close a ticket"""
+    """Close a ticket with full transcript creation like Discord"""
     db_path = get_tickets_db_path()
 
     if not db_path:
         return {"success": False, "message": "Tickets database not found"}
 
+    from api.main import bot_instance
+    from api.helpers.ticket_closer import close_ticket_with_transcript
+    import asyncio
+
+    if not bot_instance or not bot_instance.is_ready():
+        return {"success": False, "message": "Bot is not ready"}
+
     try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-
-        # Try to close in plex tickets
-        cursor.execute(
-            "UPDATE plex_ticket_data SET closed = 1 WHERE ticket_id = ?",
-            (ticket_id,),
+        future = asyncio.run_coroutine_threadsafe(
+            close_ticket_with_transcript(
+                ticket_id, db_path, bot_instance, current_user.username
+            ),
+            bot_instance.loop,
         )
-
-        if cursor.rowcount == 0:
-            # Try TV tickets
-            cursor.execute(
-                "UPDATE tv_ticket_data SET closed = 1 WHERE ticket_id = ?",
-                (ticket_id,),
-            )
-
-        conn.commit()
-        success = cursor.rowcount > 0
-        conn.close()
-
-        if success:
-            return {"success": True, "message": "Ticket closed successfully"}
-        else:
-            return {"success": False, "message": "Ticket not found"}
+        result = future.result(timeout=30)
+        return result
 
     except Exception as e:
-        print(f"Error closing ticket: {e}")
+        print(f"Error in close_ticket endpoint: {e}")
+        import traceback
+
+        traceback.print_exc()
         return {"success": False, "message": str(e)}
 
 

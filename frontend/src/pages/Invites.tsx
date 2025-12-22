@@ -74,12 +74,18 @@ export default function Invites() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchInvites();
+    if (loading) {
+      fetchInvites();
+    } else {
+      fetchInvites(false);
+    }
   }, [currentPage, searchQuery]);
 
-  const fetchInvites = async () => {
+  const fetchInvites = async (showLoader = false) => {
     try {
-      setLoading(true);
+      if (showLoader) {
+        setLoading(true);
+      }
       const response = await api.get("/invites/", {
         params: {
           page: currentPage,
@@ -102,13 +108,12 @@ export default function Invites() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchInvites();
+    fetchInvites(false);
   };
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       setCurrentPage(1);
-      fetchInvites();
     }
   };
 
@@ -404,11 +409,10 @@ export default function Invites() {
               onClick={handleRefresh}
               disabled={refreshing}
               className="btn btn-sm btn-outline"
-              title="Refresh"
             >
               <FontAwesomeIcon
-                className={`w-4 h-4 inline ${refreshing ? "animate-spin" : ""}`}
                 icon={faSync}
+                className={`w-4 h-4 inline ${refreshing ? "animate-spin" : ""}`}
               />{" "}
               Refresh
             </button>

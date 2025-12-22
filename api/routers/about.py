@@ -51,7 +51,7 @@ async def get_about_data():
     """Get all about page data"""
     try:
         from api.main import get_bot_instance
-        
+
         # Get version from file
         version_file = os.path.join(
             os.path.dirname(__file__), "..", "..", "version.txt"
@@ -73,25 +73,31 @@ async def get_about_data():
 
         # Get bot instance
         bot = get_bot_instance()
-        
+
         # Get bot status
         bot_status = BotStatus(online=bot.is_ready() if bot else False)
-        
+
         # Get bot stats
         if bot and bot.is_ready():
             # Calculate uptime
             uptime = "0d 0h 0m"
-            if hasattr(bot, "start_time"):
-                delta = datetime.utcnow() - bot.start_time
+            if hasattr(bot, "start_time") and bot.start_time is not None:
+                from datetime import timezone
+
+                delta = datetime.now(timezone.utc) - bot.start_time
                 days = delta.days
                 hours, remainder = divmod(delta.seconds, 3600)
                 minutes, seconds = divmod(remainder, 60)
-                uptime = f"{days}d {hours}h {minutes}m" if days > 0 else f"{hours}h {minutes}m"
-            
+                uptime = (
+                    f"{days}d {hours}h {minutes}m"
+                    if days > 0
+                    else f"{hours}h {minutes}m"
+                )
+
             latency_ms = round(bot.latency * 1000, 2) if bot.latency else 0
             guild_count = len(bot.guilds)
             user_count = sum(g.member_count for g in bot.guilds)
-            
+
             bot_stats = BotStats(
                 uptime=uptime,
                 latency=f"{latency_ms}",

@@ -4,7 +4,7 @@ import discord
 import os
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from discord.ext import commands
 from config.settings import (
     BOT_TOKEN,
@@ -285,9 +285,9 @@ class MyBot(commands.Bot):
         """Event fired when the bot is ready."""
         # Record start time on first ready event
         if self.start_time is None:
-            self.start_time = datetime.now()
+            self.start_time = datetime.now(timezone.utc)
             logger.info(
-                f"Bot start time recorded: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Bot start time recorded: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')} UTC"
             )
 
         if self.user:
