@@ -616,11 +616,13 @@ class SystemInfo(commands.Cog):
     async def init_status_task(self):
         """Update the status every 2 minutes."""
         await self.update_status()
-        channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
-        if channel:
-            await self.send_or_update_message(channel)
-        else:
-            logger.error(f"System channel with ID {SYSTEM_CHANNEL_ID} not found.")
+        if SYSTEM_CHANNEL_ID:
+            channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
+            if channel:
+                await self.send_or_update_message(channel)
+            else:
+                logger.error(f"System channel with ID {SYSTEM_CHANNEL_ID} not found.")
+        # If SYSTEM_CHANNEL_ID is empty, skip silently
 
     async def update_status(self):
         """Rotate and update bot's status messages."""
@@ -667,12 +669,17 @@ class SystemInfo(commands.Cog):
         logger.debug("SystemInfo cog is ready.")
 
         # Log the channel where we'll be updating info
-        channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
-        if channel:
-            logger.info(f"System Information channel found #{channel.name}")
+        if SYSTEM_CHANNEL_ID:
+            channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
+            if channel:
+                logger.info(f"System Information channel found #{channel.name}")
+            else:
+                logger.error(
+                    f"System channel with ID {SYSTEM_CHANNEL_ID} not found. Cannot start system info updates."
+                )
         else:
-            logger.error(
-                f"System channel with ID {SYSTEM_CHANNEL_ID} not found. Cannot start system info updates."
+            logger.info(
+                "System channel ID not configured. System info updates disabled."
             )
 
         self.init_status_task.start()

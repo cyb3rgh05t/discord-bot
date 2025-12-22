@@ -36,6 +36,7 @@ export default function Settings() {
     type: "success" | "error";
   }>({ show: false, message: "", type: "success" });
   const [autoSave, setAutoSave] = useState(true);
+  const [restarting, setRestarting] = useState(false);
   const autoSaveTimeout = useRef<number | null>(null);
 
   useEffect(() => {
@@ -125,19 +126,57 @@ export default function Settings() {
 
       setSaveStatus({
         show: true,
-        message: response.data.message,
+        message: response.data.message || "Restarting bot...",
         type: "success",
       });
+      setRestarting(true);
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+      // Poll health endpoint until bot_ready is true
+      const start = Date.now();
+      const timeoutMs = 60000; // 60s max
+      const pollIntervalMs = 1500;
+
+      const pollHealth = async () => {
+        try {
+          const health = await api.get("/about/health");
+          const ready = Boolean(health?.data?.bot_ready);
+          if (ready) {
+            setSaveStatus({
+              show: true,
+              message: "Restart complete.",
+              type: "success",
+            });
+            setRestarting(false);
+            setTimeout(() => {
+              setSaveStatus({ show: false, message: "", type: "success" });
+              window.location.reload();
+            }, 1500);
+            return;
+          }
+        } catch (e) {
+          // ignore while restarting
+        }
+
+        if (Date.now() - start < timeoutMs) {
+          setTimeout(pollHealth, pollIntervalMs);
+        } else {
+          setSaveStatus({
+            show: true,
+            message: "Restart timed out. Try manual refresh.",
+            type: "error",
+          });
+          setRestarting(false);
+        }
+      };
+
+      setTimeout(pollHealth, pollIntervalMs);
     } catch (error: any) {
       setSaveStatus({
         show: true,
         message: error.response?.data?.detail || "Failed to restart bot",
         type: "error",
       });
+      setRestarting(false);
     }
   };
 
@@ -176,6 +215,12 @@ export default function Settings() {
 
       {/* Actions Bar */}
       <div className="actions-bar">
+        {restarting && (
+          <div className="mb-3 bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 py-2 rounded">
+            <FontAwesomeIcon icon={faSyncAlt} /> Restarting bot… waiting for
+            health check
+          </div>
+        )}
         <div className="autosave-toggle">
           <label className="toggle-switch-inline">
             <input
@@ -191,18 +236,31 @@ export default function Settings() {
           </span>
         </div>
         <div className="button-group">
-          <button onClick={() => handleSave(false)} className="btn btn-primary">
+          <button
+            onClick={() => handleSave(false)}
+            className="btn btn-primary"
+            disabled={restarting}
+          >
             <FontAwesomeIcon icon={faSave} /> Save Settings
           </button>
-          <button onClick={handleSaveAndRestart} className="btn btn-primary">
+          <button
+            onClick={handleSaveAndRestart}
+            className="btn btn-primary"
+            disabled={restarting}
+          >
             <FontAwesomeIcon icon={faSyncAlt} /> Save & Restart Bot
           </button>
-          <button onClick={handleReset} className="btn btn-outline">
+          <button
+            onClick={handleReset}
+            className="btn btn-outline"
+            disabled={restarting}
+          >
             <FontAwesomeIcon icon={faUndo} /> Reset
           </button>
           <button
             onClick={() => navigate("/dashboard")}
             className="btn btn-outline"
+            disabled={restarting}
           >
             <FontAwesomeIcon icon={faTimes} /> Cancel
           </button>

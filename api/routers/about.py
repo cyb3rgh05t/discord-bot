@@ -46,6 +46,13 @@ class VersionInfo(BaseModel):
     error: Optional[str] = None
 
 
+class HealthResponse(BaseModel):
+    status: str
+    bot_ready: bool
+    timestamp: str
+    uptime_seconds: int
+
+
 @router.get("/data", response_model=AboutData)
 async def get_about_data():
     """Get all about page data"""
@@ -167,3 +174,25 @@ async def get_version():
             loading=False,
             error=str(e),
         )
+
+
+@router.get("/health", response_model=HealthResponse)
+async def health():
+    """Lightweight health check for UI polling during restart."""
+    from api.main import get_bot_instance
+    from datetime import timezone
+
+    bot = get_bot_instance()
+    bot_ready = bool(bot and bot.is_ready())
+
+    uptime_seconds = 0
+    if bot and bot.is_ready() and hasattr(bot, "start_time") and bot.start_time:
+        delta = datetime.now(timezone.utc) - bot.start_time
+        uptime_seconds = int(delta.total_seconds())
+
+    return HealthResponse(
+        status="ok",
+        bot_ready=bot_ready,
+        timestamp=datetime.utcnow().isoformat() + "Z",
+        uptime_seconds=uptime_seconds,
+    )

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import os
 import re
+import asyncio
 
 router = APIRouter()
 
@@ -115,12 +116,6 @@ def update_settings_file(new_settings: Dict[str, Any]):
                 else:
                     value = new_settings[key]
 
-                    # Skip empty values for non-required fields
-                    if value == "" or value is None:
-                        updated_lines.append(line)
-                        i += 1
-                        continue
-
                     # Handle boolean values
                     if isinstance(value, bool) or value in (
                         "True",
@@ -138,9 +133,9 @@ def update_settings_file(new_settings: Dict[str, Any]):
                     ):
                         new_line = f"{indent_str}{key} = {value}{comment}"
                     else:
-                        # String values - always quote them
+                        # String values - always quote them (including empty strings)
                         # Don't escape quotes if they're already escaped
-                        str_value = str(value)
+                        str_value = str(value) if value is not None else ""
                         new_line = f'{indent_str}{key} = "{str_value}"{comment}'
 
                     updated_lines.append(new_line)
@@ -203,49 +198,89 @@ async def update_settings(request: UpdateSettingsRequest):
 
 @router.post("/restart-bot")
 async def restart_bot():
-    """Restart the bot process"""
+    """Restart the bot process (Windows-optimized)"""
     try:
-        import signal
-        import threading
         import subprocess
         import sys
-        import time
+        import os as _os
 
-        def delayed_restart():
-            time.sleep(1)
+        print("[INFO] ============ BOT RESTART REQUESTED ============")
+
+        current_pid = _os.getpid()
+        python_exe = sys.executable
+        script_path = _os.path.join(
+            _os.path.dirname(_os.path.dirname(_os.path.dirname(__file__))),
+            "bot.py",
+        )
+        work_dir = _os.path.dirname(script_path)
+
+        print(f"[INFO] Current PID: {current_pid}")
+        print(f"[INFO] Python: {python_exe}")
+        print(f"[INFO] Script: {script_path}")
+        print(f"[INFO] Workdir: {work_dir}")
+
+        # Detect containerized environment (Docker/K8s)
+        is_container = (
+            _os.path.exists("/.dockerenv")
+            or _os.environ.get("RUNNING_IN_CONTAINER") == "1"
+            or current_pid == 1
+        )
+
+        if is_container:
+            # In containers, let the orchestrator restart the process/container.
+            # Exit after sending response to avoid breaking the HTTP call.
+            import threading
+
+            threading.Timer(1.0, lambda: _os._exit(0)).start()
+            print(
+                "[INFO] Container mode detected. Scheduled exit for orchestrator restart."
+            )
+        elif _os.name == "nt":
+            # Use a detached PowerShell helper to kill this PID and start a fresh bot
+            ps_cmd = (
+                f"Start-Sleep -Seconds 1; "
+                f"Stop-Process -Id {current_pid} -Force; "
+                f"Start-Sleep -Seconds 3; "
+                f'Start-Process -FilePath "{python_exe}" -ArgumentList "{script_path}" -WorkingDirectory "{work_dir}" -WindowStyle Normal'
+            )
 
             try:
-                # Get the Python executable and script path
-                python_exe = sys.executable
-                script_path = os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-                    "bot.py",
-                )
-
-                # Start new process
                 subprocess.Popen(
-                    [python_exe, script_path],
-                    cwd=os.path.dirname(script_path),
-                    creationflags=(
-                        subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
-                    ),
+                    [
+                        "powershell",
+                        "-NoProfile",
+                        "-WindowStyle",
+                        "Hidden",
+                        "-Command",
+                        ps_cmd,
+                    ],
+                    creationflags=(subprocess.CREATE_NEW_PROCESS_GROUP),
                 )
-
-                # Wait a moment then kill current process
-                time.sleep(2)
+                print("[INFO] Restart helper launched via PowerShell.")
             except Exception as e:
-                print(f"Error restarting: {e}")
+                print(f"[ERROR] Failed to launch restart helper: {e}")
+                raise HTTPException(status_code=500, detail=str(e))
+        else:
+            # POSIX fallback: spawn a helper shell that kills current PID then starts new
+            sh_cmd = (
+                f"sleep 1; kill -TERM {current_pid}; sleep 3; "
+                f"{python_exe} {script_path} &"
+            )
+            try:
+                subprocess.Popen(
+                    ["/bin/sh", "-c", sh_cmd],
+                    cwd=work_dir,
+                )
+                print("[INFO] Restart helper launched via /bin/sh.")
+            except Exception as e:
+                print(f"[ERROR] Failed to launch restart helper (POSIX): {e}")
+                raise HTTPException(status_code=500, detail=str(e))
 
-            # Kill current process
-            os.kill(os.getpid(), signal.SIGTERM)
-
-        # Start restart in background thread
-        thread = threading.Thread(target=delayed_restart, daemon=True)
-        thread.start()
-
+        # Return immediately; helper will kill this process and start the new one
         return {
             "success": True,
-            "message": "Bot restart initiated. Please wait a moment...",
+            "message": "Restart scheduled. This process will be terminated, new bot starting...",
         }
     except Exception as e:
+        print(f"[ERROR] Restart failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
