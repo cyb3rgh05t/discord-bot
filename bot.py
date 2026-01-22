@@ -4,7 +4,7 @@ import discord
 import os
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from discord.ext import commands
 from config.settings import (
     BOT_TOKEN,
@@ -35,7 +35,7 @@ logging.getLogger("discord.http").setLevel(logging.WARNING)
 logging.getLogger("discord.client").setLevel(logging.WARNING)
 
 # Initialize databases
-from web.init_databases import (
+from cogs.helpers.database_init import (
     init_invites_db,
     init_ticket_system_db,
     init_plex_clients_db,
@@ -46,7 +46,7 @@ try:
     from config.settings import WEB_ENABLED, WEB_HOST, WEB_PORT, WEB_VERBOSE_LOGGING
 
     if WEB_ENABLED:
-        from web.app import app, set_bot_instance
+        from api.main import app, set_bot_instance
 
         WEB_UI_AVAILABLE = True
     else:
@@ -285,9 +285,9 @@ class MyBot(commands.Bot):
         """Event fired when the bot is ready."""
         # Record start time on first ready event
         if self.start_time is None:
-            self.start_time = datetime.now()
+            self.start_time = datetime.now(timezone.utc)
             logger.info(
-                f"Bot start time recorded: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+                f"Bot start time recorded: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')} UTC"
             )
 
         if self.user:
@@ -365,32 +365,37 @@ async def list_cogs(ctx):
 
 
 def start_web_ui(bot_instance):
-    """Start the Flask web UI in a separate thread."""
+    """Start the FastAPI web UI in a separate thread."""
     if WEB_UI_AVAILABLE:
         try:
             # Set the bot instance for the web UI
             set_bot_instance(bot_instance)
 
-            logger.info(f"Starting Web UI on {WEB_HOST}:{WEB_PORT}")
+            logger.info(f"Starting FastAPI on {WEB_HOST}:{WEB_PORT}")
 
-            # Run Flask in production mode with Werkzeug
-            from werkzeug.serving import run_simple
-            import logging as werkzeug_logging
+            # Run Uvicorn with proper thread handling
+            import uvicorn
+            import asyncio
 
-            # Suppress Werkzeug HTTP request logs
-            werkzeug_log = werkzeug_logging.getLogger("werkzeug")
-            werkzeug_log.setLevel(werkzeug_logging.ERROR)
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
 
-            run_simple(
-                WEB_HOST,
-                WEB_PORT,
+            logger.info(f"Creating Uvicorn server config...")
+            config = uvicorn.Config(
                 app,
-                use_reloader=False,
-                use_debugger=WEB_VERBOSE_LOGGING,
-                threaded=True,
+                host=WEB_HOST,
+                port=WEB_PORT,
+                log_level="info" if WEB_VERBOSE_LOGGING else "error",
+                loop="asyncio",
+                access_log=WEB_VERBOSE_LOGGING,
             )
+            server = uvicorn.Server(config)
+            logger.info(f"Starting Uvicorn server on http://{WEB_HOST}:{WEB_PORT}")
+            loop.run_until_complete(server.serve())
+            logger.info(f"Uvicorn server stopped")
         except Exception as e:
-            logger.error(f"Failed to start Web UI: {e}")
+            logger.error(f"Failed to start Web UI: {e}", exc_info=True)
     else:
         logger.info("Web UI is disabled")
 
@@ -406,6 +411,14 @@ if __name__ == "__main__":
     # Initialize databases
     logger.info("Initializing databases...")
     os.makedirs("databases", exist_ok=True)
+
+    # Import database initialization functions
+    from cogs.helpers.database_init import (
+        init_invites_db,
+        init_ticket_system_db,
+        init_plex_clients_db,
+    )
+
     try:
         msg1 = init_invites_db()
         logger.info(f"  - {msg1}")
@@ -428,11 +441,8 @@ if __name__ == "__main__":
     bot.add_command(list_guilds)
     bot.add_command(list_commands)
 
-    # Start Web UI in a separate thread if enabled
+    # Start the web UI if enabled and available
     if WEB_UI_AVAILABLE and WEB_ENABLED:
-        web_thread = threading.Thread(target=start_web_ui, args=(bot,), daemon=True)
-        web_thread.start()
-        logger.info("Web UI thread started")
-
+        threading.Thread(target=start_web_ui, args=(bot,), daemon=True).start()
     # Run the bot
     bot.run(BOT_TOKEN)

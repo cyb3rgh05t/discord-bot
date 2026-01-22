@@ -66,6 +66,10 @@ jobs:
             type=raw,value=dev,enable=${{ github.event_name == 'push' && github.ref_name == 'dev' }}
             type=sha,prefix=dev-,enable=${{ github.event_name == 'push' && github.ref_name == 'dev' }}
 
+            # Nightly tags (only on nightly branch)
+            type=raw,value=nightly,enable=${{ github.event_name == 'push' && github.ref_name == 'nightly' }}
+            type=sha,prefix=nightly-,enable=${{ github.event_name == 'push' && github.ref_name == 'nightly' }}
+
             # Manual test tag
             type=raw,value=${{ github.event.inputs.version }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
