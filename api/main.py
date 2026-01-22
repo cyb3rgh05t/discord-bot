@@ -172,21 +172,29 @@ async def serve_frontend():
 
 # Catch-all route for SPA - must be LAST after all API routes
 @app.get("/{full_path:path}")
-async def catch_all(full_path: str):
+async def catch_all(full_path: str, request: Request):
     """Catch-all route for SPA routing - serves index.html for all non-API routes"""
+    logger.debug(f"Catch-all route hit: {full_path} | Full URL: {request.url}")
+
     # If it's an API or asset request, let it 404 naturally
     if (
         full_path.startswith("api/")
         or full_path.startswith("assets/")
         or full_path.startswith("ws/")
     ):
+        logger.debug(f"Returning 404 for API/asset path: {full_path}")
         raise HTTPException(status_code=404, detail="Not found")
 
     # For all other routes, serve the SPA index.html
     index_file = frontend_dist / "index.html"
+    logger.debug(f"Attempting to serve index.html from: {index_file}")
+    logger.debug(f"Index file exists: {index_file.exists()}")
+
     if index_file.exists():
+        logger.debug(f"Serving index.html for path: {full_path}")
         return FileResponse(index_file)
 
+    logger.error(f"Frontend not built - index.html missing at: {index_file}")
     return JSONResponse(status_code=404, content={"error": "Frontend not built"})
 
 
