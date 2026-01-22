@@ -10,6 +10,7 @@ import {
   faHashtag,
   faShieldAlt,
   faFilm,
+  faCoffee,
   faFileAlt,
   faSave,
   faSyncAlt,
@@ -766,6 +767,122 @@ export default function Settings() {
               />
               <small className="form-text">
                 Comma-separated library names to share, or "all"
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Ko-fi Webhook */}
+      <div className="card">
+        <div className="card-header">
+          <h3>
+            <FontAwesomeIcon icon={faCoffee} /> Ko-fi Webhook
+          </h3>
+        </div>
+        <div className="card-body">
+          <div className="form-group">
+            <label className="toggle-label">
+              <span>Enable Ko-fi Webhook</span>
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={settings.KOFI_ENABLED === "True"}
+                  onChange={(e) =>
+                    updateSetting("KOFI_ENABLED", e.target.checked)
+                  }
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </label>
+            <small className="form-text">
+              Toggle Ko-fi webhook integration
+            </small>
+          </div>
+
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Webhook Port</label>
+              <input
+                type="number"
+                value={settings.KOFI_WEBHOOK_PORT || ""}
+                onChange={(e) =>
+                  updateSetting("KOFI_WEBHOOK_PORT", e.target.value)
+                }
+                className="form-control"
+              />
+              <small className="form-text">
+                Port to run Ko-fi webhook server
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label>Verification Token</label>
+              <input
+                type="password"
+                value={settings.KOFI_VERIFICATION_TOKEN || ""}
+                onChange={(e) =>
+                  updateSetting("KOFI_VERIFICATION_TOKEN", e.target.value)
+                }
+                className="form-control"
+              />
+              <small className="form-text">
+                Token to verify incoming Ko-fi requests
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label>Channel ID</label>
+              <input
+                type="text"
+                value={settings.KOFI_CHANNEL_ID || ""}
+                onChange={(e) =>
+                  updateSetting("KOFI_CHANNEL_ID", e.target.value)
+                }
+                className="form-control"
+              />
+              <small className="form-text">
+                Channel to post Ko-fi notifications
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label>Display Name</label>
+              <input
+                type="text"
+                value={settings.KOFI_NAME || ""}
+                onChange={(e) => updateSetting("KOFI_NAME", e.target.value)}
+                className="form-control"
+              />
+              <small className="form-text">Name shown in Ko-fi messages</small>
+            </div>
+
+            <div className="form-group">
+              <label>Logo URL</label>
+              <input
+                type="text"
+                value={settings.KOFI_LOGO || ""}
+                onChange={(e) => updateSetting("KOFI_LOGO", e.target.value)}
+                className="form-control"
+              />
+              <small className="form-text">
+                Image URL used in Ko-fi embeds
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label>Language</label>
+              <select
+                value={settings.KOFI_LANGUAGE || "en"}
+                onChange={(e) => updateSetting("KOFI_LANGUAGE", e.target.value)}
+                className="form-control"
+              >
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+              </select>
+              <small className="form-text">
+                Localization for Ko-fi messages
               </small>
             </div>
           </div>

@@ -170,24 +170,24 @@ async def serve_frontend():
     )
 
 
-# Removed catch-all route - it was interfering with API routes
-# SPA routing handled by serving index.html for non-API paths
-# If you need specific frontend routes, add them explicitly above this comment
+# Catch-all route for SPA - must be LAST after all API routes
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    """Catch-all route for SPA routing - serves index.html for all non-API routes"""
+    # If it's an API or asset request, let it 404 naturally
+    if (
+        full_path.startswith("api/")
+        or full_path.startswith("assets/")
+        or full_path.startswith("ws/")
+    ):
+        raise HTTPException(status_code=404, detail="Not found")
 
-
-@app.exception_handler(404)
-async def not_found_handler(request: Request, exc):
-    """Custom 404 handler - serves SPA for frontend routes, returns JSON for API"""
-    # If it's an API or WebSocket request, return JSON error
-    if request.url.path.startswith("/api/") or request.url.path.startswith("/ws/"):
-        return JSONResponse(
-            status_code=404, content={"error": "Not found", "path": request.url.path}
-        )
-
-    # For frontend routes, serve index.html for SPA routing
+    # For all other routes, serve the SPA index.html
     index_file = frontend_dist / "index.html"
     if index_file.exists():
         return FileResponse(index_file)
+
+    return JSONResponse(status_code=404, content={"error": "Frontend not built"})
 
     return JSONResponse(status_code=404, content={"error": "Frontend not built"})
 

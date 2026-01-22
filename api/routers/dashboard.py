@@ -244,16 +244,19 @@ def get_system_resources() -> SystemResources:
 
 def get_service_status() -> List[ServiceItem]:
     """Get service status"""
-    from config.settings import PLEX_ENABLED, KOFI_ENABLED, WEB_ENABLED
+    # Safely import settings and default missing flags to False
+    import importlib
 
+    settings = importlib.import_module("config.settings")
+    PLEX_ENABLED = getattr(settings, "PLEX_ENABLED", False)
+    KOFI_ENABLED = getattr(settings, "KOFI_ENABLED", False)
+    WEB_ENABLED = getattr(settings, "WEB_ENABLED", False)
+
+    bot = get_bot_instance()
     services = [
         ServiceItem(
             name="Discord Bot",
-            status=(
-                "running"
-                if get_bot_instance() and get_bot_instance().is_ready()
-                else "stopped"
-            ),
+            status=("running" if bot and bot.is_ready() else "stopped"),
             icon="fa-robot",
         ),
         ServiceItem(
