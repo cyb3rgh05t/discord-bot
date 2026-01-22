@@ -381,17 +381,21 @@ def start_web_ui(bot_instance):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
+            logger.info(f"Creating Uvicorn server config...")
             config = uvicorn.Config(
                 app,
                 host=WEB_HOST,
                 port=WEB_PORT,
-                log_level="error" if not WEB_VERBOSE_LOGGING else "info",
+                log_level="info" if WEB_VERBOSE_LOGGING else "error",
                 loop="asyncio",
+                access_log=WEB_VERBOSE_LOGGING,
             )
             server = uvicorn.Server(config)
+            logger.info(f"Starting Uvicorn server on http://{WEB_HOST}:{WEB_PORT}")
             loop.run_until_complete(server.serve())
+            logger.info(f"Uvicorn server stopped")
         except Exception as e:
-            logger.error(f"Failed to start Web UI: {e}")
+            logger.error(f"Failed to start Web UI: {e}", exc_info=True)
     else:
         logger.info("Web UI is disabled")
 
