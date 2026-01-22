@@ -38,6 +38,7 @@ PLEX_ROLES = "member"  # Comma-separated list of roles for automatic Plex invite
 PLEX_LIBS = "all"  # Comma-separated list of libraries to share (use 'all' for all libraries)
 PLEX_ENABLED = True  # Enable/disable Plex integration
 
+KOFI_ENABLED = True
 KOFI_WEBHOOK_PORT = 3033
 KOFI_VERIFICATION_TOKEN = ""
 KOFI_CHANNEL_ID = 0000000000000000000

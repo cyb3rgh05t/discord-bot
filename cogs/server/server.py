@@ -575,14 +575,35 @@ class SystemInfo(commands.Cog):
                     f"Created new system info message in channel #{channel.name}"
                 )
                 return message
+            except discord.HTTPException as e:
+                # Handle Discord API errors (503, rate limits, etc.)
+                if e.status == 503:
+                    logger.warning(
+                        f"Discord API temporarily unavailable (503) for channel #{channel.name}, will retry next cycle"
+                    )
+                    return None
+                else:
+                    logger.error(
+                        f"HTTP error updating message in channel #{channel.name}: {e}"
+                    )
+                    # Try to send new message for other HTTP errors
+                    try:
+                        message = await channel.send(embed=embed)
+                        self.store_message_id(guild_id, message.id, channel.id)
+                        logger.info(
+                            f"Created new system info message in channel #{channel.name} after error"
+                        )
+                        return message
+                    except discord.HTTPException:
+                        logger.warning(
+                            f"Failed to send new message, will retry next cycle"
+                        )
+                        return None
             except Exception as e:
-                logger.error(f"Error updating message in channel #{channel.name}: {e}")
-                message = await channel.send(embed=embed)
-                self.store_message_id(guild_id, message.id, channel.id)
-                logger.info(
-                    f"Created new system info message in channel #{channel.name} after error"
+                logger.error(
+                    f"Unexpected error updating message in channel #{channel.name}: {e}"
                 )
-                return message
+                return None
         else:
             message = await channel.send(embed=embed)
             self.store_message_id(guild_id, message.id, channel.id)
@@ -595,11 +616,13 @@ class SystemInfo(commands.Cog):
     async def init_status_task(self):
         """Update the status every 2 minutes."""
         await self.update_status()
-        channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
-        if channel:
-            await self.send_or_update_message(channel)
-        else:
-            logger.error(f"System channel with ID {SYSTEM_CHANNEL_ID} not found.")
+        if SYSTEM_CHANNEL_ID:
+            channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
+            if channel:
+                await self.send_or_update_message(channel)
+            else:
+                logger.error(f"System channel with ID {SYSTEM_CHANNEL_ID} not found.")
+        # If SYSTEM_CHANNEL_ID is empty, skip silently
 
     async def update_status(self):
         """Rotate and update bot's status messages."""
@@ -646,12 +669,17 @@ class SystemInfo(commands.Cog):
         logger.debug("SystemInfo cog is ready.")
 
         # Log the channel where we'll be updating info
-        channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
-        if channel:
-            logger.info(f"System Information channel found #{channel.name}")
+        if SYSTEM_CHANNEL_ID:
+            channel = self.bot.get_channel(SYSTEM_CHANNEL_ID)
+            if channel:
+                logger.info(f"System Information channel found #{channel.name}")
+            else:
+                logger.error(
+                    f"System channel with ID {SYSTEM_CHANNEL_ID} not found. Cannot start system info updates."
+                )
         else:
-            logger.error(
-                f"System channel with ID {SYSTEM_CHANNEL_ID} not found. Cannot start system info updates."
+            logger.info(
+                "System channel ID not configured. System info updates disabled."
             )
 
         self.init_status_task.start()
