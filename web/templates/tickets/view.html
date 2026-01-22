@@ -1,5 +1,10 @@
 {% extends "base.html" %} {% block title %}Ticket #{{ ticket.id }} - Discord Bot
-Manager{% endblock %} {% block content %}
+Manager{% endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/tickets.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="ticket-view-page">
   <div class="page-header">
     <div>
@@ -135,61 +140,6 @@ Manager{% endblock %} {% block content %}
   {% endif %}
 </div>
 
-<style>
-  .ticket-view-page .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-  }
-
-  .ticket-view-page .page-header .subtitle {
-    margin-top: 0.5rem;
-  }
-
-  .ticket-view-page .page-header .subtitle .badge {
-    margin-right: 0.5rem;
-  }
-
-  .ticket-view-page .header-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .ticket-details-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .detail-item {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .detail-item label {
-    font-weight: 600;
-    color: #8b949e;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .detail-item label i {
-    margin-right: 0.5rem;
-  }
-
-  .detail-item .detail-value {
-    font-size: 1rem;
-    color: #c9d1d9;
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-</style>
-
 <script>
   function closeTicket(ticketId) {
     if (!confirm("Are you sure you want to close this ticket?")) {
@@ -205,14 +155,14 @@ Manager{% endblock %} {% block content %}
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          alert("Ticket closed successfully");
-          window.location.reload();
+          showNotification("Ticket closed successfully", "success");
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          alert("Error: " + data.message);
+          showNotification("Error: " + data.message, "error");
         }
       })
       .catch((error) => {
-        alert("Error closing ticket: " + error);
+        showNotification("Error closing ticket: " + error, "error");
       });
   }
 </script>

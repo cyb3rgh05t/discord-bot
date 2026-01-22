@@ -1,0 +1,170 @@
+/* Services Page Styles */
+.services-page .services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.services-page .service-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.services-page .service-icon,
+.services-page .resource-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* Different colors for each service */
+.services-page .service-card:nth-child(1) .service-icon {
+  background: #667eea; /* Discord Bot - Purple */
+}
+
+.services-page .service-card:nth-child(2) .service-icon {
+  background: #38ef7d; /* Database - Green */
+}
+
+.services-page .service-card:nth-child(3) .service-icon {
+  background: #faa61a; /* Plex Integration - Orange */
+}
+
+.services-page .service-card:nth-child(4) .service-icon {
+  background: #00d4ff; /* Ko-fi Webhook - Cyan */
+}
+
+/* Different colors for each resource type */
+.services-page .resource-item:nth-child(1) .resource-icon {
+  background: #667eea;
+}
+
+.services-page .resource-item:nth-child(2) .resource-icon {
+  background: #38ef7d;
+}
+
+.services-page .resource-item:nth-child(3) .resource-icon {
+  background: #f5576c;
+}
+
+.services-page .service-info {
+  flex: 1;
+}
+
+.services-page .service-info h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-color);
+}
+
+.services-page .service-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.services-page .service-status.running {
+  background: rgba(56, 239, 125, 0.2);
+  color: #38ef7d;
+}
+
+.services-page .service-status.stopped {
+  background: rgba(240, 71, 71, 0.2);
+  color: #f04747;
+}
+
+.services-page .service-status .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.services-page .service-uptime {
+  margin: 0.5rem 0 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.services-page .resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.services-page .resource-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.services-page .resource-info {
+  flex: 1;
+}
+
+.services-page .resource-info h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+
+.services-page .progress-bar {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.services-page .progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 6px;
+}
+
+.services-page .progress-fill.success {
+  background: linear-gradient(90deg, #38ef7d, #11998e);
+}
+
+.services-page .progress-fill.warning {
+  background: linear-gradient(90deg, #faa61a, #f79d00);
+}
+
+.services-page .progress-fill.danger {
+  background: linear-gradient(90deg, #f04747, #c0392b);
+}
+
+.services-page .resource-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.services-page .resource-stats .stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.services-page .resource-stats .stat-label {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}

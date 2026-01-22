@@ -1,0 +1,195 @@
+/* Invites Page Styles */
+.invites-page .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.invites-page .stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.invites-page .stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.invites-page .stat-icon.total-invites {
+  background: #667eea;
+}
+
+.invites-page .stat-icon.active-invites {
+  background: #38ef7d;
+}
+
+.invites-page .stat-icon.expired-invites {
+  background: #f04747;
+}
+
+.invites-page .stat-icon.revoked-invites {
+  background: #faa61a;
+}
+
+.invites-page .stat-icon.removed-invites {
+  background: #dc3545;
+}
+
+.invites-page .stat-icon.success {
+  background: #38ef7d;
+}
+
+.invites-page .stat-icon.warning {
+  background: #faa61a;
+}
+
+.invites-page .stat-info {
+  flex: 1;
+}
+
+.invites-page .stat-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1;
+}
+
+.invites-page .stat-value-small {
+  font-size: 1rem;
+}
+
+.invites-page .stat-label {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Plex Server Stats */
+.plex-stats .server-name {
+  color: var(--link-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.plex-stats .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.plex-stats .stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.plex-stats .stat-content {
+  flex: 1;
+}
+
+.plex-stats .stat-icon.plex-movies {
+  background: #667eea;
+}
+
+.plex-stats .stat-icon.plex-shows {
+  background: #38ef7d;
+}
+
+.plex-stats .stat-icon.plex-users {
+  background: #faa61a;
+}
+
+.plex-stats .stat-icon.plex-version {
+  background: #f5576c;
+}
+
+/* Search and Actions */
+.search-box {
+  position: relative;
+  max-width: 400px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-color);
+}
+
+.card-header-flex {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.invite-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+}
+
+.invite-form .form-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.invite-form .form-actions button {
+  margin-bottom: 4px;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-top: 1px solid #30363d;
+}
+
+.pagination-info {
+  color: #8b949e;
+  font-size: 0.875rem;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.pagination .disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.card-footer {
+  background: #0d1117;
+  border-radius: 0 0 6px 6px;
+}

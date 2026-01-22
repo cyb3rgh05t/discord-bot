@@ -1,5 +1,14 @@
 {% extends "base.html" %} {% block title %}Invites - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/invites.css') }}"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/utilities.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="invites-page">
   <div class="page-header">
     <h1>
@@ -12,7 +21,7 @@ endblock %} {% block content %}
   <!-- Statistics -->
   <div class="stats-cards">
     <div class="stat-card">
-      <div class="stat-icon">
+      <div class="stat-icon total-invites">
         <i class="fas fa-users"></i>
       </div>
       <div class="stat-info">
@@ -21,7 +30,7 @@ endblock %} {% block content %}
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon success">
+      <div class="stat-icon active-invites">
         <i class="fas fa-check-circle"></i>
       </div>
       <div class="stat-info">
@@ -30,7 +39,7 @@ endblock %} {% block content %}
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon danger">
+      <div class="stat-icon expired-invites">
         <i class="fas fa-times-circle"></i>
       </div>
       <div class="stat-info">
@@ -39,7 +48,7 @@ endblock %} {% block content %}
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon warning">
+      <div class="stat-icon revoked-invites">
         <i class="fas fa-user-slash"></i>
       </div>
       <div class="stat-info">
@@ -48,7 +57,7 @@ endblock %} {% block content %}
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon secondary">
+      <div class="stat-icon removed-invites">
         <i class="fas fa-user-times"></i>
       </div>
       <div class="stat-info">
@@ -73,29 +82,53 @@ endblock %} {% block content %}
 
   <!-- Plex Server Status -->
   {% if plex_stats.connected %}
-  <div class="card">
+  <div class="card plex-stats">
     <div class="card-header">
-      <h3>
-        <i class="fas fa-server"></i> Plex Server: {{ plex_stats.server_name }}
-      </h3>
+      <h3><i class="fas fa-server"></i> Plex Server Status</h3>
+      <span class="server-name">{{ plex_stats.server_name }}</span>
     </div>
     <div class="card-body">
-      <div class="plex-info-grid">
-        <div class="plex-info-item">
-          <i class="fas fa-film"></i> <strong>Movies:</strong> {{
-          plex_stats.movies }}
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon plex-movies">
+            <i class="fas fa-film"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ plex_stats.movies }}</div>
+            <div class="stat-label">Movies</div>
+          </div>
         </div>
-        <div class="plex-info-item">
-          <i class="fas fa-tv"></i> <strong>TV Shows:</strong> {{
-          plex_stats.shows }}
+
+        <div class="stat-card">
+          <div class="stat-icon plex-shows">
+            <i class="fas fa-tv"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ plex_stats.shows }}</div>
+            <div class="stat-label">TV Shows</div>
+          </div>
         </div>
-        <div class="plex-info-item">
-          <i class="fas fa-users"></i> <strong>Users:</strong> {{
-          plex_stats.users }}
+
+        <div class="stat-card">
+          <div class="stat-icon plex-users">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">{{ plex_stats.users }}</div>
+            <div class="stat-label">Users</div>
+          </div>
         </div>
-        <div class="plex-info-item">
-          <i class="fas fa-code-branch"></i> <strong>Version:</strong> {{
-          plex_stats.version }}
+
+        <div class="stat-card">
+          <div class="stat-icon plex-version">
+            <i class="fas fa-code-branch"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value stat-value-small">
+              {{ plex_stats.version }}
+            </div>
+            <div class="stat-label">Version</div>
+          </div>
         </div>
       </div>
     </div>
@@ -112,6 +145,7 @@ endblock %} {% block content %}
         method="POST"
         action="{{ url_for('invites.add') }}"
         class="invite-form"
+        id="addInviteForm"
       >
         <div class="form-row">
           <div class="form-group">
@@ -154,7 +188,26 @@ endblock %} {% block content %}
   <!-- Invites Table -->
   <div class="card">
     <div class="card-header">
-      <h3><i class="fas fa-list"></i> All Invites</h3>
+      <h3><i class="fas fa-list"></i> All Invites ({{ total_invites }})</h3>
+      <div class="flex-row">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="inviteSearch"
+            placeholder="Search by email or username..."
+            value="{{ search }}"
+            onkeyup="handleSearch(event)"
+          />
+        </div>
+        <button
+          class="btn btn-sm btn-outline"
+          onclick="this.querySelector('i').classList.add('fa-spin'); window.location.reload()"
+          title="Refresh"
+        >
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
     </div>
     <div class="card-body">
       {% if invites %}
@@ -224,14 +277,98 @@ endblock %} {% block content %}
       <div class="empty-state">
         <i class="fas fa-user-plus"></i>
         <h3>No invites found</h3>
-        <p>Start by adding a new Plex invitation above.</p>
+        <p>
+          {% if search %}No invites match your search.{% else %}Start by adding
+          a new Plex invitation above.{% endif %}
+        </p>
       </div>
       {% endif %}
     </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="card-footer">
+      <div class="pagination-container">
+        <div class="pagination-info">
+          Showing {{ ((page - 1) * per_page) + 1 }} - {{ [page * per_page,
+          total_invites]|min }} of {{ total_invites }} invites
+        </div>
+        <div class="pagination">
+          {% if page > 1 %}
+          <a
+            href="?page={{ page - 1 }}&search={{ search }}"
+            class="btn btn-sm btn-outline"
+          >
+            <i class="fas fa-chevron-left"></i> Previous
+          </a>
+          {% endif %} {% for p in range(1, total_pages + 1) %} {% if p == page
+          %}
+          <span class="btn btn-sm btn-primary">{{ p }}</span>
+          {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page +
+          2) %}
+          <a
+            href="?page={{ p }}&search={{ search }}"
+            class="btn btn-sm btn-outline"
+            >{{ p }}</a
+          >
+          {% elif p == page - 3 or p == page + 3 %}
+          <span class="btn btn-sm btn-outline disabled">...</span>
+          {% endif %} {% endfor %} {% if page < total_pages %}
+          <a
+            href="?page={{ page + 1 }}&search={{ search }}"
+            class="btn btn-sm btn-outline"
+          >
+            Next <i class="fas fa-chevron-right"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %} {% block extra_scripts %}
 <script>
+  // Handle add invite form submission
+  document
+    .getElementById("addInviteForm")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+
+      fetch(this.action, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            showNotification(data.message, "success");
+            // Reset form
+            this.reset();
+            // Reload page after short delay to show updated list
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            showNotification(data.message || "Failed to add invite", "error");
+          }
+        })
+        .catch((err) => {
+          console.error("Error adding invite:", err);
+          showNotification("Failed to add invite", "error");
+        });
+    });
+
+  function handleSearch(event) {
+    if (event.key === "Enter") {
+      const search = event.target.value;
+      window.location.href = `?search=${encodeURIComponent(search)}`;
+    }
+  }
+
   function removeInvite(inviteId) {
     if (!confirm("Are you sure you want to remove this invite?")) {
       return;
@@ -246,40 +383,16 @@ endblock %} {% block content %}
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          window.location.reload();
+          showNotification("Invite removed successfully", "success");
+          setTimeout(() => window.location.reload(), 1000);
         } else {
-          alert("Error: " + data.message);
+          showNotification("Error: " + data.message, "error");
         }
       })
       .catch((err) => {
         console.error("Error removing invite:", err);
-        alert("Failed to remove invite");
+        showNotification("Failed to remove invite", "error");
       });
   }
 </script>
-
-<style>
-  .plex-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-  }
-
-  .plex-info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.95rem;
-  }
-
-  .plex-info-item i {
-    color: var(--link-color);
-    width: 20px;
-  }
-
-  .plex-info-item strong {
-    margin-right: 0.25rem;
-  }
-</style>
 {% endblock %}

@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2025-11-17
+
+### Added
+
+- Global notification system across all web UI pages
+  - Unified notification component in base template
+  - Color-coded notifications with transparency: success (green), error (red), warning (orange), info (blue)
+  - Slide-in animation from right with auto-dismiss after 3 seconds
+  - Progress bar indicator showing remaining time
+  - Replaced all alert() popups with styled notifications
+- Success notifications for user actions
+  - Invite removal: "Invite removed successfully"
+  - Ticket closing: "Ticket closed successfully"
+  - Role management: "Role added/removed successfully"
+- Automatic Plex role removal on invite deletion
+  - Discord Plex role is automatically removed when deleting an invite via web UI
+  - Handles various Discord user ID formats in invite records
+  - Logs warnings for role removal failures while still deleting the invite
+- Enhanced ticket closing functionality
+  - Full Discord channel closing when closing tickets via web UI
+  - Automatic transcript generation matching Discord bot behavior
+  - Transcript sent to designated channel and ticket creator via DM
+  - Channel deletion after 5-second delay
+  - Comprehensive debug logging for troubleshooting
+
+### Changed
+
+- Settings page action buttons card redesign
+  - Removed unnecessary nested wrappers causing visual separators
+  - Created custom `actions-bar` class replacing generic card styling
+  - Simplified structure for cleaner appearance
+  - Eliminated unwanted header separator line
+- Members page notification styling
+  - Updated to use global notification system
+  - Removed duplicate notification code
+  - Consistent theming with rest of application
+- Invite removal behavior
+  - Now returns invite data before deletion for role removal processing
+  - Modified database helper to return invite details
+  - Added 1-second delay before page reload to show success notification
+
+### Fixed
+
+- Notification appearance inconsistencies
+  - Members page notifications now match global theme
+  - All notifications use CSS variables for consistent theming
+  - Border colors properly applied across all notification types
+
 ## [4.1.2] - 2025-11-16
 
 ### Changed

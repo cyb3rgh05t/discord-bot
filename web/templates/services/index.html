@@ -1,5 +1,10 @@
 {% extends "base.html" %} {% block title %}Services - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/services.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="services-page">
   <div class="page-header">
     <h1>
@@ -150,7 +155,7 @@ endblock %} {% block content %}
         console.error("Error refreshing status:", err);
         icon.classList.remove("fa-spin");
         btn.disabled = false;
-        alert("Failed to refresh status");
+        showNotification("Failed to refresh status", "error");
       });
   }
 

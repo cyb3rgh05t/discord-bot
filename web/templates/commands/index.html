@@ -1,0 +1,151 @@
+{% extends "base.html" %} {% block title %}Commands - Discord Bot Manager{%
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/commands.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="commands-page">
+  <div class="page-header">
+    <h1>
+      <i class="fas fa-terminal"></i>
+      Bot Commands
+    </h1>
+    <p class="subtitle">View all available slash and prefix commands</p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon total-commands">
+        <i class="fas fa-list"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Commands</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon slash-commands">
+        <i class="fas fa-slash"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.slash }}</div>
+        <div class="stat-label">Slash Commands</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon prefix-commands">
+        <i class="fas fa-at"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.prefix }}</div>
+        <div class="stat-label">Prefix Commands</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-button active" data-tab="slash">
+      <i class="fas fa-slash"></i> Slash Commands
+    </button>
+    <button class="tab-button" data-tab="prefix">
+      <i class="fas fa-at"></i> Prefix Commands
+    </button>
+  </div>
+
+  <!-- Slash Commands Tab -->
+  <div class="tab-content active" id="slash-tab">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-slash"></i> Slash Commands ({{ stats.slash }})</h3>
+      </div>
+      <div class="card-body">
+        {% if slash_commands %}
+        <div class="commands-grid">
+          {% for cmd in slash_commands %}
+          <div class="command-card">
+            <div class="command-header">
+              <span class="command-name">
+                <i class="fas fa-slash"></i> {{ cmd.name }}
+              </span>
+              <span class="command-type-badge slash">Slash</span>
+            </div>
+            <div class="command-description">{{ cmd.description }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <i class="fas fa-slash"></i>
+          <h3>No slash commands found</h3>
+          <p>The bot doesn't have any slash commands registered.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Prefix Commands Tab -->
+  <div class="tab-content" id="prefix-tab">
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-at"></i> Prefix Commands ({{ stats.prefix }})</h3>
+      </div>
+      <div class="card-body">
+        {% if prefix_commands %}
+        <div class="commands-grid">
+          {% for cmd in prefix_commands %}
+          <div class="command-card">
+            <div class="command-header">
+              <span class="command-name">
+                <i class="fas fa-at"></i> {{ cmd.name }}
+              </span>
+              <span class="command-type-badge prefix">Prefix</span>
+            </div>
+            <div class="command-description">{{ cmd.description }}</div>
+            {% if cmd.aliases %}
+            <div class="command-aliases">
+              <strong>Aliases:</strong>
+              {% for alias in cmd.aliases %}
+              <span class="alias-badge">{{ alias }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <i class="fas fa-at"></i>
+          <h3>No prefix commands found</h3>
+          <p>The bot doesn't have any prefix commands registered.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script>
+  // Tab switching
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tabName = button.getAttribute("data-tab");
+
+      // Update active button
+      document
+        .querySelectorAll(".tab-button")
+        .forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      // Update active content
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((content) => content.classList.remove("active"));
+      document.getElementById(tabName + "-tab").classList.add("active");
+    });
+  });
+</script>
+{% endblock %}

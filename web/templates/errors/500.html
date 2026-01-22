@@ -1,6 +1,11 @@
 {% extends "base.html" %} {% block title %}500 - Internal Server Error{%
-endblock %} {% block content %}
-<div class="error-page">
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/errors.css') }}"
+/>
+{% endblock %} {% block content %}
+<div class="error-page error-page-500">
   <div class="error-container">
     <div class="error-icon">
       <i class="fas fa-server"></i>
@@ -20,51 +25,4 @@ endblock %} {% block content %}
     </div>
   </div>
 </div>
-{% endblock %} {% block extra_head %}
-<style>
-  .error-page {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 70vh;
-    text-align: center;
-  }
-
-  .error-container {
-    max-width: 600px;
-    padding: 2rem;
-  }
-
-  .error-icon {
-    font-size: 5rem;
-    color: #dc3545;
-    margin-bottom: 1.5rem;
-  }
-
-  .error-code {
-    font-size: 6rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .error-title {
-    font-size: 2rem;
-    margin: 1rem 0;
-    color: var(--text);
-  }
-
-  .error-message {
-    font-size: 1.125rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-  }
-
-  .error-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-  }
-</style>
 {% endblock %}

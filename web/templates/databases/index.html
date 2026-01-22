@@ -1,9 +1,45 @@
 {% extends "base.html" %} {% block title %}Databases - Discord Bot Manager{%
-endblock %} {% block content %}
+endblock %} {% block extra_head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/pages/databases.css') }}"
+/>
+{% endblock %} {% block content %}
 <div class="databases-page">
   <div class="page-header">
     <h1><i class="fas fa-database"></i> Database Browser</h1>
     <p class="subtitle">Explore your bot databases and tables</p>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon total-databases">
+        <i class="fas fa-database"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.databases }}</div>
+        <div class="stat-label">Databases</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon total-tables">
+        <i class="fas fa-table"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.tables }}</div>
+        <div class="stat-label">Tables</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon total-records">
+        <i class="fas fa-list-ol"></i>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ "{:,}".format(stats.records) }}</div>
+        <div class="stat-label">Total Records</div>
+      </div>
+    </div>
   </div>
 
   <!-- Databases Grid -->
@@ -52,7 +88,7 @@ endblock %} {% block content %}
         </button>
       </form>
 
-      <div id="queryResults" class="query-results" style="display: none">
+      <div id="queryResults" class="query-results d-none">
         <h4><i class="fas fa-table"></i> Results:</h4>
         <div id="resultsContent"></div>
       </div>

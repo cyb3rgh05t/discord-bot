@@ -17,40 +17,36 @@
     </div>
 
     <!-- Save Status Indicator -->
-    <div id="saveStatus" class="save-status" style="display: none;">
+    <div id="saveStatus" class="save-status d-none">
         <i class="fas fa-check-circle"></i> Auto-saved
     </div>
 
     <form method="POST" action="{{ url_for('settings.edit') }}" class="settings-form" id="settingsForm">
         <!-- Form Actions at Top -->
-        <div class="card form-actions-card">
-            <div class="card-body no-separator">
-                <div class="form-actions">
-                    <div class="autosave-toggle">
-                        <label class="toggle-switch-inline">
-                            <input type="checkbox" id="autoSaveToggle" checked>
-                            <span class="toggle-slider-inline"></span>
-                        </label>
-                        <span class="autosave-label">
-                            <i class="fas fa-sync-alt"></i>
-                            Auto-save <span id="autoSaveStatus">(5s after changes)</span>
-                        </span>
-                    </div>
-                    <div class="button-group">
-                        <button type="submit" class="btn btn-primary" id="saveBtn">
-                            <i class="fas fa-save"></i> Save Settings
-                        </button>
-                        <button type="button" class="btn btn-success" id="saveRestartBtn">
-                            <i class="fas fa-sync-alt"></i> Save & Restart Bot
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
-                            <i class="fas fa-undo"></i> Reset
-                        </button>
-                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">
-                            <i class="fas fa-times"></i> Cancel
-                        </a>
-                    </div>
-                </div>
+        <div class="actions-bar">
+            <div class="autosave-toggle">
+                <label class="toggle-switch-inline">
+                    <input type="checkbox" id="autoSaveToggle" checked>
+                    <span class="toggle-slider-inline"></span>
+                </label>
+                <span class="autosave-label">
+                    <i class="fas fa-sync-alt"></i>
+                    Auto-save <span id="autoSaveStatus">(5s after changes)</span>
+                </span>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+                <button type="button" class="btn btn-primary" id="saveRestartBtn">
+                    <i class="fas fa-sync-alt"></i> Save & Restart Bot
+                </button>
+                <button type="button" class="btn btn-outline" onclick="window.location.reload()">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+                <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
             </div>
         </div>
 
@@ -620,31 +616,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         fetch('{{ url_for("settings.edit") }}', {
             method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: formData
-        })
-        .then(response => response.text())
-        .then(() => {
-            // Trigger bot restart
-            return fetch('{{ url_for("settings.restart_bot") }}', {
-                method: 'POST'
-            });
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showSaveStatus('Settings saved and bot restarting...', 'success');
+                showNotification(data.message, 'success');
+                // Trigger bot restart
+                return fetch('{{ url_for("settings.restart_bot") }}', {
+                    method: 'POST'
+                });
+            } else {
+                throw new Error(data.message || 'Failed to save settings');
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Bot restarting...', 'success');
                 setTimeout(() => {
                     window.location.reload();
                 }, 3000);
             } else {
-                showSaveStatus('Error: ' + data.message, 'error');
+                showNotification('Error: ' + data.message, 'error');
                 btn.innerHTML = originalHTML;
                 btn.disabled = false;
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showSaveStatus('Error restarting bot', 'error');
+            showNotification(err.message || 'Error saving settings', 'error');
             btn.innerHTML = originalHTML;
             btn.disabled = false;
         });
@@ -659,12 +663,19 @@ function autoSaveSettings() {
     
     fetch('{{ url_for("settings.edit") }}', {
         method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
         body: formData
     })
-    .then(response => response.text())
-    .then(() => {
-        showSaveStatus('Auto-saved', 'success');
-        formChanged = false;
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSaveStatus('Auto-saved', 'success');
+            formChanged = false;
+        } else {
+            showSaveStatus(data.message || 'Auto-save failed', 'error');
+        }
     })
     .catch(err => {
         console.error('Auto-save error:', err);
@@ -685,38 +696,21 @@ function showSaveStatus(message, type) {
 </script>
 
 <style>
-.form-actions-card {
+.actions-bar {
     position: sticky;
     top: 70px;
     z-index: 100;
     margin-bottom: 1.5rem;
     background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    border: none !important;
-    border-top: none !important;
-}
-
-.form-actions-card .card-body {
-    padding: 1.5rem;
-    border: none !important;
-}
-
-.form-actions-card .card-body.no-separator {
-    border-top: none !important;
-    border-bottom: none !important;
-}
-
-.form-actions-card .card-body::before,
-.form-actions-card .card-body::after {
-    display: none !important;
-}
-
-.form-actions {
     display: flex;
     gap: 1.5rem;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    padding: 1.5rem;
 }
 
 .button-group {

@@ -20,7 +20,33 @@ databases_bp = Blueprint("databases", __name__, url_prefix="/databases")
 def index():
     """Database browser page"""
     tables = get_database_tables()
-    return render_template("databases/index.html", tables=tables)
+
+    # Calculate statistics
+    databases = set()
+    total_records = 0
+
+    for table in tables:
+        databases.add(table["database"])
+        # Get record count for each table
+        try:
+            from web.utils.database_helper import get_db_connection
+
+            conn = get_db_connection(table["database"])
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT COUNT(*) FROM {table['name']}")
+            count = cursor.fetchone()[0]
+            total_records += count
+            conn.close()
+        except Exception:
+            pass
+
+    stats = {
+        "databases": len(databases),
+        "tables": len(tables),
+        "records": total_records,
+    }
+
+    return render_template("databases/index.html", tables=tables, stats=stats)
 
 
 @databases_bp.route("/table/<table_name>")

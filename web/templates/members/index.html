@@ -1,5 +1,12 @@
 {% extends "base.html" %} {% block title %}Members & Roles - Discord Bot
-Manager{% endblock %} {% block content %}
+Manager{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/members.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/utilities.css') }}">
+{% endblock %}
+
+{% block content %}
 <div class="members-page">
   <div class="page-header">
     <h1>
@@ -46,13 +53,24 @@ Manager{% endblock %} {% block content %}
     <div class="card">
       <div class="card-header">
         <h3><i class="fas fa-users"></i> Guild Members</h3>
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input
-            type="text"
-            id="memberSearch"
-            placeholder="Search members..."
-          />
+        <div class="flex-row">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="memberSearch"
+              placeholder="Search members..."
+              value="{{ search }}"
+              onkeypress="handleMemberSearch(event)"
+            />
+          </div>
+          <button
+            class="btn btn-sm btn-outline"
+            onclick="this.querySelector('i').classList.add('fa-spin'); window.location.reload()"
+            title="Refresh"
+          >
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
         </div>
       </div>
       <div class="card-body">
@@ -126,6 +144,41 @@ Manager{% endblock %} {% block content %}
             </tbody>
           </table>
         </div>
+      </div>
+        
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="card-footer">
+          <div class="pagination-container">
+            <div class="pagination-info">
+              Showing {{ ((page - 1) * per_page) + 1 }} - {{ [page * per_page, total_members]|min }} of {{ total_members }} members
+            </div>
+            <div class="pagination">
+              {% if page > 1 %}
+              <a href="?page={{ page - 1 }}" class="btn btn-sm btn-outline">
+                <i class="fas fa-chevron-left"></i> Previous
+              </a>
+              {% endif %}
+              
+              {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                  <span class="btn btn-sm btn-primary">{{ p }}</span>
+                {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                  <a href="?page={{ p }}" class="btn btn-sm btn-outline">{{ p }}</a>
+                {% elif p == page - 3 or p == page + 3 %}
+                  <span class="btn btn-sm btn-outline disabled">...</span>
+                {% endif %}
+              {% endfor %}
+              
+              {% if page < total_pages %}
+              <a href="?page={{ page + 1 }}" class="btn btn-sm btn-outline">
+                Next <i class="fas fa-chevron-right"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -228,505 +281,9 @@ Manager{% endblock %} {% block content %}
     </div>
   </div>
 </div>
+{% endblock %}
 
-<!-- Notification -->
-<div class="notification" id="notification">
-  <div class="notification-content">
-    <div class="notification-icon" id="notificationIcon"></div>
-    <div class="notification-message" id="notificationMessage"></div>
-  </div>
-  <div class="notification-progress">
-    <div class="notification-progress-bar"></div>
-  </div>
-</div>
-
-<style>
-  .members-page {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-
-  .stat-icon.members {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-  }
-
-  .stat-icon.roles {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-  }
-
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-color);
-  }
-
-  .stat-label {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-
-  .tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid var(--border-color);
-  }
-
-  .tab-button {
-    background: transparent;
-    border: none;
-    padding: 1rem 2rem;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s;
-    border-bottom: 3px solid transparent;
-  }
-
-  .tab-button:hover {
-    color: var(--text-color);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .tab-button.active {
-    color: var(--primary-color);
-    border-bottom-color: var(--primary-color);
-  }
-
-  .tab-content {
-    display: none;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
-  .search-box {
-    position: relative;
-    max-width: 300px;
-  }
-
-  .search-box i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-  }
-
-  .search-box input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.5rem;
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--text-color);
-  }
-
-  .member-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .member-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .member-avatar-placeholder {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-  }
-
-  .member-name {
-    font-weight: 600;
-    color: var(--text-color);
-  }
-
-  .member-id {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    text-transform: capitalize;
-  }
-
-  .status-online {
-    background: rgba(67, 181, 129, 0.2);
-    color: #43b581;
-  }
-
-  .status-idle {
-    background: rgba(250, 166, 26, 0.2);
-    color: #faa61a;
-  }
-
-  .status-dnd {
-    background: rgba(240, 71, 71, 0.2);
-    color: #f04747;
-  }
-
-  .status-offline {
-    background: rgba(116, 127, 141, 0.2);
-    color: #747f8d;
-  }
-
-  .role-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .role-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: white;
-    position: relative;
-  }
-
-  .role-remove-btn {
-    background: rgba(0, 0, 0, 0.3);
-    border: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    transition: background 0.2s;
-  }
-
-  .role-remove-btn:hover {
-    background: rgba(0, 0, 0, 0.5);
-  }
-
-  .roles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .role-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .role-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-
-  .role-card-header {
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  .role-name {
-    font-weight: 600;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .role-member-count {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-
-  .role-card-body {
-    padding: 1rem;
-  }
-
-  .role-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .role-detail {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .role-detail .label {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-
-  .role-detail .value {
-    font-weight: 500;
-    color: var(--text-color);
-  }
-
-  .text-success {
-    color: #43b581;
-  }
-
-  .text-muted {
-    color: var(--text-muted);
-  }
-
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .modal.show {
-    display: flex;
-  }
-
-  .modal-content {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .modal-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-  }
-
-  .modal-close {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 1.5rem;
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s;
-  }
-
-  .modal-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-color);
-  }
-
-  .modal-body {
-    padding: 1.5rem;
-  }
-
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    padding: 1.5rem;
-    border-top: 1px solid var(--border-color);
-  }
-
-  .notification {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    min-width: 300px;
-    max-width: 400px;
-    background: #2c2f33;
-    border-radius: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    z-index: 1001;
-    display: none;
-    overflow: hidden;
-  }
-
-  .notification.show {
-    display: block;
-    animation: slideIn 0.3s ease-out;
-  }
-
-  .notification-content {
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .notification-icon {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
-
-  .notification-message {
-    flex: 1;
-    font-size: 0.95rem;
-    line-height: 1.4;
-  }
-
-  .notification.success .notification-content {
-    border-left: 4px solid #43b581;
-  }
-
-  .notification.success .notification-icon {
-    color: #43b581;
-  }
-
-  .notification.error .notification-content {
-    border-left: 4px solid #f04747;
-  }
-
-  .notification.error .notification-icon {
-    color: #f04747;
-  }
-
-  .notification-progress {
-    height: 3px;
-    background: rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .notification-progress-bar {
-    height: 100%;
-    background: currentColor;
-    width: 100%;
-    animation: progressShrink 3s linear forwards;
-  }
-
-  .notification.success .notification-progress-bar {
-    color: #43b581;
-  }
-
-  .notification.error .notification-progress-bar {
-    color: #f04747;
-  }
-
-  @keyframes slideIn {
-    from {
-      transform: translateX(420px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(420px);
-      opacity: 0;
-    }
-  }
-
-  @keyframes progressShrink {
-    from {
-      width: 100%;
-    }
-    to {
-      width: 0%;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .members-page {
-      padding: 1rem;
-    }
-
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .roles-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .tabs {
-      overflow-x: auto;
-    }
-
-    .tab-button {
-      white-space: nowrap;
-      padding: 1rem 1.5rem;
-    }
-  }
-</style>
-
+{% block extra_scripts %}
 <script>
   // Tab switching
   document.querySelectorAll(".tab-button").forEach((button) => {
@@ -747,16 +304,22 @@ Manager{% endblock %} {% block content %}
     });
   });
 
-  // Member search
-  document.getElementById("memberSearch")?.addEventListener("input", (e) => {
-    const search = e.target.value.toLowerCase();
-    document.querySelectorAll("#membersTableBody tr").forEach((row) => {
-      const name = row.dataset.memberName;
-      row.style.display = name.includes(search) ? "" : "none";
-    });
-  });
+  // Member search - server-side
+  function handleMemberSearch(event) {
+    if (event.key === "Enter") {
+      const search = event.target.value;
+      const url = new URL(window.location.href);
+      if (search) {
+        url.searchParams.set('search', search);
+      } else {
+        url.searchParams.delete('search');
+      }
+      url.searchParams.set('page', '1'); // Reset to first page
+      window.location.href = url.toString();
+    }
+  }
 
-  // Role search
+  // Role search - client-side (no pagination)
   document.getElementById("roleSearch")?.addEventListener("input", (e) => {
     const search = e.target.value.toLowerCase();
     document.querySelectorAll(".role-card").forEach((card) => {
@@ -844,32 +407,6 @@ Manager{% endblock %} {% block content %}
     } catch (error) {
       showNotification("Error: " + error.message, "error");
     }
-  }
-
-  // Show notification
-  function showNotification(message, type = "success") {
-    const notification = document.getElementById("notification");
-    const notificationMessage = document.getElementById("notificationMessage");
-    const notificationIcon = document.getElementById("notificationIcon");
-
-    // Set icon based on type
-    if (type === "success") {
-      notificationIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-    } else {
-      notificationIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
-    }
-
-    notificationMessage.textContent = message;
-    notification.className = `notification show ${type}`;
-
-    // Auto-dismiss after 3 seconds with slide out animation
-    setTimeout(() => {
-      notification.style.animation = "slideOut 0.3s ease-out forwards";
-      setTimeout(() => {
-        notification.classList.remove("show");
-        notification.style.animation = "";
-      }, 300);
-    }, 3000);
   }
 
   // Close modal on outside click

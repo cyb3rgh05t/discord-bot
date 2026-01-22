@@ -32,6 +32,10 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/custom.css') }}"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/utilities.css') }}"
+    />
 
     {% block extra_head %}{% endblock %}
   </head>
@@ -130,6 +134,22 @@
           </a>
 
           <a
+            href="{{ url_for('commands.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('commands') %}active{% endif %}"
+          >
+            <i class="fas fa-terminal"></i>
+            <span>Commands</span>
+          </a>
+
+          <a
+            href="{{ url_for('guild_stats.index') }}"
+            class="nav-item {% if request.endpoint and request.endpoint.startswith('guild_stats') %}active{% endif %}"
+          >
+            <i class="fas fa-chart-bar"></i>
+            <span>Guild Stats</span>
+          </a>
+
+          <a
             href="{{ url_for('databases.index') }}"
             class="nav-item {% if request.endpoint and request.endpoint.startswith('databases') %}active{% endif %}"
           >
@@ -202,8 +222,197 @@
       </div>
     </main>
 
+    <!-- Global Notification Toast -->
+    <div class="notification" id="globalNotification">
+      <div class="notification-content">
+        <div class="notification-icon" id="globalNotificationIcon"></div>
+        <div class="notification-message" id="globalNotificationMessage"></div>
+      </div>
+      <div class="notification-progress">
+        <div class="notification-progress-bar"></div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block extra_scripts %}{% endblock %}
+
+    <script>
+      // Global notification function
+      function showNotification(message, type = "success") {
+        const notification = document.getElementById("globalNotification");
+        const notificationMessage = document.getElementById(
+          "globalNotificationMessage"
+        );
+        const notificationIcon = document.getElementById(
+          "globalNotificationIcon"
+        );
+
+        // Set icon based on type
+        if (type === "success") {
+          notificationIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+        } else if (type === "error") {
+          notificationIcon.innerHTML =
+            '<i class="fas fa-exclamation-circle"></i>';
+        } else if (type === "warning") {
+          notificationIcon.innerHTML =
+            '<i class="fas fa-exclamation-triangle"></i>';
+        } else if (type === "info") {
+          notificationIcon.innerHTML = '<i class="fas fa-info-circle"></i>';
+        }
+
+        notificationMessage.textContent = message;
+        notification.className = `notification show ${type}`;
+
+        // Clear any existing timeout
+        if (notification.hideTimeout) {
+          clearTimeout(notification.hideTimeout);
+        }
+
+        // Auto-dismiss after 3 seconds with slide out animation
+        notification.hideTimeout = setTimeout(() => {
+          notification.style.animation = "slideOut 0.3s ease-out forwards";
+          setTimeout(() => {
+            notification.classList.remove("show");
+            notification.style.animation = "";
+          }, 300);
+        }, 3000);
+      }
+    </script>
+
+    <style>
+      .notification {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        min-width: 300px;
+        max-width: 400px;
+        border-radius: 8px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        z-index: 1001;
+        display: none;
+        overflow: hidden;
+      }
+
+      .notification.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      .notification.success {
+        background: rgba(67, 181, 129, 0.15);
+        border: 1px solid rgba(67, 181, 129, 0.3);
+      }
+
+      .notification.error {
+        background: rgba(240, 71, 71, 0.15);
+        border: 1px solid rgba(240, 71, 71, 0.3);
+      }
+
+      .notification.warning {
+        background: rgba(250, 166, 26, 0.15);
+        border: 1px solid rgba(250, 166, 26, 0.3);
+      }
+
+      .notification.info {
+        background: rgba(88, 101, 242, 0.15);
+        border: 1px solid rgba(88, 101, 242, 0.3);
+      }
+
+      .notification-content {
+        padding: 1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .notification-icon {
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+
+      .notification-message {
+        flex: 1;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      .notification.success .notification-icon {
+        color: #43b581;
+      }
+
+      .notification.error .notification-icon {
+        color: #f04747;
+      }
+
+      .notification.warning .notification-icon {
+        color: #faa61a;
+      }
+
+      .notification.info .notification-icon {
+        color: #5865f2;
+      }
+
+      .notification-progress {
+        height: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .notification-progress-bar {
+        height: 100%;
+        background: currentColor;
+        width: 100%;
+        animation: progressShrink 3s linear forwards;
+      }
+
+      .notification.success .notification-progress-bar {
+        color: #43b581;
+      }
+
+      .notification.error .notification-progress-bar {
+        color: #f04747;
+      }
+
+      .notification.warning .notification-progress-bar {
+        color: #faa61a;
+      }
+
+      .notification.info .notification-progress-bar {
+        color: #5865f2;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(420px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(420px);
+          opacity: 0;
+        }
+      }
+
+      @keyframes progressShrink {
+        from {
+          width: 100%;
+        }
+        to {
+          width: 0%;
+        }
+      }
+    </style>
   </body>
 </html>
