@@ -189,8 +189,6 @@ async def catch_all(full_path: str):
 
     return JSONResponse(status_code=404, content={"error": "Frontend not built"})
 
-    return JSONResponse(status_code=404, content={"error": "Frontend not built"})
-
 
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc):
