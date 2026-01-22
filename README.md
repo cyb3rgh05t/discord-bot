@@ -12,6 +12,8 @@ A feature-rich Discord bot written in Python with support for ticketing, Plex in
 
 **[API Reference & Commands Documentation](API_REFERENCE.md)** | **[Changelog](CHANGELOG.md)** | **[License](LICENSE)**
 
+![Image of BOT](/images/preview.png)
+
 </div>
 
 ---
