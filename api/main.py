@@ -78,14 +78,14 @@ app = FastAPI(
 # Add logging middleware
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    logger.info(f"============ Request START ============")
-    logger.info(f"Method: {request.method}")
-    logger.info(f"URL: {request.url}")
-    logger.info(f"Path: {request.url.path}")
-    logger.info(f"Has Auth: {'authorization' in request.headers}")
+    logger.debug(f"============ Request START ============")
+    logger.debug(f"Method: {request.method}")
+    logger.debug(f"URL: {request.url}")
+    logger.debug(f"Path: {request.url.path}")
+    logger.debug(f"Has Auth: {'authorization' in request.headers}")
     response = await call_next(request)
-    logger.info(f"Response Status: {response.status_code}")
-    logger.info(f"============ Request END ============")
+    logger.debug(f"Response Status: {response.status_code}")
+    logger.debug(f"============ Request END ============")
     return response
 
 

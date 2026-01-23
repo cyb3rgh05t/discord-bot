@@ -67,7 +67,9 @@ class StreamlinedFormatter(logging.Formatter):
                     f"Discord connection refreshing (reconnecting in {reconnect_time})"
                 )
                 if self.use_colors:
-                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['BLUE'])} {self.colorize(msg, COLORS['BLUE'])}"
+                    return (
+                        f"[{timestamp}] {self.colorize('[INFO]', COLORS['BLUE'])} {msg}"
+                    )
                 else:
                     return f"[{timestamp}] [INFO] {msg}"
 
@@ -75,13 +77,15 @@ class StreamlinedFormatter(logging.Formatter):
                 code = "1000" if "1000" in record.getMessage() else "unknown"
                 msg = f"Discord connection reset (code: {code})"
                 if self.use_colors:
-                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['CYAN'])} {self.colorize(msg, COLORS['CYAN'])}"
+                    return (
+                        f"[{timestamp}] {self.colorize('[INFO]', COLORS['CYAN'])} {msg}"
+                    )
                 else:
                     return f"[{timestamp}] [INFO] {msg}"
 
             if "logging in using static token" in record.getMessage():
                 if self.use_colors:
-                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize('Discord bot logging in', COLORS['GREEN'])}"
+                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} Discord bot logging in"
                 else:
                     return f"[{timestamp}] [INFO] Discord bot logging in"
 
@@ -101,7 +105,7 @@ class StreamlinedFormatter(logging.Formatter):
                     session_short = "unknown"
                 msg = f"Discord connection established (Session: {session_short})"
                 if self.use_colors:
-                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {self.colorize(msg, COLORS['GREEN'])}"
+                    return f"[{timestamp}] {self.colorize('[INFO]', COLORS['GREEN'])} {msg}"
                 else:
                     return f"[{timestamp}] [INFO] {msg}"
 
@@ -135,7 +139,7 @@ class StreamlinedFormatter(logging.Formatter):
 
         # Format log message with level after timestamp
         if self.use_colors:
-            log_msg = f"[{timestamp}] {self.colorize(f'[{record.levelname}]', level_color)} {self.colorize(record.getMessage(), level_color)}"
+            log_msg = f"[{timestamp}] {self.colorize(f'[{record.levelname}]', level_color)} {record.getMessage()}"
         else:
             log_msg = f"[{timestamp}] [{record.levelname}] {record.getMessage()}"
 
