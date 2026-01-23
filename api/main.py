@@ -155,15 +155,6 @@ if frontend_dist.exists():
     logger.info(f"Serving static files from {frontend_dist}")
 
 
-@app.get("/favicon.png")
-async def serve_favicon():
-    """Serve the favicon"""
-    favicon_file = frontend_dist / "favicon.png"
-    if favicon_file.exists():
-        return FileResponse(favicon_file, media_type="image/png")
-    raise HTTPException(status_code=404, detail="Favicon not found")
-
-
 # Frontend routes LAST (after all API routes)
 @app.get("/")
 async def serve_frontend():
@@ -184,6 +175,13 @@ async def serve_frontend():
 async def catch_all(full_path: str, request: Request):
     """Catch-all route for SPA routing - serves index.html for all non-API routes"""
     logger.debug(f"Catch-all route hit: {full_path} | Full URL: {request.url}")
+
+    # Serve favicon directly
+    if full_path == "favicon.png":
+        favicon_file = frontend_dist / "favicon.png"
+        if favicon_file.exists():
+            return FileResponse(favicon_file, media_type="image/png")
+        raise HTTPException(status_code=404, detail="Favicon not found")
 
     # If it's an API or asset request, let it 404 naturally
     if (
