@@ -26,7 +26,7 @@ services:
       - "traefik.enable=true"
       # Web UI Router
       - "traefik.http.routers.bot-rtr.entrypoints=https"
-      - "traefik.http.routers.bot-rtr.rule=Host(`bot.${DOMAIN}`)"
+      - "traefik.http.routers.bot-rtr.rule=Host(`discord.${DOMAIN}`)"
       - "traefik.http.routers.bot-rtr.priority=1"
       - "traefik.http.routers.bot-rtr.tls=true"
       - "traefik.http.routers.bot-rtr.tls.certresolver=dns-cloudflare"
@@ -35,7 +35,7 @@ services:
       - "traefik.http.services.bot-svc.loadbalancer.server.port=5000"
       # Webhook Router (no auth)
       - "traefik.http.routers.bot-webhook-rtr.entrypoints=https"
-      - "traefik.http.routers.bot-webhook-rtr.rule=Host(`bot.${DOMAIN}`) && PathPrefix(`/webhook`)"
+      - "traefik.http.routers.bot-webhook-rtr.rule=Host(`discord.${DOMAIN}`) && PathPrefix(`/webhook`)"
       - "traefik.http.routers.bot-webhook-rtr.priority=2"
       - "traefik.http.routers.bot-webhook-rtr.tls=true"
       - "traefik.http.routers.bot-webhook-rtr.tls.certresolver=dns-cloudflare"
