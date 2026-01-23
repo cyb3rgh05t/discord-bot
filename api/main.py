@@ -155,6 +155,15 @@ if frontend_dist.exists():
     logger.info(f"Serving static files from {frontend_dist}")
 
 
+@app.get("/favicon.png")
+async def serve_favicon():
+    """Serve the favicon"""
+    favicon_file = frontend_dist / "favicon.png"
+    if favicon_file.exists():
+        return FileResponse(favicon_file, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+
 # Frontend routes LAST (after all API routes)
 @app.get("/")
 async def serve_frontend():
