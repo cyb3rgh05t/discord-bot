@@ -386,9 +386,9 @@ def start_web_ui(bot_instance):
                 app,
                 host=WEB_HOST,
                 port=WEB_PORT,
-                log_level="info" if WEB_VERBOSE_LOGGING else "error",
+                log_level="debug" if WEB_VERBOSE_LOGGING else "warning",
                 loop="asyncio",
-                access_log=WEB_VERBOSE_LOGGING,
+                access_log=WEB_VERBOSE_LOGGING,  # Only show HTTP request logs in verbose/debug mode
             )
             server = uvicorn.Server(config)
             logger.info(f"Starting Uvicorn server on http://{WEB_HOST}:{WEB_PORT}")
