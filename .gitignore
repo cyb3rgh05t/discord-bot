@@ -50,3 +50,4 @@ config/settings.py
 /tools
 /config/images
 /docs
+/api/static
