@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Discord Bot with FastAPI + React UI
 
 # Stage 1: Build React Frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:25-alpine AS frontend-builder
 
 WORKDIR /frontend
 
