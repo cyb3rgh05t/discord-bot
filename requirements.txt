@@ -11,7 +11,7 @@ python-dotenv
 plexapi==4.18.1
 texttable
 requests
-fastapi>=0.109.0
+fastapi>=0.136.1
 uvicorn[standard]>=0.27.0
 python-multipart>=0.0.27
 pyjwt>=2.8.0
